@@ -1,0 +1,161 @@
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+
+const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
+const AUDIO_EXTS = new Set(['.mp3', '.ogg', '.wav', '.m4a', '.flac']);
+const VIDEO_EXTS = new Set(['.mp4', '.webm', '.mov', '.m4v', '.ogv']);
+const BACKGROUND_IMAGE_NAMES = new Set([
+  'aec0-11053ce5a3a4e0317e912fb4c83ac425.jpg',
+  '5878-6bb05a194388855e8373ac1fc91cfc1d.jpg',
+  'd945-a2c8585abdd4e74da51039cd46646ce6.jpg',
+  '436a-6ab4aad6b794aeec9d4d8b7c39a4d22b.jpg',
+  '1af2-a1a9ea19a5d462e2fe31526a31f608b7.jpg',
+  '25c6-b37f22d8454c036b8cc433a2c38cdca5.jpg'
+]);
+
+function ensureDir(dir) {
+  fs.mkdirSync(dir, { recursive: true });
+}
+
+function listFiles(dir, exts) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
+    .filter((name) => exts.has(path.extname(name).toLowerCase()))
+    .sort((a, b) => a.localeCompare(b, 'zh-CN'));
+}
+
+function rootUrl(root, assetPath) {
+  return `${String(root || '/').replace(/\/?$/, '/')}${assetPath
+    .split('/')
+    .map((part) => encodeURIComponent(part))
+    .join('/')}`;
+}
+
+function musicTitle(file) {
+  return path.basename(file, path.extname(file))
+    .replace(/\s+-\s+.+$/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function loadMusicPlaylist(musicDir, availableTracks, hexo) {
+  const playlistPath = path.join(musicDir, 'playlist.json');
+  if (!fs.existsSync(playlistPath)) return availableTracks;
+
+  try {
+    const playlist = JSON.parse(fs.readFileSync(playlistPath, 'utf8'));
+    if (!Array.isArray(playlist)) {
+      hexo.log.warn('[DreamTheme] music/playlist.json must be an array of filenames. Falling back to all tracks.');
+      return availableTracks;
+    }
+
+    const available = new Set(availableTracks);
+    const selected = [];
+    playlist.forEach((name) => {
+      if (typeof name !== 'string') return;
+      if (!available.has(name)) {
+        hexo.log.warn(`[DreamTheme] Playlist track not found in music/: ${name}`);
+        return;
+      }
+      if (!selected.includes(name)) selected.push(name);
+    });
+    return selected;
+  } catch (error) {
+    hexo.log.warn(`[DreamTheme] Failed to read music/playlist.json: ${error.message}. Falling back to all tracks.`);
+    return availableTracks;
+  }
+}
+
+let cachedManifest = null;
+let cachedFiles = null;
+
+function collect(hexo) {
+  const baseDir = hexo.base_dir;
+
+  const pictureDir = path.join(baseDir, 'picture');
+  const musicDir = path.join(baseDir, 'music');
+  const videoDir = path.join(baseDir, 'video');
+
+  const pictures = listFiles(pictureDir, IMAGE_EXTS);
+  const backgroundPictures = pictures.filter((name) => BACKGROUND_IMAGE_NAMES.has(name));
+  const tracks = listFiles(musicDir, AUDIO_EXTS);
+  const playerTracks = loadMusicPlaylist(musicDir, tracks, hexo);
+  const videos = listFiles(videoDir, VIDEO_EXTS);
+
+  const manifest = {
+    pictures: backgroundPictures.map((name) => ({
+      name,
+      url: rootUrl(hexo.config.root, `assets/picture/${name}`)
+    })),
+    music: playerTracks.map((name) => ({
+      name,
+      title: musicTitle(name),
+      url: rootUrl(hexo.config.root, `assets/music/${name}`)
+    })),
+    videos: videos.map((name) => ({
+      name,
+      title: path.basename(name, path.extname(name)),
+      url: rootUrl(hexo.config.root, `assets/video/${name}`)
+    }))
+  };
+
+  const content = `window.DREAM_THEME_ASSETS = ${JSON.stringify(manifest, null, 2)};\n`;
+
+  cachedManifest = content;
+  cachedFiles = {
+    pictures: pictures.map((name) => ({
+      name,
+      source: path.join(pictureDir, name)
+    })),
+    tracks: tracks.map((name) => ({
+      name,
+      source: path.join(musicDir, name)
+    })),
+    videos: videos.map((name) => ({
+      name,
+      source: path.join(videoDir, name)
+    }))
+  };
+
+  hexo.log.info(`[DreamTheme] Synced ${pictures.length} picture asset(s), ${backgroundPictures.length} background image(s), ${tracks.length} audio asset(s), ${playerTracks.length} player track(s), and ${videos.length} video file(s).`);
+}
+
+hexo.on('generateBefore', () => {
+  collect(hexo);
+});
+
+hexo.extend.generator.register('dream_theme_assets', function() {
+  if (!cachedManifest || !cachedFiles) {
+    collect(hexo);
+  }
+
+  const routes = [{
+    path: 'js/dream-theme-manifest.js',
+    data: cachedManifest
+  }];
+
+  cachedFiles.pictures.forEach((file) => {
+    routes.push({
+      path: `assets/picture/${file.name}`,
+      data: () => Promise.resolve(fs.readFileSync(file.source))
+    });
+  });
+
+  cachedFiles.tracks.forEach((file) => {
+    routes.push({
+      path: `assets/music/${file.name}`,
+      data: () => Promise.resolve(fs.readFileSync(file.source))
+    });
+  });
+
+  cachedFiles.videos.forEach((file) => {
+    routes.push({
+      path: `assets/video/${file.name}`,
+      data: () => Promise.resolve(fs.readFileSync(file.source))
+    });
+  });
+
+  return routes;
+});

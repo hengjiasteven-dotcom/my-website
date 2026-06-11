@@ -1,0 +1,94 @@
+﻿# Hexo Configuration
+## Docs: https://hexo.io/docs/configuration.html
+
+# Site
+title: 小呆呆的博客
+subtitle: 分享技术 · 记录成长 · 思考生活
+description: 小呆呆的个人博客，分享技术、阅读与生活思考
+keywords: 技术博客,前端,后端,编程
+author: 小呆呆
+language: zh-CN
+timezone: Asia/Shanghai
+
+# URL
+url: https://xiaodaidai.qzz.io
+root: /
+permalink: :year/:month/:day/:title/
+permalink_defaults:
+pretty_urls:
+  trailing_index: true
+  trailing_html: true
+
+# Directory
+source_dir: source
+public_dir: public
+tag_dir: tags
+archive_dir: archives
+category_dir: categories
+code_dir: downloads/code
+i18n_dir: :lang
+skip_render:
+  - world/**
+
+# Writing
+new_post_name: :title.md
+default_layout: post
+titlecase: false
+external_link:
+  enable: true
+  field: site
+  exclude: ""
+filename_case: 0
+render_drafts: false
+post_asset_folder: false
+relative_link: false
+future: true
+syntax_highlighter: highlight.js
+highlight:
+  line_number: true
+  auto_detect: false
+  tab_replace: ""
+  wrap: true
+  hljs: false
+prismjs:
+  preprocess: true
+  line_number: true
+  tab_replace: ""
+
+# Home page setting
+index_generator:
+  path: ""
+  per_page: 10
+  order_by: -date
+
+# Category & Tag
+default_category: uncategorized
+category_map:
+tag_map:
+
+# Metadata elements
+meta_generator: true
+
+# Date / Time format
+date_format: YYYY-MM-DD
+time_format: HH:mm:ss
+updated_option: "mtime"
+
+# Pagination
+per_page: 10
+pagination_dir: page
+
+# Include / Exclude file(s)
+include:
+exclude:
+ignore:
+
+# Extensions
+## Themes
+theme: fluid
+
+# Deployment
+deploy:
+  type: git
+  repo: https://github.com/hengjiasteven-dotcom/my-website.git
+  branch: main
