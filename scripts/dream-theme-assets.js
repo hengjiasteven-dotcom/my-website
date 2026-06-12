@@ -33,6 +33,14 @@ function rootUrl(root, assetPath) {
     .join('/')}`;
 }
 
+function musicUrl(hexo, name) {
+  if (hexo.config.url === 'https://xiaodaidai.site') {
+    return `https://raw.githubusercontent.com/hengjiasteven-dotcom/my-website/source/music/${encodeURIComponent(name)}`;
+  }
+
+  return rootUrl(hexo.config.root, `assets/music/${name}`);
+}
+
 function musicTitle(file) {
   return path.basename(file, path.extname(file))
     .replace(/\s+-\s+.+$/, '')
@@ -92,7 +100,7 @@ function collect(hexo) {
     music: playerTracks.map((name) => ({
       name,
       title: musicTitle(name),
-      url: rootUrl(hexo.config.root, `assets/music/${name}`)
+      url: musicUrl(hexo, name)
     })),
     videos: videos.map((name) => ({
       name,
