@@ -6,3 +6,12 @@ public/
 .deploy_git/
 db.json
 *.log
+.codex-*
+.friend-links-temp/
+
+.vercel
+
+# Tencent Cloud EdgeOne
+.env
+.edgeone/*
+.tef_dist/*

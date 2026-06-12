@@ -3,15 +3,21 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "hexo generate",
+    "build": "npm run vendor:sync && hexo generate",
+    "vendor:sync": "node scripts/sync-vendor-assets.js",
+    "optimize:public": "node scripts/postbuild-optimize.js",
     "clean": "hexo clean",
     "deploy": "hexo deploy",
-    "server": "hexo server"
+    "server": "hexo server",
+    "server:api": "node dev/serve-with-api.js"
   },
   "hexo": {
     "version": "7.3.0"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "0.12.10",
+    "@waline/client": "3.15.2",
+    "@waline/emojis": "1.4.0",
     "hexo": "^7.0.0",
     "hexo-deployer-git": "^4.0.0",
     "hexo-generator-archive": "^2.0.0",
@@ -23,6 +29,13 @@
     "hexo-renderer-stylus": "^3.0.0",
     "hexo-server": "^3.0.0",
     "hexo-theme-fluid": "^1.9.9",
-    "hexo-theme-landscape": "^1.0.0"
-  }
+    "hexo-theme-landscape": "^1.0.0",
+    "three": "0.165.0"
+  },
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
 }

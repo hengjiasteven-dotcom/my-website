@@ -925,6 +925,10 @@ html[data-user-color-scheme="dark"] .tools-card {
   content: "\25A7";
 }
 
+.tools-card-icon .icon-world::before {
+  content: "\25CE";
+}
+
 .tools-card h3 {
   margin: 0 0 0.45rem;
   color: var(--post-heading-color);

@@ -1,6 +1,6 @@
 # Dream Fluid theme customization
 
-favicon: /img/site-icon.png
+favicon: /img/site-icon-64.png
 apple_touch_icon: /img/apple-touch-icon.png
 
 dark_mode:
@@ -14,15 +14,14 @@ font:
   code_font_size: 85%
 
 custom_css:
-  - /css/dream-fluid.css?v=20260609-14
+  - /css/dream-fluid.css
 
 custom_js:
-  - /js/dream-theme-manifest.js?v=20260609-13
-  - /js/dream-site-data.js?v=20260609-13
-  - /js/dream-fluid.js?v=20260609-13
+  - /js/dream-theme-manifest.js
+  - /js/dream-fluid.js
 
 static_prefix:
-  waline: https://unpkg.com/@waline/client@v3/dist/
+  waline: /js/vendor/waline/
 
 fun_features:
   typing:
@@ -84,6 +83,7 @@ navbar:
   blog_title: "小呆呆的博客"
   menu:
     - { key: "首页", link: "/", icon: "iconfont icon-home-fill" }
+    - { key: "3D", link: "/world/", icon: "iconfont icon-map" }
     - { key: "归档", link: "/archives/", icon: "iconfont icon-archive-fill" }
     - { key: "分类", link: "/categories/", icon: "iconfont icon-category-fill" }
     - { key: "功能", link: "/tools/", icon: "iconfont icon-chart" }
@@ -252,7 +252,7 @@ waline:
   meta: ['nick', 'mail', 'link']
   requiredMeta: ['nick']
   lang: zh-CN
-  emoji: ['https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo']
+  emoji: ['/js/vendor/waline-emojis/weibo']
   dark: 'html[data-user-color-scheme="dark"]'
   wordLimit: 0
   pageSize: 10

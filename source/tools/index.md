@@ -6,9 +6,17 @@ layout: page
 <div class="tools-hub" data-dream-tools>
 <section class="tools-intro">
 <h2>功能板块</h2>
-<p>这里放三个常用的小工具，文件会尽量在浏览器本地处理，不主动上传到服务器。</p>
+<p>这里放常用的小工具和互动入口，文件会尽量在浏览器本地处理，不主动上传到服务器。</p>
 </section>
 <section class="tools-grid" aria-label="功能列表">
+<a class="tools-card tools-card-link" href="/world/" data-no-pjax>
+<span class="tools-card-icon"><i class="iconfont icon-world" aria-hidden="true"></i></span>
+<div>
+<h3>3D 世界</h3>
+<p>进入一个可旋转、可缩放的 3D 场景，点击角色后可以打开对话面板。</p>
+<span class="tools-status">已上线</span>
+</div>
+</a>
 <a class="tools-card" href="#audio-converter" data-tool-open="audio-converter">
 <span class="tools-card-icon"><i class="iconfont icon-music" aria-hidden="true"></i></span>
 <div>

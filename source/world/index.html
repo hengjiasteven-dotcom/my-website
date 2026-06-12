@@ -500,7 +500,7 @@
       <div class="world-messages" data-messages></div>
       <form class="world-chat-form" data-chat-form>
         <input data-chat-input type="text" autocomplete="off" maxlength="240" placeholder="输入一句话">
-        <button class="world-send" type="submit" title="发送">
+        <button class="world-send" type="submit" title="发送" data-chat-submit>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="m22 2-7 20-4-9-9-4Z"></path>
             <path d="M22 2 11 13"></path>
@@ -520,8 +520,8 @@
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+        "three": "/js/vendor/three/build/three.module.js",
+        "three/addons/": "/js/vendor/three/examples/jsm/"
       }
     }
   </script>
@@ -535,6 +535,14 @@
       characterUrl: '/world/models/base_basic_pbr.glb',
       animations: {}
     };
+    const WORLD_CHAT_API_URL = (() => {
+      const localHosts = new Set(['localhost', '127.0.0.1', '::1']);
+      if (localHosts.has(window.location.hostname) || window.location.hostname.endsWith('.vercel.app')) {
+        return '/api/world-chat';
+      }
+
+      return 'https://my-website-zeta-indol-39.vercel.app/api/world-chat';
+    })();
 
     const canvas = document.getElementById('world-canvas');
     const loading = document.querySelector('[data-loading]');
@@ -543,6 +551,7 @@
     const messages = document.querySelector('[data-messages]');
     const chatForm = document.querySelector('[data-chat-form]');
     const chatInput = document.querySelector('[data-chat-input]');
+    const chatSubmit = document.querySelector('[data-chat-submit]');
     const chatState = document.querySelector('[data-chat-state]');
     const closeChat = document.querySelector('[data-close-chat]');
     const resetView = document.querySelector('[data-reset-view]');
@@ -674,6 +683,9 @@
       createMarker(4.1, 2.4, 1.6, 0xb8dce8)
     ];
 
+    const CHARACTER_STAGE_Y = 0.3;
+    const CHARACTER_BOB_Y = 0.035;
+
     const characterRoot = new THREE.Group();
     characterRoot.name = 'DreamCharacter';
     scene.add(characterRoot);
@@ -763,6 +775,7 @@
     let interactionHitbox = null;
     let hovered = false;
     let chatOpenedOnce = false;
+    let chatSending = false;
 
     function registerClickTargets(rootObject) {
       rootObject.traverse((node) => {
@@ -866,26 +879,42 @@
     }
 
     async function sendToAI(message) {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 28000);
+
       try {
-        const response = await fetch('/api/world-chat', {
+        const response = await fetch(WORLD_CHAT_API_URL, {
           method: 'POST',
+          signal: controller.signal,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             character: '小呆呆',
             message
           })
         });
-        if (!response.ok) throw new Error('AI endpoint unavailable');
-        const data = await response.json();
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || 'AI接口暂时不可用');
+        }
+
         return data.reply || data.message || '我听见了。';
       } catch (error) {
-        const samples = [
-          '等我的AI核心接上后，我们就能认真聊了。',
-          '这个场景已经醒着，正式角色模型也可以随时替换进来。',
-          '我会记住你刚刚说的话，等后端接通后再给你更完整的回应。'
-        ];
-        return samples[Math.floor(Math.random() * samples.length)];
+        if (error.name === 'AbortError') {
+          return 'AI后端响应超时了，稍后再试一次。';
+        }
+
+        return '等你拥有魔法我们再来聊天吧.......';
+      } finally {
+        window.clearTimeout(timeout);
       }
+    }
+
+    function setChatSending(sending) {
+      chatSending = sending;
+      chatInput.disabled = sending;
+      chatSubmit.disabled = sending;
+      chatInput.placeholder = sending ? '等待回复中' : '输入一句话';
     }
 
     function resetCamera() {
@@ -947,14 +976,23 @@
 
     chatForm.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (chatSending) return;
+
       const text = chatInput.value.trim();
       if (!text) return;
       chatInput.value = '';
       addMessage(text, true);
       chatState.textContent = '思考中';
-      const reply = await sendToAI(text);
-      addMessage(reply, false);
-      chatState.textContent = '在线';
+      setChatSending(true);
+
+      try {
+        const reply = await sendToAI(text);
+        addMessage(reply, false);
+      } finally {
+        setChatSending(false);
+        chatState.textContent = '在线';
+        chatInput.focus();
+      }
     });
 
     window.addEventListener('resize', () => {
@@ -967,7 +1005,7 @@
       const delta = clock.getDelta();
       const elapsed = clock.elapsedTime;
 
-      characterRoot.position.y = Math.sin(elapsed * 1.45) * 0.055;
+      characterRoot.position.y = CHARACTER_STAGE_Y + Math.sin(elapsed * 1.45) * CHARACTER_BOB_Y;
       characterRoot.rotation.y = Math.sin(elapsed * 0.58) * 0.08;
       halo.rotation.z += delta * 0.7;
       ring.rotation.z -= delta * 0.06;
@@ -995,6 +1033,8 @@
       .finally(() => {
         statusText.textContent = '等待角色';
         loading.classList.add('is-ready');
+        loading.hidden = true;
+        loading.textContent = '';
         animate();
       });
   </script>
