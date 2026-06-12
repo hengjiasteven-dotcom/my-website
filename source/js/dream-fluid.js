@@ -46,6 +46,12 @@
     return (index + length) % length;
   }
 
+  function musicSignature() {
+    return (assets.music || []).map(function(track) {
+      return [track.name || '', track.title || '', track.url || ''].join('|');
+    }).join('||');
+  }
+
   function runWhenIdle(callback, timeout) {
     if ('requestIdleCallback' in window) {
       return window.requestIdleCallback(callback, { timeout: timeout || 1600 });
@@ -385,7 +391,7 @@
       '<div class="dream-profile-copy">',
       '<h2 class="dream-profile-name">&#x5C0F;&#x5446;&#x5446;</h2>',
       '<span class="dream-profile-line" aria-hidden="true"></span>',
-      '<p class="dream-profile-bio">&#x5728;&#x4EE3;&#x7801;&#x4E2D;&#x6784;&#x5EFA;&#x4E16;&#x754C;&#xFF0C;<br>&#x5728;&#x6587;&#x5B57;&#x91CC;&#x5B89;&#x653E;&#x81EA;&#x5DF1;&#xFF0C;<br>&#x4FDD;&#x6301;&#x597D;&#x5947;&#xFF0C;&#x4FDD;&#x6301;&#x70ED;&#x7231;&#x3002;</p>',
+      '<p class="dream-profile-bio">&#x96EA;&#x843D;&#x65F6;&#xFF0C;&#x7709;&#x776B;&#x4E0A;&#x7684;&#x94F6;&#x6CB3;&#x51DD;&#x56FA;&#x6210;&#x4F60;&#x540D;&#x5B57;&#x7684;&#x661F;&#x5B50;&#xFF1B;<br>&#x6F6E;&#x6C50;&#x9000;&#x53BB;&#xFF0C;&#x8D1D;&#x58F3;&#x6DF1;&#x5904;&#x8FD8;&#x54CD;&#x7740;&#x4F60;&#x672A;&#x8BF4;&#x51FA;&#x53E3;&#x7684;&#x9ECE;&#x660E;</p>',
       '</div>',
       '</section>',
       '</div>'
@@ -1341,8 +1347,17 @@
       started: false,
       playing: false,
       currentTime: 0,
-      position: null
+      position: null,
+      musicSignature: ''
     }, getStored());
+    var currentMusicSignature = musicSignature();
+    if (state.musicSignature !== currentMusicSignature) {
+      state.index = 0;
+      state.started = false;
+      state.playing = false;
+      state.currentTime = 0;
+      state.musicSignature = currentMusicSignature;
+    }
     var storedWasPlaying = Boolean(state.playing);
     var storedUpdatedAt = Number(state.updatedAt || 0);
     var shouldAutoResume = storedWasPlaying && Date.now() - storedUpdatedAt < 30000;
@@ -1561,6 +1576,7 @@
         playing: state.playing,
         currentTime: Math.max(0, Number(state.currentTime || 0)),
         position: state.position,
+        musicSignature: currentMusicSignature,
         updatedAt: Date.now()
       });
     }
