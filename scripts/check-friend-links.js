@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const FRIENDS_DIR = path.join(process.cwd(), 'source', '_data', 'friends');
-const SITE_URL = 'https://xiaodaidai.qzz.io/';
+const SITE_URL = 'https://xiaodaidai.site/';
 const REQUIRED_FIELDS = ['name', 'url', 'avatar', 'description', 'backlink'];
 
 function fail(message) {

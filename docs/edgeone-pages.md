@@ -19,14 +19,14 @@ The same settings are also recorded in `edgeone.json`.
 Bind the production domain:
 
 ```text
-xiaodaidai.qzz.io
+xiaodaidai.site
 ```
 
 Choose the acceleration area by ICP status:
 
 - If the domain has an ICP filing, use Chinese mainland acceleration for the best mainland China access.
 - If the domain is not filed yet, use "Global availability zone (excluding Chinese mainland)" first. Chinese mainland or global acceleration requires an ICP filing and will reject the custom domain.
-- `xiaodaidai.qzz.io` is a subdomain of `qzz.io`; it may not be suitable for an ICP filing under your own account. A personally owned top-level domain is safer if mainland acceleration is needed later.
+- `xiaodaidai.site` is owned directly by you, so it is a better fit for ICP filing and long-term DNS control than the old shared subdomain.
 
 ## Current Dynamic Services
 

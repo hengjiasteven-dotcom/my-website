@@ -377,14 +377,18 @@
     var profile = document.createElement('aside');
     profile.className = 'col-12 col-lg-4 dream-profile-col';
     profile.innerHTML = [
+      '<div class="dream-profile-stack">',
       '<section class="dream-profile-card" aria-label="profile">',
       '<div class="dream-profile-avatar-wrap">',
       '<img class="dream-profile-avatar" src="' + siteAssetUrl('assets/picture/profile-avatar.jpeg') + '" alt="&#x5C0F;&#x5446;&#x5446;">',
       '</div>',
+      '<div class="dream-profile-copy">',
       '<h2 class="dream-profile-name">&#x5C0F;&#x5446;&#x5446;</h2>',
       '<span class="dream-profile-line" aria-hidden="true"></span>',
-      '<p class="dream-profile-bio">&#x96EA;&#x843D;&#x65F6;&#xFF0C;<br>&#x7709;&#x776B;&#x4E0A;&#x7684;&#x94F6;&#x6CB3;&#x51DD;&#x56FA;&#x6210;&#x4F60;&#x540D;&#x5B57;&#x7684;&#x661F;&#x5B50;&#xFF1B;<br>&#x6F6E;&#x6C50;&#x9000;&#x53BB;&#xFF0C;<br>&#x8D1D;&#x58F3;&#x6DF1;&#x5904;&#x8FD8;&#x54CD;&#x7740;&#x4F60;&#x672A;&#x8BF4;&#x51FA;&#x53E3;&#x7684;&#x9ECE;&#x660E;&#x3002;</p>',
-      '</section>'
+      '<p class="dream-profile-bio">&#x5728;&#x4EE3;&#x7801;&#x4E2D;&#x6784;&#x5EFA;&#x4E16;&#x754C;&#xFF0C;<br>&#x5728;&#x6587;&#x5B57;&#x91CC;&#x5B89;&#x653E;&#x81EA;&#x5DF1;&#xFF0C;<br>&#x4FDD;&#x6301;&#x597D;&#x5947;&#xFF0C;&#x4FDD;&#x6301;&#x70ED;&#x7231;&#x3002;</p>',
+      '</div>',
+      '</section>',
+      '</div>'
     ].join('');
 
     layoutRow.appendChild(profile);
@@ -393,7 +397,7 @@
   function createHomeWorldPortal() {
     if (!document.body.classList.contains('home')) return;
 
-    var profileCard = document.querySelector('.dream-profile-card');
+    var profileCard = document.querySelector('.dream-profile-stack') || document.querySelector('.dream-profile-card');
     if (!profileCard) return;
 
     var portal = profileCard.querySelector('.dream-world-entry');
@@ -575,6 +579,45 @@
 
   function onScroll() {
     document.body.classList.toggle('dream-scrolled', window.scrollY > 28);
+  }
+
+  function enhanceHomeHero() {
+    if (!document.body.classList.contains('home')) return;
+
+    var banner = document.getElementById('banner');
+    if (banner && !banner.querySelector('.dream-hero-art')) {
+      var bannerStyle = window.getComputedStyle(banner);
+      var bannerImage = bannerStyle.backgroundImage;
+      if (bannerImage && bannerImage !== 'none') {
+        root.style.setProperty('--dream-bg-image', bannerImage);
+        root.style.setProperty('--dream-bg-image-next', 'none');
+
+        var art = document.createElement('span');
+        art.className = 'dream-hero-art';
+        art.setAttribute('aria-hidden', 'true');
+        art.style.backgroundImage = bannerImage;
+        banner.insertBefore(art, banner.firstChild);
+        banner.style.backgroundImage = 'none';
+      }
+    }
+
+    var bannerText = document.querySelector('.banner-text');
+    if (!bannerText) return;
+
+    var subtitle = document.getElementById('subtitle');
+    if (subtitle) {
+      var typedText = subtitle.getAttribute('data-typed-text');
+      if (typedText && subtitle.textContent.trim() !== typedText) {
+        subtitle.innerHTML = escapeAttribute(typedText).replace(' · 思考生活', '<span class="dream-hero-break"></span> · 思考生活');
+      }
+    }
+
+    if (bannerText.querySelector('.dream-hero-subcopy')) return;
+
+    var subcopy = document.createElement('p');
+    subcopy.className = 'dream-hero-subcopy';
+    subcopy.textContent = '在代码与文字之间，寻找热爱，保持思考，成为更好的自己。';
+    bannerText.appendChild(subcopy);
   }
 
   function revealCards() {
@@ -926,7 +969,7 @@
         '',
         '- 支持列表',
         '- 支持 **加粗** 和 *斜体*',
-        '- 支持链接：[小呆呆的博客](https://xiaodaidai.qzz.io/)',
+        '- 支持链接：[小呆呆的博客](https://xiaodaidai.site/)',
         '',
         '> 愿你的梦里总有星星。',
         '',
@@ -1395,7 +1438,7 @@
     }
 
     function currentProfileCard() {
-      return document.body.classList.contains('home') ? document.querySelector('.dream-profile-card') : null;
+      return document.body.classList.contains('home') ? (document.querySelector('.dream-profile-stack') || document.querySelector('.dream-profile-card')) : null;
     }
 
     function clampPlayerPosition(position) {
@@ -2339,6 +2382,7 @@
   function initPage() {
     markPageType();
     pickBackgrounds();
+    enhanceHomeHero();
     constrainListingImages();
     groupIndexCardsByDate();
     createHomeProfile();

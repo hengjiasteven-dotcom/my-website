@@ -1,7 +1,7 @@
 const DEFAULT_CHAT_ENDPOINT = 'https://www.oiocode.com/v1/chat/completions';
 const DEFAULT_MODEL = 'gpt-5.4';
 const DEFAULT_ALLOWED_ORIGINS = [
-  'https://xiaodaidai.qzz.io',
+  'https://xiaodaidai.site',
   'https://my-website-zeta-indol-39.vercel.app',
   'https://my-website-hengjiasteven-8185s-projects.vercel.app',
   'http://localhost:4000',

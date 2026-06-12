@@ -11,7 +11,7 @@ language: zh-CN
 timezone: Asia/Shanghai
 
 # URL
-url: https://xiaodaidai.qzz.io
+url: https://xiaodaidai.site
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:

@@ -25,7 +25,7 @@ static_prefix:
 
 fun_features:
   typing:
-    enable: true
+    enable: false
     typeSpeed: 70
     cursorChar: "_"
     loop: false
@@ -110,7 +110,7 @@ scroll_top_arrow:
   enable: true
 
 index:
-  banner_img: /assets/picture/aec0-11053ce5a3a4e0317e912fb4c83ac425.jpg
+  banner_img: /assets/picture/illust_70192717_20181002_223845.jpg
   banner_img_height: 82
   banner_mask_alpha: 0
   slogan:
@@ -211,9 +211,9 @@ links:
             <h3>本站信息</h3>
             <ul>
               <li>网站名称：小呆呆的博客</li>
-              <li>网站地址：https://xiaodaidai.qzz.io/</li>
+              <li>网站地址：https://xiaodaidai.site/</li>
               <li>网站描述：分享技术，记录生活，顺手做点小工具。</li>
-              <li>网站头像：https://xiaodaidai.qzz.io/img/avatar.png</li>
+              <li>网站头像：https://xiaodaidai.site/img/avatar.png</li>
             </ul>
           </div>
           <div>
