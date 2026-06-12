@@ -17,8 +17,8 @@ custom_css:
   - /css/dream-fluid.css
 
 custom_js:
-  - /js/dream-theme-manifest.js
-  - /js/dream-fluid.js
+  - /js/dream-theme-manifest.js?v=20260612-music
+  - /js/dream-fluid.js?v=20260612-music
 
 static_prefix:
   waline: /js/vendor/waline/

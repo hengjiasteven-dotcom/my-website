@@ -6,6 +6,24 @@
   "nodeVersion": "20.18.0",
   "headers": [
     {
+      "source": "/js/dream-theme-manifest.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/js/dream-fluid.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/assets/*",
       "headers": [
         {
