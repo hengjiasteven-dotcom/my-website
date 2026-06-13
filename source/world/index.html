@@ -5,25 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>3D世界 - 小呆呆的博客</title>
   <meta name="description" content="小呆呆的3D世界入口">
+  <link rel="icon" href="data:,">
   <style>
     :root {
-      --world-ink: #f4fbff;
-      --world-muted: rgba(226, 239, 245, 0.72);
-      --world-line: rgba(214, 237, 244, 0.22);
-      --world-panel: rgba(15, 25, 35, 0.56);
-      --world-panel-strong: rgba(15, 25, 35, 0.78);
-      --world-accent: #75d2da;
-      --world-accent-strong: #52aebb;
-      --world-rose: #e998a0;
-      --world-shadow: 0 20px 64px rgba(0, 0, 0, 0.32);
-      --world-radius: 8px;
+      --ink: #f4fbff;
+      --muted: rgba(226, 239, 245, 0.74);
+      --line: rgba(214, 237, 244, 0.2);
+      --panel: rgba(12, 21, 31, 0.72);
+      --panel-strong: rgba(12, 21, 31, 0.9);
+      --accent: #75d2da;
+      --rose: #e998a0;
+      --shadow: 0 20px 64px rgba(0, 0, 0, 0.34);
+      --radius: 16px;
       font-family: Inter, "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
-      letter-spacing: 0;
     }
 
     * {
       box-sizing: border-box;
-      letter-spacing: 0;
     }
 
     html,
@@ -32,8 +30,8 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
+      color: var(--ink);
       background: #0d1822;
-      color: var(--world-ink);
     }
 
     button,
@@ -44,10 +42,18 @@
     .world-shell {
       position: fixed;
       inset: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 4fr) minmax(280px, 1fr);
+      background: #0d1822;
+    }
+
+    .world-stage {
+      position: relative;
+      min-width: 0;
       overflow: hidden;
       background:
-        linear-gradient(180deg, rgba(20, 45, 58, 0.92), rgba(12, 20, 30, 0.96) 68%),
-        #0d1822;
+        radial-gradient(circle at 50% 46%, rgba(117, 210, 218, 0.18), transparent 32rem),
+        linear-gradient(180deg, #173044 0%, #0d1822 70%);
     }
 
     #world-canvas {
@@ -57,125 +63,73 @@
       width: 100%;
       height: 100%;
       cursor: grab;
+      touch-action: none;
     }
 
-    #world-canvas.is-targeting {
+    #world-canvas.is-character-hover {
       cursor: pointer;
     }
 
-    .world-topbar {
+    #world-canvas.is-dragging {
+      cursor: grabbing;
+    }
+
+    .topbar {
       position: absolute;
       top: 1rem;
-      right: 1rem;
       left: 1rem;
-      z-index: 3;
+      right: 1rem;
+      z-index: 4;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      gap: 0.8rem;
+      gap: 0.75rem;
       pointer-events: none;
     }
 
-    .world-brand,
-    .world-actions {
+    .brand,
+    .actions,
+    .status,
+    .loader,
+    .chat {
+      backdrop-filter: blur(18px) saturate(1.12);
+      -webkit-backdrop-filter: blur(18px) saturate(1.12);
+    }
+
+    .brand,
+    .actions {
       pointer-events: auto;
     }
 
-    .world-brand {
-      display: inline-grid;
-      grid-template-columns: 2.45rem minmax(0, 1fr);
-      gap: 0.7rem;
-      align-items: center;
-      min-width: 0;
-      padding: 0.62rem 0.76rem;
-      border: 1px solid var(--world-line);
-      border-radius: var(--world-radius);
-      background: var(--world-panel);
-      box-shadow: var(--world-shadow);
-      backdrop-filter: blur(18px) saturate(1.12);
-      -webkit-backdrop-filter: blur(18px) saturate(1.12);
-    }
-
-    .world-brand-mark {
-      display: inline-grid;
-      place-items: center;
-      width: 2.45rem;
-      height: 2.45rem;
-      border-radius: var(--world-radius);
-      color: #081017;
-      background: linear-gradient(135deg, var(--world-accent), var(--world-rose));
-    }
-
-    .world-brand-mark svg {
-      width: 1.28rem;
-      height: 1.28rem;
-      fill: none;
-      stroke: currentColor;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-width: 1.9;
-    }
-
-    .world-brand-copy {
+    .brand {
       display: grid;
-      gap: 0.12rem;
-      min-width: 0;
-    }
-
-    .world-brand-copy strong {
-      overflow: hidden;
-      color: var(--world-ink);
-      font-size: 0.98rem;
-      font-weight: 820;
-      line-height: 1.18;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .world-brand-copy small {
-      color: var(--world-muted);
-      font-size: 0.76rem;
-      font-weight: 680;
-      line-height: 1.25;
-    }
-
-    .world-actions {
-      display: flex;
+      grid-template-columns: 2.6rem minmax(0, 1fr);
+      gap: 0.75rem;
       align-items: center;
-      gap: 0.55rem;
+      max-width: min(28rem, 58vw);
+      padding: 0.68rem 0.8rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
     }
 
-    .world-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.42rem;
-      min-height: 2.42rem;
-      padding: 0 0.84rem;
-      border: 1px solid var(--world-line);
-      border-radius: var(--world-radius);
-      color: var(--world-ink);
-      background: var(--world-panel);
-      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.2);
-      text-decoration: none;
-      cursor: pointer;
-      backdrop-filter: blur(18px) saturate(1.12);
-      -webkit-backdrop-filter: blur(18px) saturate(1.12);
-      transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 2.6rem;
+      height: 2.6rem;
+      border-radius: 13px;
+      color: #071118;
+      background: linear-gradient(135deg, var(--accent), var(--rose));
     }
 
-    .world-button:hover,
-    .world-button:focus {
-      border-color: rgba(117, 210, 218, 0.48);
-      background: rgba(82, 174, 187, 0.34);
-      color: #ffffff;
-      transform: translateY(-1px);
-      outline: none;
-    }
-
-    .world-button svg {
-      width: 1rem;
-      height: 1rem;
+    .brand-mark svg,
+    .btn svg,
+    .icon-btn svg,
+    .send svg {
+      width: 1.1rem;
+      height: 1.1rem;
       fill: none;
       stroke: currentColor;
       stroke-linecap: round;
@@ -183,860 +137,750 @@
       stroke-width: 2;
     }
 
-    .world-status {
+    .brand-copy {
+      display: grid;
+      gap: 0.16rem;
+      min-width: 0;
+    }
+
+    .brand-copy strong {
+      overflow: hidden;
+      font-size: 1rem;
+      font-weight: 850;
+      line-height: 1.15;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .brand-copy small,
+    .aside p,
+    .aside-foot,
+    .status,
+    .loader-detail,
+    .chat-title small,
+    .drop-card small {
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 0.55rem;
+    }
+
+    .btn,
+    .icon-btn,
+    .send {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.42rem;
+      min-height: 2.45rem;
+      padding: 0 0.88rem;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      color: var(--ink);
+      background: var(--panel);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+      text-decoration: none;
+    }
+
+    .btn:hover,
+    .btn:focus {
+      border-color: rgba(117, 210, 218, 0.55);
+      background: rgba(82, 174, 187, 0.32);
+      outline: none;
+    }
+
+    .status {
       position: absolute;
-      right: 1rem;
+      left: 1rem;
       bottom: 1rem;
-      z-index: 3;
+      z-index: 4;
       display: flex;
       align-items: center;
       gap: 0.55rem;
-      max-width: min(22rem, calc(100vw - 2rem));
-      padding: 0.66rem 0.78rem;
-      border: 1px solid var(--world-line);
-      border-radius: var(--world-radius);
-      color: var(--world-muted);
-      background: var(--world-panel);
-      box-shadow: var(--world-shadow);
-      font-size: 0.8rem;
-      font-weight: 720;
-      backdrop-filter: blur(18px) saturate(1.12);
-      -webkit-backdrop-filter: blur(18px) saturate(1.12);
-      pointer-events: none;
+      max-width: min(44rem, calc(100% - 2rem));
+      padding: 0.68rem 0.78rem;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      font-size: 0.82rem;
+      font-weight: 730;
     }
 
-    .world-status-dot {
-      width: 0.52rem;
-      height: 0.52rem;
+    .dot {
+      flex: 0 0 auto;
+      width: 0.55rem;
+      height: 0.55rem;
       border-radius: 999px;
-      background: var(--world-accent);
-      box-shadow: 0 0 18px rgba(117, 210, 218, 0.8);
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(117, 210, 218, 0.82);
     }
 
-    .world-chat {
+    .loader {
       position: absolute;
-      right: 1rem;
-      bottom: 4.7rem;
-      z-index: 4;
+      left: 50%;
+      top: 50%;
+      z-index: 5;
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr) auto;
-      width: min(24rem, calc(100vw - 2rem));
-      max-height: min(34rem, calc(100vh - 7rem));
-      border: 1px solid var(--world-line);
-      border-radius: var(--world-radius);
-      background: var(--world-panel-strong);
-      box-shadow: var(--world-shadow);
-      overflow: hidden;
-      backdrop-filter: blur(20px) saturate(1.12);
-      -webkit-backdrop-filter: blur(20px) saturate(1.12);
-      transform: translateY(0);
+      gap: 0.42rem;
+      width: min(28rem, calc(100% - 2rem));
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-strong);
+      box-shadow: var(--shadow);
+      transform: translate(-50%, -50%);
+      transition: opacity 180ms ease, visibility 180ms ease;
     }
 
-    .world-chat[hidden] {
+    .loader[hidden] {
       display: none;
     }
 
-    .world-chat-head {
+    .loader-title {
+      font-size: 0.98rem;
+      font-weight: 850;
+    }
+
+    .loader-detail {
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+
+    .chat {
+      position: absolute;
+      top: 5.25rem;
+      right: 1rem;
+      z-index: 6;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      width: min(20rem, calc(100% - 2rem));
+      max-height: min(26rem, calc(100% - 9rem));
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-strong);
+      box-shadow: var(--shadow);
+    }
+
+    .chat[hidden] {
+      display: none;
+    }
+
+    .chat-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 0.8rem;
       padding: 0.85rem 0.9rem;
-      border-bottom: 1px solid var(--world-line);
+      border-bottom: 1px solid var(--line);
     }
 
-    .world-chat-title {
+    .chat-title {
       display: grid;
       gap: 0.12rem;
       min-width: 0;
     }
 
-    .world-chat-title strong {
-      color: var(--world-ink);
-      font-size: 0.95rem;
-      font-weight: 820;
+    .chat-title strong {
+      font-size: 0.98rem;
+      font-weight: 850;
       line-height: 1.2;
     }
 
-    .world-chat-title small {
-      color: var(--world-muted);
-      font-size: 0.74rem;
-      font-weight: 680;
+    .chat-title small {
+      font-size: 0.75rem;
+      font-weight: 700;
     }
 
-    .world-icon-button {
-      display: inline-grid;
+    .icon-btn {
+      display: grid;
       place-items: center;
       flex: 0 0 auto;
       width: 2.1rem;
       height: 2.1rem;
-      border: 1px solid var(--world-line);
-      border-radius: var(--world-radius);
-      color: var(--world-ink);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--ink);
       background: rgba(255, 255, 255, 0.08);
-      cursor: pointer;
-      transition: background 180ms ease, color 180ms ease;
     }
 
-    .world-icon-button:hover,
-    .world-icon-button:focus {
-      color: #09131b;
-      background: var(--world-accent);
-      outline: none;
-    }
-
-    .world-icon-button svg {
-      width: 1rem;
-      height: 1rem;
-      fill: none;
-      stroke: currentColor;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-width: 2;
-    }
-
-    .world-messages {
+    .messages {
       display: grid;
       align-content: start;
       gap: 0.62rem;
-      min-height: 12rem;
+      min-height: 8rem;
       padding: 0.9rem;
       overflow: auto;
     }
 
-    .world-message {
-      max-width: 86%;
-      padding: 0.6rem 0.7rem;
+    .msg {
+      max-width: 88%;
+      padding: 0.62rem 0.72rem;
       border: 1px solid rgba(214, 237, 244, 0.16);
-      border-radius: var(--world-radius);
-      color: var(--world-ink);
+      border-radius: 13px;
       background: rgba(255, 255, 255, 0.08);
       font-size: 0.88rem;
       line-height: 1.55;
       overflow-wrap: anywhere;
     }
 
-    .world-message.is-user {
+    .msg.user {
       justify-self: end;
-      border-color: rgba(117, 210, 218, 0.28);
-      background: rgba(82, 174, 187, 0.26);
+      border-color: rgba(117, 210, 218, 0.32);
+      background: rgba(82, 174, 187, 0.28);
     }
 
-    .world-chat-form {
+    .chat-form {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 2.35rem;
+      grid-template-columns: minmax(0, 1fr) 2.4rem;
       gap: 0.5rem;
       padding: 0.78rem;
-      border-top: 1px solid var(--world-line);
+      border-top: 1px solid var(--line);
     }
 
-    .world-chat-form input {
+    .chat-form input {
       width: 100%;
       min-width: 0;
-      height: 2.35rem;
+      height: 2.38rem;
       padding: 0 0.75rem;
-      border: 1px solid var(--world-line);
-      border-radius: var(--world-radius);
-      color: var(--world-ink);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--ink);
       background: rgba(255, 255, 255, 0.08);
       outline: none;
     }
 
-    .world-chat-form input:focus {
-      border-color: rgba(117, 210, 218, 0.58);
-      box-shadow: 0 0 0 0.16rem rgba(117, 210, 218, 0.14);
-    }
-
-    .world-chat-form input::placeholder {
+    .chat-form input::placeholder {
       color: rgba(226, 239, 245, 0.48);
     }
 
-    .world-send {
-      display: inline-grid;
+    .send {
+      display: grid;
       place-items: center;
-      width: 2.35rem;
-      height: 2.35rem;
-      border: 0;
-      border-radius: var(--world-radius);
+      width: 2.4rem;
+      height: 2.38rem;
+      border-radius: 12px;
       color: #071118;
-      background: var(--world-accent);
-      cursor: pointer;
-      transition: background 180ms ease, transform 180ms ease;
+      background: var(--accent);
     }
 
-    .world-send:hover,
-    .world-send:focus {
-      background: #ffffff;
-      transform: translateY(-1px);
+    .aside {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(15rem, 44vh) minmax(0, 1fr) auto;
+      overflow: hidden;
+      border-left: 1px solid rgba(214, 237, 244, 0.12);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(117, 210, 218, 0.12), transparent 18rem),
+        linear-gradient(180deg, rgba(10, 16, 24, 0.98), rgba(13, 22, 33, 0.98));
+    }
+
+    .aside-head {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(214, 237, 244, 0.12);
+    }
+
+    .aside h2 {
+      margin: 0;
+      font-size: 1.02rem;
+      line-height: 1.2;
+    }
+
+    .aside p {
+      margin: 0.4rem 0 0;
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+
+    .dropzone {
+      display: grid;
+      align-content: start;
+      gap: 0.75rem;
+      margin: 1rem;
+      padding: 0.9rem;
+      min-height: 0;
+      overflow: auto;
+      border: 1px dashed rgba(117, 210, 218, 0.34);
+      border-radius: var(--radius);
+      background: rgba(117, 210, 218, 0.06);
+    }
+
+    .settings-scroll {
+      min-height: 0;
+      overflow: auto;
+      padding-bottom: 1rem;
+    }
+
+    .camera-panel {
+      display: grid;
+      gap: 0.8rem;
+      margin: 0 1rem 1rem;
+      padding: 0.9rem;
+      border: 1px solid rgba(214, 237, 244, 0.14);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.055);
+    }
+
+    .camera-panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .camera-panel h3 {
+      margin: 0;
+      font-size: 0.92rem;
+      line-height: 1.2;
+    }
+
+    .camera-panel p {
+      margin: 0.25rem 0 0;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.45;
+    }
+
+    .mini-btn {
+      flex: 0 0 auto;
+      min-height: 1.9rem;
+      padding: 0 0.62rem;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.07);
+      cursor: pointer;
+    }
+
+    .mini-btn:hover,
+    .mini-btn:focus {
+      border-color: rgba(117, 210, 218, 0.55);
       outline: none;
     }
 
-    .world-send svg {
-      width: 1rem;
-      height: 1rem;
-      fill: none;
-      stroke: currentColor;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-width: 2;
-    }
-
-    .world-loading {
-      position: absolute;
-      inset: 0;
-      z-index: 5;
+    .camera-control {
       display: grid;
-      place-items: center;
-      color: var(--world-muted);
-      background: #0d1822;
+      gap: 0.35rem;
+    }
+
+    .camera-control label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 760;
+    }
+
+    .camera-control output {
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .camera-control input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .camera-control input[type="color"] {
+      width: 100%;
+      height: 2.05rem;
+      padding: 0.16rem;
+      border: 1px solid rgba(214, 237, 244, 0.18);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+    }
+
+    .dropzone.dragover {
+      border-color: rgba(117, 210, 218, 0.75);
+      background: rgba(117, 210, 218, 0.13);
+    }
+
+    .drop-card {
+      display: grid;
+      gap: 0.32rem;
+      padding: 0.86rem 0.9rem;
+      border: 1px solid rgba(214, 237, 244, 0.14);
+      border-radius: 14px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.06);
+      cursor: grab;
+    }
+
+    .drop-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      min-width: 0;
+    }
+
+    .drop-card.is-active {
+      border-color: rgba(117, 210, 218, 0.52);
+      background: rgba(117, 210, 218, 0.1);
+    }
+
+    .drop-card:not(.is-active) [data-clear-model] {
+      display: none;
+    }
+
+    .drop-card:active {
+      cursor: grabbing;
+    }
+
+    .drop-card strong {
+      min-width: 0;
+      overflow: hidden;
       font-size: 0.9rem;
-      font-weight: 740;
-      transition: opacity 320ms ease, visibility 320ms ease;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .world-loading.is-ready {
-      opacity: 0;
-      visibility: hidden;
+    .drop-card small {
+      font-size: 0.76rem;
+      line-height: 1.45;
     }
 
-    @media (max-width: 700px) {
-      .world-topbar {
-        align-items: flex-start;
+    .model-editor {
+      display: grid;
+      gap: 0.5rem;
+      margin-top: 0.42rem;
+      padding-top: 0.58rem;
+      border-top: 1px solid rgba(214, 237, 244, 0.13);
+      cursor: default;
+    }
+
+    .model-editor[hidden] {
+      display: none;
+    }
+
+    .model-editor-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 760;
+    }
+
+    .model-axis {
+      display: grid;
+      gap: 0.2rem;
+    }
+
+    .model-axis label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.55rem;
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 760;
+    }
+
+    .model-axis output {
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .model-axis input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .model-axis input[type="number"] {
+      width: 100%;
+      height: 1.9rem;
+      padding: 0 0.5rem;
+      border: 1px solid rgba(214, 237, 244, 0.16);
+      border-radius: 10px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.075);
+      outline: none;
+    }
+
+    .model-axis input[type="number"]:focus {
+      border-color: rgba(117, 210, 218, 0.58);
+    }
+
+    .aside-foot {
+      padding: 1rem;
+      border-top: 1px solid rgba(214, 237, 244, 0.12);
+      font-size: 0.8rem;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 900px) {
+      .world-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(0, 4fr) minmax(220px, 1fr);
       }
 
-      .world-brand {
-        grid-template-columns: 2.2rem minmax(0, 1fr);
-        max-width: calc(100vw - 8rem);
+      .aside {
+        min-height: 0;
+        grid-template-rows: auto minmax(10rem, 1fr);
+        border-left: 0;
+        border-top: 1px solid rgba(214, 237, 244, 0.12);
       }
 
-      .world-brand-mark {
-        width: 2.2rem;
-        height: 2.2rem;
-      }
-
-      .world-button span {
+      .settings-scroll,
+      .aside-foot {
         display: none;
       }
 
-      .world-button {
-        width: 2.42rem;
+      .brand {
+        max-width: calc(100vw - 8rem);
+      }
+
+      .btn span {
+        display: none;
+      }
+
+      .btn {
+        width: 2.45rem;
         padding: 0;
-      }
-
-      .world-chat {
-        right: 0.75rem;
-        bottom: 4.4rem;
-        left: 0.75rem;
-        width: auto;
-        max-height: min(28rem, calc(100vh - 6.5rem));
-      }
-
-      .world-status {
-        right: 0.75rem;
-        bottom: 0.75rem;
-        left: 0.75rem;
-        max-width: none;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 1ms !important;
-        transition-duration: 1ms !important;
-        scroll-behavior: auto !important;
       }
     }
   </style>
 </head>
 <body>
-  <main class="world-shell" aria-label="3D世界">
-    <canvas id="world-canvas"></canvas>
+  <main class="world-shell">
+    <section class="world-stage" data-world-stage aria-label="3D世界">
+      <canvas id="world-canvas"></canvas>
 
-    <header class="world-topbar">
-      <div class="world-brand">
-        <span class="world-brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 3 20 7.5v9L12 21l-8-4.5v-9L12 3Z"></path>
-            <path d="m4 7.5 8 4.5 8-4.5M12 12v9"></path>
-          </svg>
-        </span>
-        <span class="world-brand-copy">
-          <strong>3D世界</strong>
-          <small>场景在线</small>
-        </span>
-      </div>
-      <nav class="world-actions" aria-label="窗口操作">
-        <a class="world-button" href="/" title="返回博客">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="m12 19-7-7 7-7"></path>
-            <path d="M19 12H5"></path>
-          </svg>
-          <span>返回博客</span>
-        </a>
-        <button class="world-button" type="button" data-reset-view title="重置视角">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 12a9 9 0 1 0 3-6.7"></path>
-            <path d="M3 4v5h5"></path>
-          </svg>
-          <span>重置视角</span>
-        </button>
-      </nav>
-    </header>
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3 20 7.5v9L12 21l-8-4.5v-9L12 3Z"></path>
+              <path d="m4 7.5 8 4.5 8-4.5M12 12v9"></path>
+            </svg>
+          </span>
+          <span class="brand-copy">
+            <strong>3D世界</strong>
+            <small>角色可拖动 · 点击角色进入 AI 对话</small>
+          </span>
+        </div>
+        <div class="actions">
+          <a class="btn" href="/" title="返回博客">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m12 19-7-7 7-7"></path>
+              <path d="M19 12H5"></path>
+            </svg>
+            <span>返回博客</span>
+          </a>
+          <button class="btn" type="button" data-reset-view title="重置视角">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+              <path d="M3 4v5h5"></path>
+            </svg>
+            <span>重置视角</span>
+          </button>
+        </div>
+      </header>
 
-    <section class="world-chat" data-chat hidden aria-label="角色对话">
-      <div class="world-chat-head">
-        <span class="world-chat-title">
-          <strong data-chat-name>小呆呆</strong>
-          <small data-chat-state>待机</small>
-        </span>
-        <button class="world-icon-button" type="button" data-close-chat title="关闭对话">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M18 6 6 18M6 6l12 12"></path>
-          </svg>
-        </button>
+      <section class="chat" data-chat hidden aria-label="角色 AI 对话">
+        <div class="chat-head">
+          <span class="chat-title">
+            <strong data-chat-name>犬夜叉</strong>
+            <small data-chat-state>待机</small>
+          </span>
+          <button class="icon-btn" type="button" data-close-chat title="关闭对话">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="messages" data-messages></div>
+        <form class="chat-form" data-chat-form>
+          <input data-chat-input type="text" autocomplete="off" maxlength="240" placeholder="输入一句话">
+          <button class="send" type="submit" data-chat-submit title="发送">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m22 2-7 20-4-9-9-4Z"></path>
+              <path d="M22 2 11 13"></path>
+            </svg>
+          </button>
+        </form>
+      </section>
+
+      <div class="loader" data-loader>
+        <strong class="loader-title" data-loader-title>正在启动 3D 世界</strong>
+        <span class="loader-detail" data-loader-detail>如果浏览器 WebGL、模块导入或脚本执行失败，这里会直接显示原因。</span>
       </div>
-      <div class="world-messages" data-messages></div>
-      <form class="world-chat-form" data-chat-form>
-        <input data-chat-input type="text" autocomplete="off" maxlength="240" placeholder="输入一句话">
-        <button class="world-send" type="submit" title="发送" data-chat-submit>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="m22 2-7 20-4-9-9-4Z"></path>
-            <path d="M22 2 11 13"></path>
-          </svg>
-        </button>
-      </form>
+
+      <div class="status" aria-live="polite">
+        <span class="dot" aria-hidden="true"></span>
+        <span data-world-status>准备启动</span>
+      </div>
     </section>
 
-    <div class="world-status" aria-live="polite">
-      <span class="world-status-dot" aria-hidden="true"></span>
-      <span data-world-status>等待角色</span>
-    </div>
-
-    <div class="world-loading" data-loading>加载3D世界</div>
+    <aside class="aside" aria-label="模型投放区">
+      <div class="aside-head">
+        <h2>模型投放区</h2>
+        <p>这里预留 20% 空间。以后访客可以从这里把模型拖进左侧 3D 世界。</p>
+      </div>
+      <div class="dropzone" id="dropzone">
+        <div class="drop-card" draggable="true" data-model-key="little-prince" data-model-url="/world/models/小王子.glb?v=20260613-1442" data-model-name="小王子">
+          <div class="drop-card-head">
+            <strong>小王子</strong>
+            <button class="mini-btn" type="button" data-clear-model>取消</button>
+          </div>
+          <small>拖到左侧会加载真实 GLB 模型</small>
+          <div class="model-editor" data-model-editor hidden>
+            <div class="model-editor-head"><span data-model-state>已投放</span></div>
+            <div class="model-axis">
+              <label>X <output data-model-x-value>0.0</output></label>
+              <input type="range" min="-22" max="22" step="0.1" value="0" data-model-x>
+              <input type="number" min="-22" max="22" step="0.1" value="0" data-model-x-number aria-label="模型 X 坐标">
+            </div>
+            <div class="model-axis">
+              <label>Y <output data-model-y-value>0.0</output></label>
+              <input type="range" min="0" max="8" step="0.1" value="0" data-model-y>
+              <input type="number" min="0" max="8" step="0.1" value="0" data-model-y-number aria-label="模型 Y 坐标">
+            </div>
+            <div class="model-axis">
+              <label>Z <output data-model-z-value>0.0</output></label>
+              <input type="range" min="-22" max="22" step="0.1" value="0" data-model-z>
+              <input type="number" min="-22" max="22" step="0.1" value="0" data-model-z-number aria-label="模型 Z 坐标">
+            </div>
+          </div>
+        </div>
+        <div class="drop-card" draggable="true" data-model-key="well" data-model-url="/world/models/水井.glb?v=20260613-1610" data-model-name="水井">
+          <div class="drop-card-head">
+            <strong>水井</strong>
+            <button class="mini-btn" type="button" data-clear-model>取消</button>
+          </div>
+          <small>拖到左侧会加载真实水井 GLB 模型</small>
+          <div class="model-editor" data-model-editor hidden>
+            <div class="model-editor-head"><span data-model-state>已投放</span></div>
+            <div class="model-axis">
+              <label>X <output data-model-x-value>0.0</output></label>
+              <input type="range" min="-22" max="22" step="0.1" value="0" data-model-x>
+              <input type="number" min="-22" max="22" step="0.1" value="0" data-model-x-number aria-label="模型 X 坐标">
+            </div>
+            <div class="model-axis">
+              <label>Y <output data-model-y-value>0.0</output></label>
+              <input type="range" min="0" max="8" step="0.1" value="0" data-model-y>
+              <input type="number" min="0" max="8" step="0.1" value="0" data-model-y-number aria-label="模型 Y 坐标">
+            </div>
+            <div class="model-axis">
+              <label>Z <output data-model-z-value>0.0</output></label>
+              <input type="range" min="-22" max="22" step="0.1" value="0" data-model-z>
+              <input type="number" min="-22" max="22" step="0.1" value="0" data-model-z-number aria-label="模型 Z 坐标">
+            </div>
+          </div>
+        </div>
+        <div class="drop-card" draggable="true" data-model-key="cabin" data-model-url="/world/models/小木屋.glb?v=20260613-1641" data-model-name="小木屋">
+          <div class="drop-card-head">
+            <strong>小木屋</strong>
+            <button class="mini-btn" type="button" data-clear-model>取消</button>
+          </div>
+          <small>拖到左侧会加载真实小木屋 GLB 模型</small>
+          <div class="model-editor" data-model-editor hidden>
+            <div class="model-editor-head"><span data-model-state>已投放</span></div>
+            <div class="model-axis">
+              <label>X <output data-model-x-value>0.0</output></label>
+              <input type="range" min="-22" max="22" step="0.1" value="0" data-model-x>
+              <input type="number" min="-22" max="22" step="0.1" value="0" data-model-x-number aria-label="模型 X 坐标">
+            </div>
+            <div class="model-axis">
+              <label>Y <output data-model-y-value>0.0</output></label>
+              <input type="range" min="0" max="8" step="0.1" value="0" data-model-y>
+              <input type="number" min="0" max="8" step="0.1" value="0" data-model-y-number aria-label="模型 Y 坐标">
+            </div>
+            <div class="model-axis">
+              <label>Z <output data-model-z-value>0.0</output></label>
+              <input type="range" min="-22" max="22" step="0.1" value="0" data-model-z>
+              <input type="number" min="-22" max="22" step="0.1" value="0" data-model-z-number aria-label="模型 Z 坐标">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="settings-scroll" aria-label="场景设置区">
+        <section class="camera-panel" aria-label="摄像机调整">
+          <div class="camera-panel-head">
+            <div>
+              <h3>摄像机调整</h3>
+              <p>显示当前摄像机 X / Y / Z 坐标，左侧鼠标调整会同步到这里。</p>
+            </div>
+            <button class="mini-btn" type="button" data-camera-default>默认</button>
+          </div>
+          <div class="camera-control">
+            <label for="camera-x">X 坐标 <output data-camera-x-value>10.0</output></label>
+            <input id="camera-x" type="range" min="-24" max="24" step="0.1" value="10" data-camera-x>
+          </div>
+          <div class="camera-control">
+            <label for="camera-y">Y 高度 <output data-camera-y-value>7.0</output></label>
+            <input id="camera-y" type="range" min="0" max="18" step="0.1" value="7" data-camera-y>
+          </div>
+          <div class="camera-control">
+            <label for="camera-z">Z 坐标 <output data-camera-z-value>14.0</output></label>
+            <input id="camera-z" type="range" min="-24" max="24" step="0.1" value="14" data-camera-z>
+          </div>
+        </section>
+        <section class="camera-panel" aria-label="灯光背景调整">
+          <div class="camera-panel-head">
+            <div>
+              <h3>灯光/背景调整</h3>
+              <p>调整背景颜色和场景灯光强度。</p>
+            </div>
+            <button class="mini-btn" type="button" data-light-default>默认</button>
+          </div>
+          <div class="camera-control">
+            <label for="background-color">背景颜色 <output data-background-color-value>#2e2c81</output></label>
+            <input id="background-color" type="color" value="#2e2c81" data-background-color>
+          </div>
+          <div class="camera-control">
+            <label for="water-color">水面颜色 <output data-water-color-value>#54a9ab</output></label>
+            <input id="water-color" type="color" value="#54a9ab" data-water-color>
+          </div>
+          <div class="camera-control">
+            <label for="ambient-light">环境光强度 <output data-ambient-light-value>8.0</output></label>
+            <input id="ambient-light" type="range" min="0" max="8" step="0.1" value="8" data-ambient-light>
+          </div>
+          <div class="camera-control">
+            <label for="sun-light">主光强度 <output data-sun-light-value>12.0</output></label>
+            <input id="sun-light" type="range" min="0" max="12" step="0.1" value="12" data-sun-light>
+          </div>
+          <div class="camera-control">
+            <label for="sun-color">主光颜色 <output data-sun-color-value>#ff0000</output></label>
+            <input id="sun-color" type="color" value="#ff0000" data-sun-color>
+          </div>
+        </section>
+      </div>
+      <div class="aside-foot">当前固定加载：环境树和犬夜叉。只有角色能拖动，环境不会被拖动。</div>
+    </aside>
   </main>
 
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "/js/vendor/three/build/three.module.js",
-        "three/addons/": "/js/vendor/three/examples/jsm/"
-      }
-    }
+  <script>
+    window.__worldBootState = { started: false, firstFrame: false, error: '' };
+    window.addEventListener('DOMContentLoaded', () => {
+      window.setTimeout(() => {
+        if (window.__worldBootState.started) return;
+        const title = document.querySelector('[data-loader-title]');
+        const detail = document.querySelector('[data-loader-detail]');
+        const status = document.querySelector('[data-world-status]');
+        if (title) title.textContent = '3D 脚本没有启动';
+        if (detail) detail.textContent = '浏览器没有执行 3D 主脚本。请强制刷新页面，或检查 /world/world-app.js 是否加载成功。';
+        if (status) status.textContent = '脚本未启动';
+      }, 2500);
+    });
   </script>
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-
-    const WORLD_ASSETS = {
-      sceneUrl: '',
-      characterUrl: '/world/models/base_basic_pbr.glb',
-      animations: {}
-    };
-    const WORLD_CHAT_API_URL = (() => {
-      const localHosts = new Set(['localhost', '127.0.0.1', '::1']);
-      if (localHosts.has(window.location.hostname) || window.location.hostname.endsWith('.vercel.app')) {
-        return '/api/world-chat';
-      }
-
-      return 'https://my-website-zeta-indol-39.vercel.app/api/world-chat';
-    })();
-
-    const canvas = document.getElementById('world-canvas');
-    const loading = document.querySelector('[data-loading]');
-    const statusText = document.querySelector('[data-world-status]');
-    const chat = document.querySelector('[data-chat]');
-    const messages = document.querySelector('[data-messages]');
-    const chatForm = document.querySelector('[data-chat-form]');
-    const chatInput = document.querySelector('[data-chat-input]');
-    const chatSubmit = document.querySelector('[data-chat-submit]');
-    const chatState = document.querySelector('[data-chat-state]');
-    const closeChat = document.querySelector('[data-close-chat]');
-    const resetView = document.querySelector('[data-reset-view]');
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x14232f);
-    scene.fog = new THREE.FogExp2(0x14232f, 0.038);
-
-    const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 160);
-    camera.position.set(5.6, 4.2, 8.4);
-
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: true,
-      alpha: false,
-      powerPreference: 'high-performance'
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.target.set(0, 1.2, 0);
-    controls.minDistance = 4;
-    controls.maxDistance = 18;
-    controls.maxPolarAngle = Math.PI * 0.48;
-    controls.update();
-
-    const ambient = new THREE.HemisphereLight(0xdff8ff, 0x253145, 1.75);
-    scene.add(ambient);
-
-    const sun = new THREE.DirectionalLight(0xfff4df, 3.2);
-    sun.position.set(6, 9, 4);
-    sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
-    sun.shadow.camera.near = 0.5;
-    sun.shadow.camera.far = 26;
-    sun.shadow.camera.left = -9;
-    sun.shadow.camera.right = 9;
-    sun.shadow.camera.top = 9;
-    sun.shadow.camera.bottom = -9;
-    scene.add(sun);
-
-    const fill = new THREE.PointLight(0x75d2da, 2.2, 18);
-    fill.position.set(-4, 3.2, -3.8);
-    scene.add(fill);
-
-    const floor = new THREE.Mesh(
-      new THREE.CircleGeometry(18, 96),
-      new THREE.MeshStandardMaterial({
-        color: 0x203849,
-        roughness: 0.86,
-        metalness: 0.02
-      })
-    );
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
-
-    const grid = new THREE.GridHelper(32, 32, 0x75d2da, 0x315062);
-    grid.position.y = 0.012;
-    grid.material.opacity = 0.24;
-    grid.material.transparent = true;
-    scene.add(grid);
-
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(3.2, 0.018, 10, 140),
-      new THREE.MeshBasicMaterial({ color: 0x75d2da, transparent: true, opacity: 0.52 })
-    );
-    ring.rotation.x = Math.PI / 2;
-    ring.position.y = 0.05;
-    scene.add(ring);
-
-    const pedestal = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.05, 1.18, 0.22, 48),
-      new THREE.MeshStandardMaterial({
-        color: 0x2d5566,
-        roughness: 0.64,
-        metalness: 0.14
-      })
-    );
-    pedestal.position.y = 0.11;
-    pedestal.castShadow = true;
-    pedestal.receiveShadow = true;
-    scene.add(pedestal);
-
-    function createMarker(x, z, height, color) {
-      const group = new THREE.Group();
-      const base = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.16, 0.2, 0.18, 24),
-        new THREE.MeshStandardMaterial({ color, roughness: 0.62 })
-      );
-      const stem = new THREE.Mesh(
-        new THREE.BoxGeometry(0.08, height, 0.08),
-        new THREE.MeshStandardMaterial({ color, roughness: 0.52, metalness: 0.08 })
-      );
-      const cap = new THREE.Mesh(
-        new THREE.OctahedronGeometry(0.28),
-        new THREE.MeshStandardMaterial({
-          color,
-          roughness: 0.42,
-          metalness: 0.08,
-          emissive: color,
-          emissiveIntensity: 0.12
-        })
-      );
-      base.position.y = 0.09;
-      stem.position.y = 0.18 + height / 2;
-      cap.position.y = height + 0.46;
-      group.add(base, stem, cap);
-      group.position.set(x, 0, z);
-      group.traverse((node) => {
-        if (node.isMesh) {
-          node.castShadow = true;
-          node.receiveShadow = true;
-        }
-      });
-      scene.add(group);
-      return group;
-    }
-
-    const markers = [
-      createMarker(-3.4, -2.8, 1.5, 0x75d2da),
-      createMarker(3.6, -3.1, 1.1, 0xe998a0),
-      createMarker(-4.2, 2.8, 1.2, 0x91b579),
-      createMarker(4.1, 2.4, 1.6, 0xb8dce8)
-    ];
-
-    const CHARACTER_STAGE_Y = 0.3;
-    const CHARACTER_BOB_Y = 0.035;
-
-    const characterRoot = new THREE.Group();
-    characterRoot.name = 'DreamCharacter';
-    scene.add(characterRoot);
-
-    const fallbackCharacter = new THREE.Group();
-    fallbackCharacter.name = 'FallbackCharacter';
-    characterRoot.add(fallbackCharacter);
-
-    const bodyMaterial = new THREE.MeshStandardMaterial({
-      color: 0x9edfe5,
-      roughness: 0.48,
-      metalness: 0.04
-    });
-    const darkMaterial = new THREE.MeshStandardMaterial({
-      color: 0x182734,
-      roughness: 0.62
-    });
-    const accentMaterial = new THREE.MeshStandardMaterial({
-      color: 0xe998a0,
-      roughness: 0.5,
-      emissive: 0x7b2f38,
-      emissiveIntensity: 0.08
-    });
-
-    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.55, 1.05, 8, 18), bodyMaterial);
-    body.position.y = 1.22;
-    body.castShadow = true;
-    body.receiveShadow = true;
-    fallbackCharacter.add(body);
-
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.5, 36, 24), bodyMaterial);
-    head.position.y = 2.28;
-    head.castShadow = true;
-    fallbackCharacter.add(head);
-
-    const face = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.08, 0.04), darkMaterial);
-    face.position.set(0, 2.22, 0.47);
-    face.castShadow = true;
-    fallbackCharacter.add(face);
-
-    const chest = new THREE.Mesh(new THREE.OctahedronGeometry(0.18), accentMaterial);
-    chest.position.set(0, 1.35, 0.52);
-    chest.castShadow = true;
-    fallbackCharacter.add(chest);
-
-    const armGeometry = new THREE.CapsuleGeometry(0.12, 0.68, 6, 12);
-    const leftArm = new THREE.Mesh(armGeometry, bodyMaterial);
-    leftArm.position.set(-0.64, 1.46, 0);
-    leftArm.rotation.z = 0.28;
-    leftArm.castShadow = true;
-    fallbackCharacter.add(leftArm);
-
-    const rightArm = leftArm.clone();
-    rightArm.position.x = 0.64;
-    rightArm.rotation.z = -0.28;
-    rightArm.castShadow = true;
-    fallbackCharacter.add(rightArm);
-
-    const footGeometry = new THREE.BoxGeometry(0.34, 0.18, 0.58);
-    const leftFoot = new THREE.Mesh(footGeometry, darkMaterial);
-    leftFoot.position.set(-0.26, 0.22, 0.08);
-    leftFoot.castShadow = true;
-    fallbackCharacter.add(leftFoot);
-
-    const rightFoot = leftFoot.clone();
-    rightFoot.position.x = 0.26;
-    rightFoot.castShadow = true;
-    fallbackCharacter.add(rightFoot);
-
-    const halo = new THREE.Mesh(
-      new THREE.TorusGeometry(0.72, 0.018, 8, 96),
-      new THREE.MeshBasicMaterial({ color: 0x75d2da, transparent: true, opacity: 0.78 })
-    );
-    halo.position.y = 2.86;
-    halo.rotation.x = Math.PI / 2;
-    fallbackCharacter.add(halo);
-
-    const clickTargets = [];
-    registerClickTargets(fallbackCharacter);
-
-    const raycaster = new THREE.Raycaster();
-    const pointer = new THREE.Vector2();
-    const clock = new THREE.Clock();
-    const loader = new GLTFLoader();
-    let mixer = null;
-    let loadedCharacter = null;
-    let interactionHitbox = null;
-    let hovered = false;
-    let chatOpenedOnce = false;
-    let chatSending = false;
-
-    function registerClickTargets(rootObject) {
-      rootObject.traverse((node) => {
-        if (node.isMesh && !clickTargets.includes(node)) {
-          clickTargets.push(node);
-        }
-      });
-    }
-
-    function clearClickTargets() {
-      clickTargets.length = 0;
-    }
-
-    function fitObjectToStage(object, targetHeight) {
-      object.updateMatrixWorld(true);
-      const box = new THREE.Box3().setFromObject(object);
-      const size = new THREE.Vector3();
-      const center = new THREE.Vector3();
-      box.getSize(size);
-      box.getCenter(center);
-
-      const height = size.y || 1;
-      const scale = targetHeight / height;
-      object.scale.setScalar(scale);
-      object.updateMatrixWorld(true);
-
-      const fittedBox = new THREE.Box3().setFromObject(object);
-      const fittedCenter = new THREE.Vector3();
-      fittedBox.getCenter(fittedCenter);
-      object.position.x -= fittedCenter.x;
-      object.position.z -= fittedCenter.z;
-      object.position.y -= fittedBox.min.y;
-    }
-
-    function setInteractionHitboxFromObject(object) {
-      if (interactionHitbox && interactionHitbox.parent) {
-        interactionHitbox.parent.remove(interactionHitbox);
-      }
-
-      object.updateMatrixWorld(true);
-      const box = new THREE.Box3().setFromObject(object);
-      const size = new THREE.Vector3();
-      const center = new THREE.Vector3();
-      box.getSize(size);
-      box.getCenter(center);
-
-      interactionHitbox = new THREE.Mesh(
-        new THREE.BoxGeometry(
-          Math.max(size.x, 0.9),
-          Math.max(size.y, 1.7),
-          Math.max(size.z, 0.65)
-        ),
-        new THREE.MeshBasicMaterial({
-          transparent: true,
-          opacity: 0,
-          depthWrite: false
-        })
-      );
-      interactionHitbox.name = 'CharacterInteractionHitbox';
-      interactionHitbox.position.copy(center);
-      interactionHitbox.renderOrder = -1;
-      characterRoot.add(interactionHitbox);
-      registerClickTargets(interactionHitbox);
-    }
-
-    function pointerFromEvent(event) {
-      const rect = canvas.getBoundingClientRect();
-      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    }
-
-    function intersectsCharacter(event) {
-      pointerFromEvent(event);
-      raycaster.setFromCamera(pointer, camera);
-      return raycaster.intersectObjects(clickTargets, false).length > 0;
-    }
-
-    function addMessage(text, user) {
-      const bubble = document.createElement('div');
-      bubble.className = 'world-message' + (user ? ' is-user' : '');
-      bubble.textContent = text;
-      messages.appendChild(bubble);
-      messages.scrollTop = messages.scrollHeight;
-    }
-
-    function openChat() {
-      chat.hidden = false;
-      chatState.textContent = '在线';
-      statusText.textContent = '角色已选中';
-      if (!chatOpenedOnce) {
-        addMessage('我在这里。', false);
-        chatOpenedOnce = true;
-      }
-      requestAnimationFrame(() => chatInput.focus());
-    }
-
-    function closeChatPanel() {
-      chat.hidden = true;
-      chatState.textContent = '待机';
-      statusText.textContent = '等待角色';
-    }
-
-    async function sendToAI(message) {
-      const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 28000);
-
-      try {
-        const response = await fetch(WORLD_CHAT_API_URL, {
-          method: 'POST',
-          signal: controller.signal,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            character: '小呆呆',
-            message
-          })
-        });
-
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(data.error || 'AI接口暂时不可用');
-        }
-
-        return data.reply || data.message || '我听见了。';
-      } catch (error) {
-        if (error.name === 'AbortError') {
-          return 'AI后端响应超时了，稍后再试一次。';
-        }
-
-        return '等你拥有魔法我们再来聊天吧.......';
-      } finally {
-        window.clearTimeout(timeout);
-      }
-    }
-
-    function setChatSending(sending) {
-      chatSending = sending;
-      chatInput.disabled = sending;
-      chatSubmit.disabled = sending;
-      chatInput.placeholder = sending ? '等待回复中' : '输入一句话';
-    }
-
-    function resetCamera() {
-      camera.position.set(5.6, 4.2, 8.4);
-      controls.target.set(0, 1.2, 0);
-      controls.update();
-    }
-
-    async function loadConfiguredAssets() {
-      if (WORLD_ASSETS.sceneUrl) {
-        const gltf = await loader.loadAsync(WORLD_ASSETS.sceneUrl);
-        gltf.scene.traverse((node) => {
-          if (node.isMesh) {
-            node.castShadow = true;
-            node.receiveShadow = true;
-          }
-        });
-        scene.add(gltf.scene);
-      }
-
-      if (WORLD_ASSETS.characterUrl) {
-        const gltf = await loader.loadAsync(WORLD_ASSETS.characterUrl);
-        loadedCharacter = gltf.scene;
-        loadedCharacter.traverse((node) => {
-          if (node.isMesh) {
-            node.castShadow = true;
-            node.receiveShadow = true;
-            if (node.material) {
-              node.material.needsUpdate = true;
-            }
-          }
-        });
-        characterRoot.clear();
-        clearClickTargets();
-        fitObjectToStage(loadedCharacter, 2.65);
-        characterRoot.add(loadedCharacter);
-        registerClickTargets(loadedCharacter);
-        setInteractionHitboxFromObject(loadedCharacter);
-        if (gltf.animations && gltf.animations.length) {
-          mixer = new THREE.AnimationMixer(loadedCharacter);
-          mixer.clipAction(gltf.animations[0]).play();
-        }
-      }
-    }
-
-    canvas.addEventListener('pointermove', (event) => {
-      hovered = intersectsCharacter(event);
-      canvas.classList.toggle('is-targeting', hovered);
-    });
-
-    canvas.addEventListener('click', (event) => {
-      if (intersectsCharacter(event)) {
-        openChat();
-      }
-    });
-
-    closeChat.addEventListener('click', closeChatPanel);
-    resetView.addEventListener('click', resetCamera);
-
-    chatForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      if (chatSending) return;
-
-      const text = chatInput.value.trim();
-      if (!text) return;
-      chatInput.value = '';
-      addMessage(text, true);
-      chatState.textContent = '思考中';
-      setChatSending(true);
-
-      try {
-        const reply = await sendToAI(text);
-        addMessage(reply, false);
-      } finally {
-        setChatSending(false);
-        chatState.textContent = '在线';
-        chatInput.focus();
-      }
-    });
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    function animate() {
-      const delta = clock.getDelta();
-      const elapsed = clock.elapsedTime;
-
-      characterRoot.position.y = CHARACTER_STAGE_Y + Math.sin(elapsed * 1.45) * CHARACTER_BOB_Y;
-      characterRoot.rotation.y = Math.sin(elapsed * 0.58) * 0.08;
-      halo.rotation.z += delta * 0.7;
-      ring.rotation.z -= delta * 0.06;
-      markers.forEach((marker, index) => {
-        marker.children[2].rotation.y += delta * (0.42 + index * 0.08);
-        marker.children[2].position.y += Math.sin(elapsed * 1.2 + index) * 0.0008;
-      });
-
-      if (hovered) {
-        characterRoot.scale.lerp(new THREE.Vector3(1.035, 1.035, 1.035), 0.12);
-      } else {
-        characterRoot.scale.lerp(new THREE.Vector3(1, 1, 1), 0.12);
-      }
-
-      if (mixer) mixer.update(delta);
-      controls.update();
-      renderer.render(scene, camera);
-      requestAnimationFrame(animate);
-    }
-
-    loadConfiguredAssets()
-      .catch((error) => {
-        console.warn('World asset loading failed:', error);
-      })
-      .finally(() => {
-        statusText.textContent = '等待角色';
-        loading.classList.add('is-ready');
-        loading.hidden = true;
-        loading.textContent = '';
-        animate();
-      });
-  </script>
+  <script src="/world/world-app.js?v=20260613-collision1"></script>
 </body>
 </html>

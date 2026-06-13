@@ -19,6 +19,19 @@ function copyFile(from, to) {
   fs.copyFileSync(from, to);
 }
 
+function copyPatchedFile(from, to, replacements) {
+  if (!fs.existsSync(from)) {
+    throw new Error(`Missing vendor asset: ${path.relative(rootDir, from)}`);
+  }
+
+  ensureDir(path.dirname(to));
+  let content = fs.readFileSync(from, 'utf8');
+  replacements.forEach(([fromPattern, toValue]) => {
+    content = content.replace(fromPattern, toValue);
+  });
+  fs.writeFileSync(to, content);
+}
+
 function replaceInFile(file, from, to) {
   const content = fs.readFileSync(file, 'utf8');
   const next = content.replace(from, to);
@@ -73,17 +86,25 @@ function syncThree() {
     threeModuleDest
   );
   replaceInFile(threeModuleDest, /\n\t\t\t \tmaterial = getMaterial\( data\.material \);/, '\n\t\t\t\tmaterial = getMaterial( data.material );');
-  copyFile(
+  copyPatchedFile(
     path.join(threeRoot, 'examples', 'jsm', 'controls', 'OrbitControls.js'),
-    path.join(threeDest, 'examples', 'jsm', 'controls', 'OrbitControls.js')
+    path.join(threeDest, 'examples', 'jsm', 'controls', 'OrbitControls.js'),
+    [[/from 'three';/g, "from '../../../build/three.module.js';"]]
   );
-  copyFile(
+  copyPatchedFile(
     path.join(threeRoot, 'examples', 'jsm', 'loaders', 'GLTFLoader.js'),
-    path.join(threeDest, 'examples', 'jsm', 'loaders', 'GLTFLoader.js')
+    path.join(threeDest, 'examples', 'jsm', 'loaders', 'GLTFLoader.js'),
+    [[/from 'three';/g, "from '../../../build/three.module.js';"]]
   );
-  copyFile(
+  copyPatchedFile(
+    path.join(threeRoot, 'examples', 'jsm', 'objects', 'Reflector.js'),
+    path.join(threeDest, 'examples', 'jsm', 'objects', 'Reflector.js'),
+    [[/from 'three';/g, "from '../../../build/three.module.js';"]]
+  );
+  copyPatchedFile(
     path.join(threeRoot, 'examples', 'jsm', 'utils', 'BufferGeometryUtils.js'),
-    path.join(threeDest, 'examples', 'jsm', 'utils', 'BufferGeometryUtils.js')
+    path.join(threeDest, 'examples', 'jsm', 'utils', 'BufferGeometryUtils.js'),
+    [[/from 'three';/g, "from '../../../build/three.module.js';"]]
   );
 }
 

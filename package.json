@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "npm run vendor:sync && hexo generate",
+    "build": "npm run vendor:sync && npm run world:build && hexo generate",
     "vendor:sync": "node scripts/sync-vendor-assets.js",
+    "world:build": "node scripts/build-world-app.js",
     "optimize:public": "node scripts/postbuild-optimize.js",
     "clean": "hexo clean",
     "deploy": "hexo deploy",
