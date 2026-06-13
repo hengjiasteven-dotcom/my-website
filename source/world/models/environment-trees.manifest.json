@@ -1,0 +1,24 @@
+{
+    "name":  "环境-树.glb",
+    "mime":  "model/gltf-binary",
+    "size":  205373000,
+    "sha256":  "c064b9307e5e03db86b0e2fe138d34000461ea5ec097cae8265e59fb9adbce3b",
+    "chunks":  [
+                   {
+                       "file":  "environment-trees.part001.bin",
+                       "size":  52428800
+                   },
+                   {
+                       "file":  "environment-trees.part002.bin",
+                       "size":  52428800
+                   },
+                   {
+                       "file":  "environment-trees.part003.bin",
+                       "size":  52428800
+                   },
+                   {
+                       "file":  "environment-trees.part004.bin",
+                       "size":  48086600
+                   }
+               ]
+}

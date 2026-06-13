@@ -1,4 +1,4 @@
-﻿import * as THREE from '../js/vendor/three/build/three.module.js';
+import * as THREE from '../js/vendor/three/build/three.module.js';
     import { OrbitControls } from '../js/vendor/three/examples/jsm/controls/OrbitControls.js';
     import { GLTFLoader } from '../js/vendor/three/examples/jsm/loaders/GLTFLoader.js';
     import { Reflector } from '../js/vendor/three/examples/jsm/objects/Reflector.js';
@@ -6,7 +6,11 @@
     window.__worldBootState.started = true;
 
     const ASSETS = {
-      character: '/world/models/犬夜叉.glb?v=20260613-1315'
+      character: '/world/models/犬夜叉.glb?v=20260613-1315',
+      environment: {
+        url: '/world/models/环境-树.glb?v=20260613-full-local',
+        manifest: '/world/models/environment-trees.manifest.json?v=20260613-full-env-chunks'
+      }
     };
     const WORLD_BOUNDS = {
       minX: -22,
@@ -19,8 +23,7 @@
     const DEFAULT_MODEL_COLLISION_RADIUS = 1;
     const MAX_COLLISION_SOLVE_STEPS = 8;
     const CHARACTER_TARGET_HEIGHT = 2.4;
-    const ENVIRONMENT_TARGET_WIDTH = 68;
-    const PROCEDURAL_TREE_COUNT = 52;
+    const ENVIRONMENT_TARGET_WIDTH = 82;
     const CAMERA_DEFAULTS = {
       x: 10,
       y: 7,
@@ -46,6 +49,8 @@
 
       return 'https://my-website-zeta-indol-39.vercel.app/api/world-chat';
     })();
+
+    const IS_LOCAL_PREVIEW = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
 
     const stage = document.querySelector('[data-world-stage]');
     const canvas = document.getElementById('world-canvas');
@@ -120,6 +125,40 @@
 
     function setStatus(text) {
       statusText.textContent = text;
+    }
+
+    function describeObject(object) {
+      if (!object) return null;
+      object.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(object);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      return {
+        name: object.name,
+        position: object.position.toArray(),
+        scale: object.scale.toArray(),
+        box: {
+          min: box.min.toArray(),
+          max: box.max.toArray(),
+          size: size.toArray(),
+          center: center.toArray()
+        }
+      };
+    }
+
+    function exposeDebugState() {
+      window.__worldDebug = () => ({
+        status: statusText.textContent,
+        camera: state.camera ? state.camera.position.toArray() : null,
+        target: state.controls ? state.controls.target.toArray() : null,
+        environment: describeObject(state.environment),
+        character: describeObject(state.characterPivot),
+        droppedModels: Array.from(state.droppedModels, ([key, entry]) => ({
+          key,
+          name: entry.name,
+          object: describeObject(entry.object)
+        }))
+      });
     }
 
     function showLoader(title, detail) {
@@ -235,6 +274,16 @@
       setCameraInputs(CAMERA_DEFAULTS);
     }
 
+    function focusFullScene() {
+      if (!state.camera || !state.controls) return;
+      const settings = { x: 20, y: 16, z: 30 };
+      state.camera.position.set(settings.x, settings.y, settings.z);
+      state.controls.target.set(0, 4.5, 0);
+      state.camera.lookAt(state.controls.target);
+      state.controls.update();
+      syncCameraPanelFromCamera();
+    }
+
     function getLightSettings() {
       return {
         background: backgroundColorInput.value,
@@ -281,7 +330,7 @@
 
     function resetLightSettings() {
       setLightInputs(LIGHT_DEFAULTS);
-      setStatus('鐏厜鍜岃儗鏅凡鎭㈠榛樿');
+      setStatus('灯光和背景已恢复默认');
     }
 
     function addBaseWorld() {
@@ -603,7 +652,7 @@
       card.classList.toggle('is-active', Boolean(entry));
       editor.hidden = !entry;
       if (!entry) return;
-      stateLabel.textContent = `宸叉姇鏀撅細${entry.name}`;
+      stateLabel.textContent = `已投放：${entry.name}`;
       const inputs = {
         x: card.querySelector('[data-model-x]'),
         y: card.querySelector('[data-model-y]'),
@@ -685,89 +734,73 @@
       rebuildCharacterTargets();
     }
 
-    function createProceduralTree(index) {
-      const tree = new THREE.Group();
-      tree.name = `ProceduralTree_${index}`;
-
-      const trunkMaterial = new THREE.MeshStandardMaterial({
-        color: 0x6f4930,
-        roughness: 0.82,
-        metalness: 0.02
-      });
-      const leafMaterial = new THREE.MeshStandardMaterial({
-        color: index % 3 === 0 ? 0x2f8f5b : 0x3fb66d,
-        roughness: 0.72,
-        metalness: 0.01,
-        emissive: 0x0c2a18,
-        emissiveIntensity: 0.08
-      });
-
-      const trunkHeight = 1.05 + (index % 5) * 0.09;
-      const trunk = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.13, 0.18, trunkHeight, 8),
-        trunkMaterial
-      );
-      trunk.position.y = trunkHeight * 0.5;
-
-      const crown = new THREE.Mesh(
-        new THREE.ConeGeometry(0.78 + (index % 4) * 0.08, 1.75 + (index % 3) * 0.16, 10),
-        leafMaterial
-      );
-      crown.position.y = trunkHeight + 0.75;
-
-      const crownTop = new THREE.Mesh(
-        new THREE.ConeGeometry(0.56 + (index % 3) * 0.08, 1.2, 10),
-        leafMaterial
-      );
-      crownTop.position.y = trunkHeight + 1.55;
-
-      tree.add(trunk, crown, crownTop);
-      tree.traverse((node) => {
-        if (!node.isMesh) return;
-        node.castShadow = true;
-        node.receiveShadow = true;
-        node.frustumCulled = false;
-      });
-
-      return tree;
-    }
-
-    function createProceduralEnvironment() {
-      const env = new THREE.Group();
-      env.name = 'ProceduralEnvironmentTrees';
-
-      for (let i = 0; i < PROCEDURAL_TREE_COUNT; i += 1) {
-        const tree = createProceduralTree(i);
-        const side = i % 4;
-        const lane = Math.floor(i / 4);
-        const offset = -21 + lane * 3.4 + ((i % 2) * 0.7);
-        const depth = 18 + (i % 5) * 0.85;
-        const jitter = Math.sin(i * 12.9898) * 0.9;
-
-        if (side === 0) {
-          tree.position.set(offset, 0, -depth + jitter);
-        } else if (side === 1) {
-          tree.position.set(depth + jitter, 0, offset);
-        } else if (side === 2) {
-          tree.position.set(-offset, 0, depth + jitter);
-        } else {
-          tree.position.set(-depth + jitter, 0, -offset);
-        }
-
-        const scale = 1.15 + (i % 6) * 0.12;
-        tree.scale.setScalar(scale);
-        tree.rotation.y = (i * 0.73) % (Math.PI * 2);
-        env.add(tree);
+    async function loadGltfFromChunks(asset, label) {
+      setStatus(`正在从分片还原${label}...`);
+      const manifestResponse = await fetch(asset.manifest);
+      if (!manifestResponse.ok) {
+        throw new Error(`${label}分片清单加载失败：${manifestResponse.status}`);
       }
 
-      state.scene.add(env);
-      state.environment = env;
-      setStatus('轻量树环境已加载：可部署上线，角色和模型可继续拖动');
-      return env;
+      const manifest = await manifestResponse.json();
+      const baseUrl = new URL(asset.manifest, window.location.href);
+      const blobs = [];
+      let totalSize = 0;
+
+      for (let index = 0; index < manifest.chunks.length; index += 1) {
+        const chunk = manifest.chunks[index];
+        setStatus(`正在加载${label}分片 ${index + 1}/${manifest.chunks.length}...`);
+        const chunkUrl = new URL(chunk.file, baseUrl);
+        const response = await fetch(chunkUrl);
+        if (!response.ok) {
+          throw new Error(`${label}分片 ${index + 1} 加载失败：${response.status}`);
+        }
+        const blob = await response.blob();
+        if (chunk.size && blob.size !== chunk.size) {
+          throw new Error(`${label}分片 ${index + 1} 大小不一致`);
+        }
+        blobs.push(blob);
+        totalSize += blob.size;
+      }
+
+      if (manifest.size && totalSize !== manifest.size) {
+        throw new Error(`${label}总大小不一致`);
+      }
+
+      setStatus(`正在解析完整${label}...`);
+      const objectUrl = URL.createObjectURL(new Blob(blobs, {
+        type: manifest.mime || 'model/gltf-binary'
+      }));
+      try {
+        return await state.loader.loadAsync(objectUrl);
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+      }
+    }
+
+    async function loadEnvironmentGltf() {
+      const forceDirect = IS_LOCAL_PREVIEW && new URLSearchParams(window.location.search).has('env_direct');
+      if (ASSETS.environment.url && forceDirect) {
+        try {
+          return await state.loader.loadAsync(ASSETS.environment.url);
+        } catch (error) {
+          console.warn('[world] direct environment load failed, falling back to chunks:', error);
+        }
+      }
+      return loadGltfFromChunks(ASSETS.environment, '完整树环境');
     }
 
     async function loadEnvironment() {
-      createProceduralEnvironment();
+      setStatus('正在加载完整树环境...');
+      const gltf = await loadEnvironmentGltf();
+      const environment = gltf.scene;
+      environment.name = 'EnvironmentTreesGLB';
+      makeModelRenderable(environment);
+      fitObject(environment, { targetWidth: ENVIRONMENT_TARGET_WIDTH });
+      state.scene.add(environment);
+      state.environment = environment;
+      focusFullScene();
+      setStatus('完整树环境已加载：角色可拖动，点击角色可 AI 对话');
+      return environment;
     }
 
     async function loadCharacter() {
@@ -778,7 +811,7 @@
         state.characterMixer = new THREE.AnimationMixer(character);
         state.characterMixer.clipAction(gltf.animations[0]).play();
       }
-      setStatus('瑙掕壊鍜岀幆澧冨凡鍔犺浇锛氭嫋鍔ㄨ鑹诧紝鐐瑰嚮瑙掕壊瀵硅瘽');
+      setStatus('犬夜叉已加载：完整树环境继续加载中，拖动角色，点击角色对话');
     }
 
     function pointerFromEvent(event) {
@@ -824,7 +857,7 @@
 
     function openChat() {
       chat.hidden = false;
-      chatState.textContent = '??';
+      chatState.textContent = '在线';
       setStatus('已打开犬夜叉 AI 对话');
       if (!state.chatOpenedOnce) {
         addMessage('我在这里。', false);
@@ -835,7 +868,7 @@
 
     function closeChatPanel() {
       chat.hidden = true;
-      chatState.textContent = '??';
+      chatState.textContent = '待机';
       setStatus('拖动角色，点击角色对话');
     }
 
@@ -869,7 +902,7 @@
       state.chatSending = sending;
       chatInput.disabled = sending;
       chatSubmit.disabled = sending;
-      chatInput.placeholder = sending ? '绛夊緟鍥炲涓?..' : '杈撳叆涓€鍙ヨ瘽';
+      chatInput.placeholder = sending ? '等待回复中...' : '输入一句话';
     }
 
     function createDroppedPlaceholder(key, type, modelName, position) {
@@ -896,18 +929,18 @@
       state.scene.add(mesh);
       state.droppedModels.set(key, {
         key,
-        name: modelName || (type === 'stone' ? '鍗犱綅鐭冲潡' : '鍗犱綅姘存櫠'),
+        name: modelName || (type === 'stone' ? '占位石块' : '占位水晶'),
         object: mesh
       });
       rebuildDroppedModelTargets();
       updateModelEditor(key);
-      setStatus('宸叉妸鍙充晶鍗犱綅妯″瀷鎷栧叆 3D 涓栫晫锛屽彲鎷栧姩锛屽彲鍙栨秷');
+      setStatus('已把右侧占位模型拖入 3D 世界，可拖动，可取消');
     }
 
     async function createDroppedModel(key, modelUrl, modelName, position) {
       const clampedPosition = clampToWorldBounds(position);
       clearDroppedModel(key);
-      setStatus(`姝ｅ湪鍔犺浇${modelName}...`);
+      setStatus(`正在加载${modelName}...`);
       try {
         const gltf = await state.loader.loadAsync(modelUrl);
         const model = gltf.scene;
@@ -925,10 +958,10 @@
         state.droppedModels.set(key, { key, name: modelName, object: model });
         rebuildDroppedModelTargets();
         updateModelEditor(key);
-        setStatus(`${modelName}宸叉斁鍏?3D 涓栫晫锛屽彲鎷栧姩锛屽彲鍙栨秷`);
+        setStatus(`${modelName}已放入 3D 世界，可拖动，可取消`);
       } catch (error) {
         console.warn('[world] dropped model load failed:', error);
-        setStatus(`${modelName}鍔犺浇澶辫触锛屽凡鏀惧叆鍗犱綅妯″瀷`);
+        setStatus(`${modelName}加载失败，已放入占位模型`);
         createDroppedPlaceholder(key, 'crystal', modelName, clampedPosition);
       }
     }
@@ -948,14 +981,14 @@
       [backgroundColorInput, waterColorInput, ambientLightInput, sunLightInput, sunColorInput].forEach((input) => {
         input.addEventListener('input', () => {
           applyLightSettings();
-          setStatus('鐏厜鍜岃儗鏅凡璋冩暣');
+          setStatus('灯光和背景已调整');
         });
       });
       [cameraXInput, cameraYInput, cameraZInput].forEach((input) => {
         input.addEventListener('input', () => {
           if (state.syncingCameraPanel) return;
           applyCameraSettings();
-          setStatus('鎽勫儚鏈轰綅缃凡璋冩暣');
+          setStatus('摄像机位置已调整');
         });
       });
       closeChat.addEventListener('click', closeChatPanel);
@@ -1022,9 +1055,9 @@
         } else if (state.dragSubjectType === 'dropped') {
           const entry = state.droppedModels.get(state.dragSubjectKey);
           if (entry) updateModelEditor(state.dragSubjectKey);
-          setStatus(`${entry?.name || '妯″瀷'}宸茬Щ鍔紝鍙户缁嫋鍔ㄦ垨鍙栨秷`);
+          setStatus(`${entry?.name || '模型'}已移动，可继续拖动或取消`);
         } else {
-          setStatus('瑙掕壊宸茬Щ鍔細鐐瑰嚮瑙掕壊鍙墦寮€ AI 瀵硅瘽');
+          setStatus('角色已移动：点击角色可打开 AI 对话');
         }
         state.dragSubject = null;
         state.dragSubjectType = '';
@@ -1045,14 +1078,14 @@
         if (!text) return;
         chatInput.value = '';
         addMessage(text, true);
-        chatState.textContent = '鎬濊€冧腑';
+        chatState.textContent = '思考中';
         setChatSending(true);
         try {
           const reply = await sendToAI(text);
           addMessage(reply, false);
         } finally {
           setChatSending(false);
-          chatState.textContent = '鍦ㄧ嚎';
+          chatState.textContent = '在线';
           chatInput.focus();
         }
       });
@@ -1068,7 +1101,7 @@
             type: card.dataset.modelUrl ? 'model' : 'placeholder',
             placeholder: card.dataset.dummyModel || 'crystal',
             url: card.dataset.modelUrl || '',
-            name: card.dataset.modelName || card.querySelector('strong')?.textContent || '妯″瀷'
+            name: card.dataset.modelName || card.querySelector('strong')?.textContent || '模型'
           };
           event.dataTransfer.setData('application/json', JSON.stringify(payload));
           event.dataTransfer.setData('text/plain', payload.placeholder);
@@ -1079,7 +1112,7 @@
           event.preventDefault();
           event.stopPropagation();
           clearDroppedModel(card.dataset.modelKey);
-          setStatus(`宸插彇娑?{card.dataset.modelName || '妯″瀷'}`);
+          setStatus(`已取消${card.dataset.modelName || '模型'}`);
         });
 
         ['x', 'y', 'z'].forEach((axis) => {
@@ -1119,17 +1152,17 @@
           try {
             const payload = JSON.parse(json);
             if (payload.type === 'model' && payload.url) {
-              createDroppedModel(payload.key, payload.url, payload.name || '妯″瀷', point);
+              createDroppedModel(payload.key, payload.url, payload.name || '模型', point);
               return;
             }
-            createDroppedPlaceholder(payload.key, payload.placeholder || 'crystal', payload.name || '妯″瀷', point);
+            createDroppedPlaceholder(payload.key, payload.placeholder || 'crystal', payload.name || '模型', point);
             return;
           } catch (error) {
             console.warn('[world] drop payload parse failed:', error);
           }
         }
         const type = event.dataTransfer.getData('text/plain') || 'crystal';
-        createDroppedPlaceholder(`placeholder-${type}`, type, '妯″瀷', point);
+        createDroppedPlaceholder(`placeholder-${type}`, type, '模型', point);
       });
     }
 
@@ -1181,6 +1214,7 @@
       state.camera = new THREE.PerspectiveCamera(48, 1, 0.1, 500);
       state.loader = new GLTFLoader();
       state.characterPivot.name = 'DraggableCharacterPivot';
+      exposeDebugState();
 
       addBaseWorld();
       installCharacter(createFallbackCharacter(), 'FallbackCharacter');
@@ -1189,7 +1223,7 @@
       state.controls.enableDamping = true;
       state.controls.target.set(0, 1.8, 0);
       state.controls.minDistance = 1.2;
-      state.controls.maxDistance = 56;
+      state.controls.maxDistance = 110;
       state.controls.maxPolarAngle = Math.PI * 0.49;
       state.controls.addEventListener('change', syncCameraPanelFromCamera);
 

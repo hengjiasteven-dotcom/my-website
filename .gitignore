@@ -15,3 +15,6 @@ db.json
 .env
 .edgeone/*
 .tef_dist/*
+
+# Full local tree environment; GitHub uses complete split chunks instead.
+source/world/models/环境-树.glb

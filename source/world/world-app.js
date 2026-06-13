@@ -7127,7 +7127,7 @@ var WorldApp = (() => {
       }
     }
   }
-  var REVISION, MOUSE, TOUCH, CullFaceNone, CullFaceBack, CullFaceFront, PCFShadowMap, PCFSoftShadowMap, VSMShadowMap, FrontSide, BackSide, DoubleSide, NoBlending, NormalBlending, AdditiveBlending, SubtractiveBlending, MultiplyBlending, CustomBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation, ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor, ConstantColorFactor, OneMinusConstantColorFactor, ConstantAlphaFactor, OneMinusConstantAlphaFactor, NeverDepth, AlwaysDepth, LessDepth, LessEqualDepth, EqualDepth, GreaterEqualDepth, GreaterDepth, NotEqualDepth, MultiplyOperation, MixOperation, AddOperation, NoToneMapping, LinearToneMapping, ReinhardToneMapping, CineonToneMapping, ACESFilmicToneMapping, CustomToneMapping, AgXToneMapping, NeutralToneMapping, AttachedBindMode, DetachedBindMode, UVMapping, CubeReflectionMapping, CubeRefractionMapping, EquirectangularReflectionMapping, EquirectangularRefractionMapping, CubeUVReflectionMapping, RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, UnsignedByteType, ByteType, ShortType, UnsignedShortType, IntType, UnsignedIntType, FloatType, HalfFloatType, UnsignedShort4444Type, UnsignedShort5551Type, UnsignedInt248Type, UnsignedInt5999Type, AlphaFormat, RGBFormat, RGBAFormat, LuminanceFormat, LuminanceAlphaFormat, DepthFormat, DepthStencilFormat, RedFormat, RedIntegerFormat, RGFormat, RGIntegerFormat, RGBAIntegerFormat, RGB_S3TC_DXT1_Format, RGBA_S3TC_DXT1_Format, RGBA_S3TC_DXT3_Format, RGBA_S3TC_DXT5_Format, RGB_PVRTC_4BPPV1_Format, RGB_PVRTC_2BPPV1_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_PVRTC_2BPPV1_Format, RGB_ETC1_Format, RGB_ETC2_Format, RGBA_ETC2_EAC_Format, RGBA_ASTC_4x4_Format, RGBA_ASTC_5x4_Format, RGBA_ASTC_5x5_Format, RGBA_ASTC_6x5_Format, RGBA_ASTC_6x6_Format, RGBA_ASTC_8x5_Format, RGBA_ASTC_8x6_Format, RGBA_ASTC_8x8_Format, RGBA_ASTC_10x5_Format, RGBA_ASTC_10x6_Format, RGBA_ASTC_10x8_Format, RGBA_ASTC_10x10_Format, RGBA_ASTC_12x10_Format, RGBA_ASTC_12x12_Format, RGBA_BPTC_Format, RGB_BPTC_SIGNED_Format, RGB_BPTC_UNSIGNED_Format, RED_RGTC1_Format, SIGNED_RED_RGTC1_Format, RED_GREEN_RGTC2_Format, SIGNED_RED_GREEN_RGTC2_Format, LoopOnce, LoopRepeat, LoopPingPong, InterpolateDiscrete, InterpolateLinear, InterpolateSmooth, ZeroCurvatureEnding, ZeroSlopeEnding, WrapAroundEnding, NormalAnimationBlendMode, AdditiveAnimationBlendMode, TrianglesDrawMode, TriangleStripDrawMode, TriangleFanDrawMode, BasicDepthPacking, RGBADepthPacking, TangentSpaceNormalMap, ObjectSpaceNormalMap, NoColorSpace, SRGBColorSpace, LinearSRGBColorSpace, DisplayP3ColorSpace, LinearDisplayP3ColorSpace, LinearTransfer, SRGBTransfer, Rec709Primaries, P3Primaries, KeepStencilOp, AlwaysStencilFunc, NeverCompare, LessCompare, EqualCompare, LessEqualCompare, GreaterCompare, NotEqualCompare, GreaterEqualCompare, AlwaysCompare, StaticDrawUsage, GLSL3, WebGLCoordinateSystem, WebGPUCoordinateSystem, EventDispatcher, _lut, _seed, DEG2RAD, RAD2DEG, MathUtils, Vector2, Matrix3, _m3, _cache, LINEAR_SRGB_TO_LINEAR_DISPLAY_P3, LINEAR_DISPLAY_P3_TO_LINEAR_SRGB, COLOR_SPACES, SUPPORTED_WORKING_COLOR_SPACES, ColorManagement, _canvas, ImageUtils, _sourceId, Source, _textureId, Texture, Vector4, RenderTarget, WebGLRenderTarget, DataArrayTexture, Data3DTexture, Quaternion, Vector3, _vector$c, _quaternion$4, Box3, _points, _vector$b, _box$4, _v0$2, _v1$7, _v2$4, _f0, _f1, _f2, _center, _extents, _triangleNormal, _testAxis, _box$3, _v1$6, _v2$3, Sphere, _vector$a, _segCenter, _segDir, _diff, _edge1, _edge2, _normal$1, Ray, Matrix4, _v1$5, _m1$4, _zero, _one, _x, _y, _z, _matrix$2, _quaternion$3, Euler, Layers, _object3DId, _v1$4, _q1, _m1$3, _target, _position$3, _scale$2, _quaternion$2, _xAxis, _yAxis, _zAxis, _addedEvent, _removedEvent, _childaddedEvent, _childremovedEvent, Object3D, _v0$1, _v1$3, _v2$2, _v3$2, _vab, _vac, _vbc, _vap, _vbp, _vcp, Triangle, _colorKeywords, _hslA, _hslB, Color, _color, _materialId, Material, MeshBasicMaterial, _vector$9, _vector2$1, BufferAttribute, Uint16BufferAttribute, Uint32BufferAttribute, Float32BufferAttribute, _id$2, _m1$2, _obj, _offset, _box$2, _boxMorphTargets, _vector$8, BufferGeometry, _inverseMatrix$3, _ray$3, _sphere$6, _sphereHitAt, _vA$1, _vB$1, _vC$1, _tempA, _morphA, _uvA$1, _uvB$1, _uvC$1, _normalA, _normalB, _normalC, _intersectionPoint, _intersectionPointWorld, Mesh, BoxGeometry, UniformsUtils, default_vertex, default_fragment, ShaderMaterial, Camera, _v3$1, _minTarget, _maxTarget, PerspectiveCamera, fov, aspect, CubeCamera, CubeTexture, WebGLCubeRenderTarget, _vector1, _vector2, _normalMatrix, Plane, _sphere$5, _vector$7, Frustum, PlaneGeometry, alphahash_fragment, alphahash_pars_fragment, alphamap_fragment, alphamap_pars_fragment, alphatest_fragment, alphatest_pars_fragment, aomap_fragment, aomap_pars_fragment, batching_pars_vertex, batching_vertex, begin_vertex, beginnormal_vertex, bsdfs, iridescence_fragment, bumpmap_pars_fragment, clipping_planes_fragment, clipping_planes_pars_fragment, clipping_planes_pars_vertex, clipping_planes_vertex, color_fragment, color_pars_fragment, color_pars_vertex, color_vertex, common, cube_uv_reflection_fragment, defaultnormal_vertex, displacementmap_pars_vertex, displacementmap_vertex, emissivemap_fragment, emissivemap_pars_fragment, colorspace_fragment, colorspace_pars_fragment, envmap_fragment, envmap_common_pars_fragment, envmap_pars_fragment, envmap_pars_vertex, envmap_vertex, fog_vertex, fog_pars_vertex, fog_fragment, fog_pars_fragment, gradientmap_pars_fragment, lightmap_pars_fragment, lights_lambert_fragment, lights_lambert_pars_fragment, lights_pars_begin, envmap_physical_pars_fragment, lights_toon_fragment, lights_toon_pars_fragment, lights_phong_fragment, lights_phong_pars_fragment, lights_physical_fragment, lights_physical_pars_fragment, lights_fragment_begin, lights_fragment_maps, lights_fragment_end, logdepthbuf_fragment, logdepthbuf_pars_fragment, logdepthbuf_pars_vertex, logdepthbuf_vertex, map_fragment, map_pars_fragment, map_particle_fragment, map_particle_pars_fragment, metalnessmap_fragment, metalnessmap_pars_fragment, morphinstance_vertex, morphcolor_vertex, morphnormal_vertex, morphtarget_pars_vertex, morphtarget_vertex, normal_fragment_begin, normal_fragment_maps, normal_pars_fragment, normal_pars_vertex, normal_vertex, normalmap_pars_fragment, clearcoat_normal_fragment_begin, clearcoat_normal_fragment_maps, clearcoat_pars_fragment, iridescence_pars_fragment, opaque_fragment, packing, premultiplied_alpha_fragment, project_vertex, dithering_fragment, dithering_pars_fragment, roughnessmap_fragment, roughnessmap_pars_fragment, shadowmap_pars_fragment, shadowmap_pars_vertex, shadowmap_vertex, shadowmask_pars_fragment, skinbase_vertex, skinning_pars_vertex, skinning_vertex, skinnormal_vertex, specularmap_fragment, specularmap_pars_fragment, tonemapping_fragment, tonemapping_pars_fragment, transmission_fragment, transmission_pars_fragment, uv_pars_fragment, uv_pars_vertex, uv_vertex, worldpos_vertex, vertex$h, fragment$h, vertex$g, fragment$g, vertex$f, fragment$f, vertex$e, fragment$e, vertex$d, fragment$d, vertex$c, fragment$c, vertex$b, fragment$b, vertex$a, fragment$a, vertex$9, fragment$9, vertex$8, fragment$8, vertex$7, fragment$7, vertex$6, fragment$6, vertex$5, fragment$5, vertex$4, fragment$4, vertex$3, fragment$3, vertex$2, fragment$2, vertex$1, fragment$1, ShaderChunk, UniformsLib, ShaderLib, _rgb, _e1$1, _m1$1, OrthographicCamera, LOD_MIN, EXTRA_LOD_SIGMA, MAX_SAMPLES, _flatCamera, _clearColor, _oldTarget, _oldActiveCubeFace, _oldActiveMipmapLevel, _oldXrEnabled, PHI, INV_PHI, _axisDirections, PMREMGenerator, DepthTexture, emptyTexture, emptyShadowTexture, emptyArrayTexture, empty3dTexture, emptyCubeTexture, arrayCacheF32, arrayCacheI32, mat4array, mat3array, mat2array, SingleUniform, PureArrayUniform, StructuredUniform, RePathPart, WebGLUniforms, COMPLETION_STATUS_KHR, programIdCount, includePattern, shaderChunkMap, unrollLoopPattern, _id$1, WebGLShaderCache, WebGLShaderStage, nextVersion, MeshDepthMaterial, MeshDistanceMaterial, vertex, fragment, ArrayCamera, Group, _moveEvent, WebXRController, _occlusion_vertex, _occlusion_fragment, WebXRDepthSensing, WebXRManager, _e1, _m1, WebGLRenderer, FogExp2, Scene, InterleavedBuffer, _vector$6, InterleavedBufferAttribute, _basePosition, _skinIndex, _skinWeight, _vector3, _matrix4, _vertex, _sphere$4, _inverseMatrix$2, _ray$2, SkinnedMesh, Bone, DataTexture, _offsetMatrix, _identityMatrix$1, Skeleton, InstancedBufferAttribute, _instanceLocalMatrix, _instanceWorldMatrix, _instanceIntersects, _box3, _identity, _mesh$1, _sphere$3, InstancedMesh, LineBasicMaterial, _vStart, _vEnd, _inverseMatrix$1, _ray$1, _sphere$1, _intersectPointOnRay, _intersectPointOnSegment, Line, _start, _end, LineSegments, LineLoop, PointsMaterial, _inverseMatrix, _ray, _sphere, _position$2, Points, Curve, EllipseCurve, ArcCurve, tmp, px, py, pz, CatmullRomCurve3, CubicBezierCurve, CubicBezierCurve3, LineCurve, LineCurve3, QuadraticBezierCurve, QuadraticBezierCurve3, SplineCurve, Curves, CurvePath, Path, LatheGeometry, CapsuleGeometry, CylinderGeometry, ConeGeometry, PolyhedronGeometry, DodecahedronGeometry, OctahedronGeometry, SphereGeometry, TorusGeometry, MeshStandardMaterial, MeshPhysicalMaterial, Interpolant, CubicInterpolant, LinearInterpolant, DiscreteInterpolant, KeyframeTrack, BooleanKeyframeTrack, ColorKeyframeTrack, NumberKeyframeTrack, QuaternionLinearInterpolant, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, AnimationClip, Cache, LoadingManager, DefaultLoadingManager, Loader, loading, HttpError, FileLoader, ImageLoader, TextureLoader, Light, HemisphereLight, _projScreenMatrix$1, _lightPositionWorld$1, _lookTarget$1, LightShadow, SpotLightShadow, SpotLight, _projScreenMatrix, _lightPositionWorld, _lookTarget, PointLightShadow, PointLight, DirectionalLightShadow, DirectionalLight, LoaderUtils, ImageBitmapLoader, Clock, PropertyMixer, _RESERVED_CHARS_RE, _reservedRe, _wordChar, _wordCharOrDot, _directoryRe, _nodeRe, _objectRe, _propertyRe, _trackRe, _supportedObjectNames, Composite, PropertyBinding, AnimationAction, _controlInterpolantsResultBuffer, AnimationMixer, _matrix, Raycaster, Spherical, GridHelper;
+  var REVISION, MOUSE, TOUCH, CullFaceNone, CullFaceBack, CullFaceFront, PCFShadowMap, PCFSoftShadowMap, VSMShadowMap, FrontSide, BackSide, DoubleSide, NoBlending, NormalBlending, AdditiveBlending, SubtractiveBlending, MultiplyBlending, CustomBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation, ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor, ConstantColorFactor, OneMinusConstantColorFactor, ConstantAlphaFactor, OneMinusConstantAlphaFactor, NeverDepth, AlwaysDepth, LessDepth, LessEqualDepth, EqualDepth, GreaterEqualDepth, GreaterDepth, NotEqualDepth, MultiplyOperation, MixOperation, AddOperation, NoToneMapping, LinearToneMapping, ReinhardToneMapping, CineonToneMapping, ACESFilmicToneMapping, CustomToneMapping, AgXToneMapping, NeutralToneMapping, AttachedBindMode, DetachedBindMode, UVMapping, CubeReflectionMapping, CubeRefractionMapping, EquirectangularReflectionMapping, EquirectangularRefractionMapping, CubeUVReflectionMapping, RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, LinearMipmapNearestFilter, LinearMipmapLinearFilter, UnsignedByteType, ByteType, ShortType, UnsignedShortType, IntType, UnsignedIntType, FloatType, HalfFloatType, UnsignedShort4444Type, UnsignedShort5551Type, UnsignedInt248Type, UnsignedInt5999Type, AlphaFormat, RGBFormat, RGBAFormat, LuminanceFormat, LuminanceAlphaFormat, DepthFormat, DepthStencilFormat, RedFormat, RedIntegerFormat, RGFormat, RGIntegerFormat, RGBAIntegerFormat, RGB_S3TC_DXT1_Format, RGBA_S3TC_DXT1_Format, RGBA_S3TC_DXT3_Format, RGBA_S3TC_DXT5_Format, RGB_PVRTC_4BPPV1_Format, RGB_PVRTC_2BPPV1_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_PVRTC_2BPPV1_Format, RGB_ETC1_Format, RGB_ETC2_Format, RGBA_ETC2_EAC_Format, RGBA_ASTC_4x4_Format, RGBA_ASTC_5x4_Format, RGBA_ASTC_5x5_Format, RGBA_ASTC_6x5_Format, RGBA_ASTC_6x6_Format, RGBA_ASTC_8x5_Format, RGBA_ASTC_8x6_Format, RGBA_ASTC_8x8_Format, RGBA_ASTC_10x5_Format, RGBA_ASTC_10x6_Format, RGBA_ASTC_10x8_Format, RGBA_ASTC_10x10_Format, RGBA_ASTC_12x10_Format, RGBA_ASTC_12x12_Format, RGBA_BPTC_Format, RGB_BPTC_SIGNED_Format, RGB_BPTC_UNSIGNED_Format, RED_RGTC1_Format, SIGNED_RED_RGTC1_Format, RED_GREEN_RGTC2_Format, SIGNED_RED_GREEN_RGTC2_Format, LoopOnce, LoopRepeat, LoopPingPong, InterpolateDiscrete, InterpolateLinear, InterpolateSmooth, ZeroCurvatureEnding, ZeroSlopeEnding, WrapAroundEnding, NormalAnimationBlendMode, AdditiveAnimationBlendMode, TrianglesDrawMode, TriangleStripDrawMode, TriangleFanDrawMode, BasicDepthPacking, RGBADepthPacking, TangentSpaceNormalMap, ObjectSpaceNormalMap, NoColorSpace, SRGBColorSpace, LinearSRGBColorSpace, DisplayP3ColorSpace, LinearDisplayP3ColorSpace, LinearTransfer, SRGBTransfer, Rec709Primaries, P3Primaries, KeepStencilOp, AlwaysStencilFunc, NeverCompare, LessCompare, EqualCompare, LessEqualCompare, GreaterCompare, NotEqualCompare, GreaterEqualCompare, AlwaysCompare, StaticDrawUsage, GLSL3, WebGLCoordinateSystem, WebGPUCoordinateSystem, EventDispatcher, _lut, _seed, DEG2RAD, RAD2DEG, MathUtils, Vector2, Matrix3, _m3, _cache, LINEAR_SRGB_TO_LINEAR_DISPLAY_P3, LINEAR_DISPLAY_P3_TO_LINEAR_SRGB, COLOR_SPACES, SUPPORTED_WORKING_COLOR_SPACES, ColorManagement, _canvas, ImageUtils, _sourceId, Source, _textureId, Texture, Vector4, RenderTarget, WebGLRenderTarget, DataArrayTexture, Data3DTexture, Quaternion, Vector3, _vector$c, _quaternion$4, Box3, _points, _vector$b, _box$4, _v0$2, _v1$7, _v2$4, _f0, _f1, _f2, _center, _extents, _triangleNormal, _testAxis, _box$3, _v1$6, _v2$3, Sphere, _vector$a, _segCenter, _segDir, _diff, _edge1, _edge2, _normal$1, Ray, Matrix4, _v1$5, _m1$4, _zero, _one, _x, _y, _z, _matrix$2, _quaternion$3, Euler, Layers, _object3DId, _v1$4, _q1, _m1$3, _target, _position$3, _scale$2, _quaternion$2, _xAxis, _yAxis, _zAxis, _addedEvent, _removedEvent, _childaddedEvent, _childremovedEvent, Object3D, _v0$1, _v1$3, _v2$2, _v3$2, _vab, _vac, _vbc, _vap, _vbp, _vcp, Triangle, _colorKeywords, _hslA, _hslB, Color, _color, _materialId, Material, MeshBasicMaterial, _vector$9, _vector2$1, BufferAttribute, Uint16BufferAttribute, Uint32BufferAttribute, Float32BufferAttribute, _id$2, _m1$2, _obj, _offset, _box$2, _boxMorphTargets, _vector$8, BufferGeometry, _inverseMatrix$3, _ray$3, _sphere$6, _sphereHitAt, _vA$1, _vB$1, _vC$1, _tempA, _morphA, _uvA$1, _uvB$1, _uvC$1, _normalA, _normalB, _normalC, _intersectionPoint, _intersectionPointWorld, Mesh, BoxGeometry, UniformsUtils, default_vertex, default_fragment, ShaderMaterial, Camera, _v3$1, _minTarget, _maxTarget, PerspectiveCamera, fov, aspect, CubeCamera, CubeTexture, WebGLCubeRenderTarget, _vector1, _vector2, _normalMatrix, Plane, _sphere$5, _vector$7, Frustum, PlaneGeometry, alphahash_fragment, alphahash_pars_fragment, alphamap_fragment, alphamap_pars_fragment, alphatest_fragment, alphatest_pars_fragment, aomap_fragment, aomap_pars_fragment, batching_pars_vertex, batching_vertex, begin_vertex, beginnormal_vertex, bsdfs, iridescence_fragment, bumpmap_pars_fragment, clipping_planes_fragment, clipping_planes_pars_fragment, clipping_planes_pars_vertex, clipping_planes_vertex, color_fragment, color_pars_fragment, color_pars_vertex, color_vertex, common, cube_uv_reflection_fragment, defaultnormal_vertex, displacementmap_pars_vertex, displacementmap_vertex, emissivemap_fragment, emissivemap_pars_fragment, colorspace_fragment, colorspace_pars_fragment, envmap_fragment, envmap_common_pars_fragment, envmap_pars_fragment, envmap_pars_vertex, envmap_vertex, fog_vertex, fog_pars_vertex, fog_fragment, fog_pars_fragment, gradientmap_pars_fragment, lightmap_pars_fragment, lights_lambert_fragment, lights_lambert_pars_fragment, lights_pars_begin, envmap_physical_pars_fragment, lights_toon_fragment, lights_toon_pars_fragment, lights_phong_fragment, lights_phong_pars_fragment, lights_physical_fragment, lights_physical_pars_fragment, lights_fragment_begin, lights_fragment_maps, lights_fragment_end, logdepthbuf_fragment, logdepthbuf_pars_fragment, logdepthbuf_pars_vertex, logdepthbuf_vertex, map_fragment, map_pars_fragment, map_particle_fragment, map_particle_pars_fragment, metalnessmap_fragment, metalnessmap_pars_fragment, morphinstance_vertex, morphcolor_vertex, morphnormal_vertex, morphtarget_pars_vertex, morphtarget_vertex, normal_fragment_begin, normal_fragment_maps, normal_pars_fragment, normal_pars_vertex, normal_vertex, normalmap_pars_fragment, clearcoat_normal_fragment_begin, clearcoat_normal_fragment_maps, clearcoat_pars_fragment, iridescence_pars_fragment, opaque_fragment, packing, premultiplied_alpha_fragment, project_vertex, dithering_fragment, dithering_pars_fragment, roughnessmap_fragment, roughnessmap_pars_fragment, shadowmap_pars_fragment, shadowmap_pars_vertex, shadowmap_vertex, shadowmask_pars_fragment, skinbase_vertex, skinning_pars_vertex, skinning_vertex, skinnormal_vertex, specularmap_fragment, specularmap_pars_fragment, tonemapping_fragment, tonemapping_pars_fragment, transmission_fragment, transmission_pars_fragment, uv_pars_fragment, uv_pars_vertex, uv_vertex, worldpos_vertex, vertex$h, fragment$h, vertex$g, fragment$g, vertex$f, fragment$f, vertex$e, fragment$e, vertex$d, fragment$d, vertex$c, fragment$c, vertex$b, fragment$b, vertex$a, fragment$a, vertex$9, fragment$9, vertex$8, fragment$8, vertex$7, fragment$7, vertex$6, fragment$6, vertex$5, fragment$5, vertex$4, fragment$4, vertex$3, fragment$3, vertex$2, fragment$2, vertex$1, fragment$1, ShaderChunk, UniformsLib, ShaderLib, _rgb, _e1$1, _m1$1, OrthographicCamera, LOD_MIN, EXTRA_LOD_SIGMA, MAX_SAMPLES, _flatCamera, _clearColor, _oldTarget, _oldActiveCubeFace, _oldActiveMipmapLevel, _oldXrEnabled, PHI, INV_PHI, _axisDirections, PMREMGenerator, DepthTexture, emptyTexture, emptyShadowTexture, emptyArrayTexture, empty3dTexture, emptyCubeTexture, arrayCacheF32, arrayCacheI32, mat4array, mat3array, mat2array, SingleUniform, PureArrayUniform, StructuredUniform, RePathPart, WebGLUniforms, COMPLETION_STATUS_KHR, programIdCount, includePattern, shaderChunkMap, unrollLoopPattern, _id$1, WebGLShaderCache, WebGLShaderStage, nextVersion, MeshDepthMaterial, MeshDistanceMaterial, vertex, fragment, ArrayCamera, Group, _moveEvent, WebXRController, _occlusion_vertex, _occlusion_fragment, WebXRDepthSensing, WebXRManager, _e1, _m1, WebGLRenderer, FogExp2, Scene, InterleavedBuffer, _vector$6, InterleavedBufferAttribute, _basePosition, _skinIndex, _skinWeight, _vector3, _matrix4, _vertex, _sphere$4, _inverseMatrix$2, _ray$2, SkinnedMesh, Bone, DataTexture, _offsetMatrix, _identityMatrix$1, Skeleton, InstancedBufferAttribute, _instanceLocalMatrix, _instanceWorldMatrix, _instanceIntersects, _box3, _identity, _mesh$1, _sphere$3, InstancedMesh, LineBasicMaterial, _vStart, _vEnd, _inverseMatrix$1, _ray$1, _sphere$1, _intersectPointOnRay, _intersectPointOnSegment, Line, _start, _end, LineSegments, LineLoop, PointsMaterial, _inverseMatrix, _ray, _sphere, _position$2, Points, Curve, EllipseCurve, ArcCurve, tmp, px, py, pz, CatmullRomCurve3, CubicBezierCurve, CubicBezierCurve3, LineCurve, LineCurve3, QuadraticBezierCurve, QuadraticBezierCurve3, SplineCurve, Curves, CurvePath, Path, LatheGeometry, CapsuleGeometry, PolyhedronGeometry, DodecahedronGeometry, OctahedronGeometry, SphereGeometry, TorusGeometry, MeshStandardMaterial, MeshPhysicalMaterial, Interpolant, CubicInterpolant, LinearInterpolant, DiscreteInterpolant, KeyframeTrack, BooleanKeyframeTrack, ColorKeyframeTrack, NumberKeyframeTrack, QuaternionLinearInterpolant, QuaternionKeyframeTrack, StringKeyframeTrack, VectorKeyframeTrack, AnimationClip, Cache, LoadingManager, DefaultLoadingManager, Loader, loading, HttpError, FileLoader, ImageLoader, TextureLoader, Light, HemisphereLight, _projScreenMatrix$1, _lightPositionWorld$1, _lookTarget$1, LightShadow, SpotLightShadow, SpotLight, _projScreenMatrix, _lightPositionWorld, _lookTarget, PointLightShadow, PointLight, DirectionalLightShadow, DirectionalLight, LoaderUtils, ImageBitmapLoader, Clock, PropertyMixer, _RESERVED_CHARS_RE, _reservedRe, _wordChar, _wordCharOrDot, _directoryRe, _nodeRe, _objectRe, _propertyRe, _trackRe, _supportedObjectNames, Composite, PropertyBinding, AnimationAction, _controlInterpolantsResultBuffer, AnimationMixer, _matrix, Raycaster, Spherical, GridHelper;
   var init_three_module = __esm({
     "source/js/vendor/three/build/three.module.js"() {
       REVISION = "165";
@@ -20321,149 +20321,6 @@ void main() {
           return new _CapsuleGeometry(data.radius, data.length, data.capSegments, data.radialSegments);
         }
       };
-      CylinderGeometry = class _CylinderGeometry extends BufferGeometry {
-        constructor(radiusTop = 1, radiusBottom = 1, height = 1, radialSegments = 32, heightSegments = 1, openEnded = false, thetaStart = 0, thetaLength = Math.PI * 2) {
-          super();
-          this.type = "CylinderGeometry";
-          this.parameters = {
-            radiusTop,
-            radiusBottom,
-            height,
-            radialSegments,
-            heightSegments,
-            openEnded,
-            thetaStart,
-            thetaLength
-          };
-          const scope = this;
-          radialSegments = Math.floor(radialSegments);
-          heightSegments = Math.floor(heightSegments);
-          const indices = [];
-          const vertices = [];
-          const normals = [];
-          const uvs = [];
-          let index = 0;
-          const indexArray = [];
-          const halfHeight = height / 2;
-          let groupStart = 0;
-          generateTorso();
-          if (openEnded === false) {
-            if (radiusTop > 0) generateCap(true);
-            if (radiusBottom > 0) generateCap(false);
-          }
-          this.setIndex(indices);
-          this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
-          this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
-          this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
-          function generateTorso() {
-            const normal = new Vector3();
-            const vertex2 = new Vector3();
-            let groupCount = 0;
-            const slope = (radiusBottom - radiusTop) / height;
-            for (let y = 0; y <= heightSegments; y++) {
-              const indexRow = [];
-              const v = y / heightSegments;
-              const radius = v * (radiusBottom - radiusTop) + radiusTop;
-              for (let x = 0; x <= radialSegments; x++) {
-                const u = x / radialSegments;
-                const theta = u * thetaLength + thetaStart;
-                const sinTheta = Math.sin(theta);
-                const cosTheta = Math.cos(theta);
-                vertex2.x = radius * sinTheta;
-                vertex2.y = -v * height + halfHeight;
-                vertex2.z = radius * cosTheta;
-                vertices.push(vertex2.x, vertex2.y, vertex2.z);
-                normal.set(sinTheta, slope, cosTheta).normalize();
-                normals.push(normal.x, normal.y, normal.z);
-                uvs.push(u, 1 - v);
-                indexRow.push(index++);
-              }
-              indexArray.push(indexRow);
-            }
-            for (let x = 0; x < radialSegments; x++) {
-              for (let y = 0; y < heightSegments; y++) {
-                const a = indexArray[y][x];
-                const b = indexArray[y + 1][x];
-                const c = indexArray[y + 1][x + 1];
-                const d = indexArray[y][x + 1];
-                indices.push(a, b, d);
-                indices.push(b, c, d);
-                groupCount += 6;
-              }
-            }
-            scope.addGroup(groupStart, groupCount, 0);
-            groupStart += groupCount;
-          }
-          function generateCap(top) {
-            const centerIndexStart = index;
-            const uv = new Vector2();
-            const vertex2 = new Vector3();
-            let groupCount = 0;
-            const radius = top === true ? radiusTop : radiusBottom;
-            const sign = top === true ? 1 : -1;
-            for (let x = 1; x <= radialSegments; x++) {
-              vertices.push(0, halfHeight * sign, 0);
-              normals.push(0, sign, 0);
-              uvs.push(0.5, 0.5);
-              index++;
-            }
-            const centerIndexEnd = index;
-            for (let x = 0; x <= radialSegments; x++) {
-              const u = x / radialSegments;
-              const theta = u * thetaLength + thetaStart;
-              const cosTheta = Math.cos(theta);
-              const sinTheta = Math.sin(theta);
-              vertex2.x = radius * sinTheta;
-              vertex2.y = halfHeight * sign;
-              vertex2.z = radius * cosTheta;
-              vertices.push(vertex2.x, vertex2.y, vertex2.z);
-              normals.push(0, sign, 0);
-              uv.x = cosTheta * 0.5 + 0.5;
-              uv.y = sinTheta * 0.5 * sign + 0.5;
-              uvs.push(uv.x, uv.y);
-              index++;
-            }
-            for (let x = 0; x < radialSegments; x++) {
-              const c = centerIndexStart + x;
-              const i = centerIndexEnd + x;
-              if (top === true) {
-                indices.push(i, i + 1, c);
-              } else {
-                indices.push(i + 1, i, c);
-              }
-              groupCount += 3;
-            }
-            scope.addGroup(groupStart, groupCount, top === true ? 1 : 2);
-            groupStart += groupCount;
-          }
-        }
-        copy(source) {
-          super.copy(source);
-          this.parameters = Object.assign({}, source.parameters);
-          return this;
-        }
-        static fromJSON(data) {
-          return new _CylinderGeometry(data.radiusTop, data.radiusBottom, data.height, data.radialSegments, data.heightSegments, data.openEnded, data.thetaStart, data.thetaLength);
-        }
-      };
-      ConeGeometry = class _ConeGeometry extends CylinderGeometry {
-        constructor(radius = 1, height = 1, radialSegments = 32, heightSegments = 1, openEnded = false, thetaStart = 0, thetaLength = Math.PI * 2) {
-          super(0, radius, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength);
-          this.type = "ConeGeometry";
-          this.parameters = {
-            radius,
-            height,
-            radialSegments,
-            heightSegments,
-            openEnded,
-            thetaStart,
-            thetaLength
-          };
-        }
-        static fromJSON(data) {
-          return new _ConeGeometry(data.radius, data.height, data.radialSegments, data.heightSegments, data.openEnded, data.thetaStart, data.thetaLength);
-        }
-      };
       PolyhedronGeometry = class _PolyhedronGeometry extends BufferGeometry {
         constructor(vertices = [], indices = [], radius = 1, detail = 0) {
           super();
@@ -26706,14 +26563,14 @@ void main() {
             return this.sourceCache[sourceIndex].then((texture) => texture.clone());
           }
           const sourceDef = json.images[sourceIndex];
-          const URL = self.URL || self.webkitURL;
+          const URL2 = self.URL || self.webkitURL;
           let sourceURI = sourceDef.uri || "";
           let isObjectURL = false;
           if (sourceDef.bufferView !== void 0) {
             sourceURI = parser.getDependency("bufferView", sourceDef.bufferView).then(function(bufferView) {
               isObjectURL = true;
               const blob = new Blob([bufferView], { type: sourceDef.mimeType });
-              sourceURI = URL.createObjectURL(blob);
+              sourceURI = URL2.createObjectURL(blob);
               return sourceURI;
             });
           } else if (sourceDef.uri === void 0) {
@@ -26733,7 +26590,7 @@ void main() {
             });
           }).then(function(texture) {
             if (isObjectURL === true) {
-              URL.revokeObjectURL(sourceURI);
+              URL2.revokeObjectURL(sourceURI);
             }
             assignExtrasToUserData(texture, sourceDef);
             texture.userData.mimeType = sourceDef.mimeType || getImageURIMimeType(sourceDef.uri);
@@ -27617,7 +27474,11 @@ void main() {
       init_Reflector();
       window.__worldBootState.started = true;
       var ASSETS = {
-        character: "/world/models/\u72AC\u591C\u53C9.glb?v=20260613-1315"
+        character: "/world/models/\u72AC\u591C\u53C9.glb?v=20260613-1315",
+        environment: {
+          url: "/world/models/\u73AF\u5883-\u6811.glb?v=20260613-full-local",
+          manifest: "/world/models/environment-trees.manifest.json?v=20260613-full-env-chunks"
+        }
       };
       var WORLD_BOUNDS = {
         minX: -22,
@@ -27630,7 +27491,7 @@ void main() {
       var DEFAULT_MODEL_COLLISION_RADIUS = 1;
       var MAX_COLLISION_SOLVE_STEPS = 8;
       var CHARACTER_TARGET_HEIGHT = 2.4;
-      var PROCEDURAL_TREE_COUNT = 52;
+      var ENVIRONMENT_TARGET_WIDTH = 82;
       var CAMERA_DEFAULTS = {
         x: 10,
         y: 7,
@@ -27654,6 +27515,7 @@ void main() {
         }
         return "https://my-website-zeta-indol-39.vercel.app/api/world-chat";
       })();
+      var IS_LOCAL_PREVIEW = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
       var stage = document.querySelector("[data-world-stage]");
       var canvas = document.getElementById("world-canvas");
       var statusText = document.querySelector("[data-world-status]");
@@ -27724,6 +27586,38 @@ void main() {
       var dragOffset = new Vector3();
       function setStatus(text) {
         statusText.textContent = text;
+      }
+      function describeObject(object) {
+        if (!object) return null;
+        object.updateMatrixWorld(true);
+        const box = new Box3().setFromObject(object);
+        const size = box.getSize(new Vector3());
+        const center = box.getCenter(new Vector3());
+        return {
+          name: object.name,
+          position: object.position.toArray(),
+          scale: object.scale.toArray(),
+          box: {
+            min: box.min.toArray(),
+            max: box.max.toArray(),
+            size: size.toArray(),
+            center: center.toArray()
+          }
+        };
+      }
+      function exposeDebugState() {
+        window.__worldDebug = () => ({
+          status: statusText.textContent,
+          camera: state.camera ? state.camera.position.toArray() : null,
+          target: state.controls ? state.controls.target.toArray() : null,
+          environment: describeObject(state.environment),
+          character: describeObject(state.characterPivot),
+          droppedModels: Array.from(state.droppedModels, ([key, entry]) => ({
+            key,
+            name: entry.name,
+            object: describeObject(entry.object)
+          }))
+        });
       }
       function showLoader(title, detail) {
         loaderTitle.textContent = title;
@@ -27822,6 +27716,15 @@ void main() {
       function resetCamera() {
         setCameraInputs(CAMERA_DEFAULTS);
       }
+      function focusFullScene() {
+        if (!state.camera || !state.controls) return;
+        const settings = { x: 20, y: 16, z: 30 };
+        state.camera.position.set(settings.x, settings.y, settings.z);
+        state.controls.target.set(0, 4.5, 0);
+        state.camera.lookAt(state.controls.target);
+        state.controls.update();
+        syncCameraPanelFromCamera();
+      }
       function getLightSettings() {
         return {
           background: backgroundColorInput.value,
@@ -27865,7 +27768,7 @@ void main() {
       }
       function resetLightSettings() {
         setLightInputs(LIGHT_DEFAULTS);
-        setStatus("\u940F\uE21A\u539C\u935C\u5C83\u5117\u93C5\uE21A\u51E1\u93AD\u3220\uE632\u699B\u6A3F\uE17B");
+        setStatus("\u706F\u5149\u548C\u80CC\u666F\u5DF2\u6062\u590D\u9ED8\u8BA4");
       }
       function addBaseWorld() {
         const scene = state.scene;
@@ -28150,7 +28053,7 @@ void main() {
         card.classList.toggle("is-active", Boolean(entry));
         editor.hidden = !entry;
         if (!entry) return;
-        stateLabel.textContent = `\u5BB8\u53C9\u59C7\u93C0\u6485\u7D30${entry.name}`;
+        stateLabel.textContent = `\u5DF2\u6295\u653E\uFF1A${entry.name}`;
         const inputs = {
           x: card.querySelector("[data-model-x]"),
           y: card.querySelector("[data-model-y]"),
@@ -28232,77 +28135,67 @@ void main() {
         moveObjectWithCollision(state.characterPivot, state.characterPivot.position);
         rebuildCharacterTargets();
       }
-      function createProceduralTree(index) {
-        const tree = new Group();
-        tree.name = `ProceduralTree_${index}`;
-        const trunkMaterial = new MeshStandardMaterial({
-          color: 7293232,
-          roughness: 0.82,
-          metalness: 0.02
-        });
-        const leafMaterial = new MeshStandardMaterial({
-          color: index % 3 === 0 ? 3116891 : 4175469,
-          roughness: 0.72,
-          metalness: 0.01,
-          emissive: 797208,
-          emissiveIntensity: 0.08
-        });
-        const trunkHeight = 1.05 + index % 5 * 0.09;
-        const trunk = new Mesh(
-          new CylinderGeometry(0.13, 0.18, trunkHeight, 8),
-          trunkMaterial
-        );
-        trunk.position.y = trunkHeight * 0.5;
-        const crown = new Mesh(
-          new ConeGeometry(0.78 + index % 4 * 0.08, 1.75 + index % 3 * 0.16, 10),
-          leafMaterial
-        );
-        crown.position.y = trunkHeight + 0.75;
-        const crownTop = new Mesh(
-          new ConeGeometry(0.56 + index % 3 * 0.08, 1.2, 10),
-          leafMaterial
-        );
-        crownTop.position.y = trunkHeight + 1.55;
-        tree.add(trunk, crown, crownTop);
-        tree.traverse((node) => {
-          if (!node.isMesh) return;
-          node.castShadow = true;
-          node.receiveShadow = true;
-          node.frustumCulled = false;
-        });
-        return tree;
-      }
-      function createProceduralEnvironment() {
-        const env = new Group();
-        env.name = "ProceduralEnvironmentTrees";
-        for (let i = 0; i < PROCEDURAL_TREE_COUNT; i += 1) {
-          const tree = createProceduralTree(i);
-          const side = i % 4;
-          const lane = Math.floor(i / 4);
-          const offset = -21 + lane * 3.4 + i % 2 * 0.7;
-          const depth = 18 + i % 5 * 0.85;
-          const jitter = Math.sin(i * 12.9898) * 0.9;
-          if (side === 0) {
-            tree.position.set(offset, 0, -depth + jitter);
-          } else if (side === 1) {
-            tree.position.set(depth + jitter, 0, offset);
-          } else if (side === 2) {
-            tree.position.set(-offset, 0, depth + jitter);
-          } else {
-            tree.position.set(-depth + jitter, 0, -offset);
-          }
-          const scale = 1.15 + i % 6 * 0.12;
-          tree.scale.setScalar(scale);
-          tree.rotation.y = i * 0.73 % (Math.PI * 2);
-          env.add(tree);
+      async function loadGltfFromChunks(asset, label) {
+        setStatus(`\u6B63\u5728\u4ECE\u5206\u7247\u8FD8\u539F${label}...`);
+        const manifestResponse = await fetch(asset.manifest);
+        if (!manifestResponse.ok) {
+          throw new Error(`${label}\u5206\u7247\u6E05\u5355\u52A0\u8F7D\u5931\u8D25\uFF1A${manifestResponse.status}`);
         }
-        state.scene.add(env);
-        state.environment = env;
-        setStatus("\u8F7B\u91CF\u6811\u73AF\u5883\u5DF2\u52A0\u8F7D\uFF1A\u53EF\u90E8\u7F72\u4E0A\u7EBF\uFF0C\u89D2\u8272\u548C\u6A21\u578B\u53EF\u7EE7\u7EED\u62D6\u52A8");
-        return env;
+        const manifest = await manifestResponse.json();
+        const baseUrl = new URL(asset.manifest, window.location.href);
+        const blobs = [];
+        let totalSize = 0;
+        for (let index = 0; index < manifest.chunks.length; index += 1) {
+          const chunk = manifest.chunks[index];
+          setStatus(`\u6B63\u5728\u52A0\u8F7D${label}\u5206\u7247 ${index + 1}/${manifest.chunks.length}...`);
+          const chunkUrl = new URL(chunk.file, baseUrl);
+          const response = await fetch(chunkUrl);
+          if (!response.ok) {
+            throw new Error(`${label}\u5206\u7247 ${index + 1} \u52A0\u8F7D\u5931\u8D25\uFF1A${response.status}`);
+          }
+          const blob = await response.blob();
+          if (chunk.size && blob.size !== chunk.size) {
+            throw new Error(`${label}\u5206\u7247 ${index + 1} \u5927\u5C0F\u4E0D\u4E00\u81F4`);
+          }
+          blobs.push(blob);
+          totalSize += blob.size;
+        }
+        if (manifest.size && totalSize !== manifest.size) {
+          throw new Error(`${label}\u603B\u5927\u5C0F\u4E0D\u4E00\u81F4`);
+        }
+        setStatus(`\u6B63\u5728\u89E3\u6790\u5B8C\u6574${label}...`);
+        const objectUrl = URL.createObjectURL(new Blob(blobs, {
+          type: manifest.mime || "model/gltf-binary"
+        }));
+        try {
+          return await state.loader.loadAsync(objectUrl);
+        } finally {
+          URL.revokeObjectURL(objectUrl);
+        }
+      }
+      async function loadEnvironmentGltf() {
+        const forceDirect = IS_LOCAL_PREVIEW && new URLSearchParams(window.location.search).has("env_direct");
+        if (ASSETS.environment.url && forceDirect) {
+          try {
+            return await state.loader.loadAsync(ASSETS.environment.url);
+          } catch (error) {
+            console.warn("[world] direct environment load failed, falling back to chunks:", error);
+          }
+        }
+        return loadGltfFromChunks(ASSETS.environment, "\u5B8C\u6574\u6811\u73AF\u5883");
       }
       async function loadEnvironment() {
-        createProceduralEnvironment();
+        setStatus("\u6B63\u5728\u52A0\u8F7D\u5B8C\u6574\u6811\u73AF\u5883...");
+        const gltf = await loadEnvironmentGltf();
+        const environment = gltf.scene;
+        environment.name = "EnvironmentTreesGLB";
+        makeModelRenderable(environment);
+        fitObject(environment, { targetWidth: ENVIRONMENT_TARGET_WIDTH });
+        state.scene.add(environment);
+        state.environment = environment;
+        focusFullScene();
+        setStatus("\u5B8C\u6574\u6811\u73AF\u5883\u5DF2\u52A0\u8F7D\uFF1A\u89D2\u8272\u53EF\u62D6\u52A8\uFF0C\u70B9\u51FB\u89D2\u8272\u53EF AI \u5BF9\u8BDD");
+        return environment;
       }
       async function loadCharacter() {
         const gltf = await state.loader.loadAsync(ASSETS.character);
@@ -28312,7 +28205,7 @@ void main() {
           state.characterMixer = new AnimationMixer(character);
           state.characterMixer.clipAction(gltf.animations[0]).play();
         }
-        setStatus("\u7459\u6395\u58CA\u935C\u5C80\u5E46\u6FA7\u51A8\u51E1\u9354\u72BA\u6D47\u951B\u6C2D\u5ACB\u9354\u3128\uE757\u9479\u8BE7\u7D1D\u9410\u7470\u56AE\u7459\u6395\u58CA\u7035\u7845\u763D");
+        setStatus("\u72AC\u591C\u53C9\u5DF2\u52A0\u8F7D\uFF1A\u5B8C\u6574\u6811\u73AF\u5883\u7EE7\u7EED\u52A0\u8F7D\u4E2D\uFF0C\u62D6\u52A8\u89D2\u8272\uFF0C\u70B9\u51FB\u89D2\u8272\u5BF9\u8BDD");
       }
       function pointerFromEvent(event) {
         const rect = canvas.getBoundingClientRect();
@@ -28351,7 +28244,7 @@ void main() {
       }
       function openChat() {
         chat.hidden = false;
-        chatState.textContent = "??";
+        chatState.textContent = "\u5728\u7EBF";
         setStatus("\u5DF2\u6253\u5F00\u72AC\u591C\u53C9 AI \u5BF9\u8BDD");
         if (!state.chatOpenedOnce) {
           addMessage("\u6211\u5728\u8FD9\u91CC\u3002", false);
@@ -28361,7 +28254,7 @@ void main() {
       }
       function closeChatPanel() {
         chat.hidden = true;
-        chatState.textContent = "??";
+        chatState.textContent = "\u5F85\u673A";
         setStatus("\u62D6\u52A8\u89D2\u8272\uFF0C\u70B9\u51FB\u89D2\u8272\u5BF9\u8BDD");
       }
       async function sendToAI(message) {
@@ -28392,7 +28285,7 @@ void main() {
         state.chatSending = sending;
         chatInput.disabled = sending;
         chatSubmit.disabled = sending;
-        chatInput.placeholder = sending ? "\u7EDB\u590A\u7DDF\u9365\u70B2\uE632\u6D93?.." : "\u6748\u64B3\u53C6\u6D93\u20AC\u9359\u30E8\u763D";
+        chatInput.placeholder = sending ? "\u7B49\u5F85\u56DE\u590D\u4E2D..." : "\u8F93\u5165\u4E00\u53E5\u8BDD";
       }
       function createDroppedPlaceholder(key, type, modelName, position) {
         const clampedPosition = clampToWorldBounds(position);
@@ -28416,17 +28309,17 @@ void main() {
         state.scene.add(mesh);
         state.droppedModels.set(key, {
           key,
-          name: modelName || (type === "stone" ? "\u9357\u72B1\u7D85\u942D\u51B2\u6F61" : "\u9357\u72B1\u7D85\u59D8\u5B58\u6AE0"),
+          name: modelName || (type === "stone" ? "\u5360\u4F4D\u77F3\u5757" : "\u5360\u4F4D\u6C34\u6676"),
           object: mesh
         });
         rebuildDroppedModelTargets();
         updateModelEditor(key);
-        setStatus("\u5BB8\u53C9\u59B8\u9359\u5145\u6676\u9357\u72B1\u7D85\u59AF\u2033\u7037\u93B7\u6827\u53C6 3D \u6D93\u682B\u666B\u951B\u5C7D\u5F72\u93B7\u6827\u59E9\u951B\u5C7D\u5F72\u9359\u6828\u79F7");
+        setStatus("\u5DF2\u628A\u53F3\u4FA7\u5360\u4F4D\u6A21\u578B\u62D6\u5165 3D \u4E16\u754C\uFF0C\u53EF\u62D6\u52A8\uFF0C\u53EF\u53D6\u6D88");
       }
       async function createDroppedModel(key, modelUrl, modelName, position) {
         const clampedPosition = clampToWorldBounds(position);
         clearDroppedModel(key);
-        setStatus(`\u59DD\uFF45\u6E6A\u9354\u72BA\u6D47${modelName}...`);
+        setStatus(`\u6B63\u5728\u52A0\u8F7D${modelName}...`);
         try {
           const gltf = await state.loader.loadAsync(modelUrl);
           const model = gltf.scene;
@@ -28444,10 +28337,10 @@ void main() {
           state.droppedModels.set(key, { key, name: modelName, object: model });
           rebuildDroppedModelTargets();
           updateModelEditor(key);
-          setStatus(`${modelName}\u5BB8\u53C9\u6581\u934F?3D \u6D93\u682B\u666B\u951B\u5C7D\u5F72\u93B7\u6827\u59E9\u951B\u5C7D\u5F72\u9359\u6828\u79F7`);
+          setStatus(`${modelName}\u5DF2\u653E\u5165 3D \u4E16\u754C\uFF0C\u53EF\u62D6\u52A8\uFF0C\u53EF\u53D6\u6D88`);
         } catch (error) {
           console.warn("[world] dropped model load failed:", error);
-          setStatus(`${modelName}\u9354\u72BA\u6D47\u6FB6\u8FAB\u89E6\u951B\u5C7D\u51E1\u93C0\u60E7\u53C6\u9357\u72B1\u7D85\u59AF\u2033\u7037`);
+          setStatus(`${modelName}\u52A0\u8F7D\u5931\u8D25\uFF0C\u5DF2\u653E\u5165\u5360\u4F4D\u6A21\u578B`);
           createDroppedPlaceholder(key, "crystal", modelName, clampedPosition);
         }
       }
@@ -28465,14 +28358,14 @@ void main() {
         [backgroundColorInput, waterColorInput, ambientLightInput, sunLightInput, sunColorInput].forEach((input) => {
           input.addEventListener("input", () => {
             applyLightSettings();
-            setStatus("\u940F\uE21A\u539C\u935C\u5C83\u5117\u93C5\uE21A\u51E1\u748B\u51A9\u66A3");
+            setStatus("\u706F\u5149\u548C\u80CC\u666F\u5DF2\u8C03\u6574");
           });
         });
         [cameraXInput, cameraYInput, cameraZInput].forEach((input) => {
           input.addEventListener("input", () => {
             if (state.syncingCameraPanel) return;
             applyCameraSettings();
-            setStatus("\u93BD\u52EB\u511A\u93C8\u8F70\u7D85\u7F03\uE1BC\u51E1\u748B\u51A9\u66A3");
+            setStatus("\u6444\u50CF\u673A\u4F4D\u7F6E\u5DF2\u8C03\u6574");
           });
         });
         closeChat.addEventListener("click", closeChatPanel);
@@ -28533,9 +28426,9 @@ void main() {
           } else if (state.dragSubjectType === "dropped") {
             const entry = state.droppedModels.get(state.dragSubjectKey);
             if (entry) updateModelEditor(state.dragSubjectKey);
-            setStatus(`${(entry == null ? void 0 : entry.name) || "\u59AF\u2033\u7037"}\u5BB8\u832C\u0429\u9354\uE7D2\u7D1D\u9359\uE21C\u6237\u7F01\uE15F\u5ACB\u9354\u3126\u57A8\u9359\u6828\u79F7`);
+            setStatus(`${(entry == null ? void 0 : entry.name) || "\u6A21\u578B"}\u5DF2\u79FB\u52A8\uFF0C\u53EF\u7EE7\u7EED\u62D6\u52A8\u6216\u53D6\u6D88`);
           } else {
-            setStatus("\u7459\u6395\u58CA\u5BB8\u832C\u0429\u9354\uE7D2\u7D30\u9410\u7470\u56AE\u7459\u6395\u58CA\u9359\uE21B\u58A6\u5BEE\u20AC AI \u7035\u7845\u763D");
+            setStatus("\u89D2\u8272\u5DF2\u79FB\u52A8\uFF1A\u70B9\u51FB\u89D2\u8272\u53EF\u6253\u5F00 AI \u5BF9\u8BDD");
           }
           state.dragSubject = null;
           state.dragSubjectType = "";
@@ -28554,14 +28447,14 @@ void main() {
           if (!text) return;
           chatInput.value = "";
           addMessage(text, true);
-          chatState.textContent = "\u93AC\u6FCA\u20AC\u51A7\u8151";
+          chatState.textContent = "\u601D\u8003\u4E2D";
           setChatSending(true);
           try {
             const reply = await sendToAI(text);
             addMessage(reply, false);
           } finally {
             setChatSending(false);
-            chatState.textContent = "\u9366\u3127\u568E";
+            chatState.textContent = "\u5728\u7EBF";
             chatInput.focus();
           }
         });
@@ -28578,7 +28471,7 @@ void main() {
               type: card.dataset.modelUrl ? "model" : "placeholder",
               placeholder: card.dataset.dummyModel || "crystal",
               url: card.dataset.modelUrl || "",
-              name: card.dataset.modelName || ((_a2 = card.querySelector("strong")) == null ? void 0 : _a2.textContent) || "\u59AF\u2033\u7037"
+              name: card.dataset.modelName || ((_a2 = card.querySelector("strong")) == null ? void 0 : _a2.textContent) || "\u6A21\u578B"
             };
             event.dataTransfer.setData("application/json", JSON.stringify(payload));
             event.dataTransfer.setData("text/plain", payload.placeholder);
@@ -28588,7 +28481,7 @@ void main() {
             event.preventDefault();
             event.stopPropagation();
             clearDroppedModel(card.dataset.modelKey);
-            setStatus(`\u5BB8\u63D2\u5F47\u5A11?{card.dataset.modelName || '\u59AF\u2033\u7037'}`);
+            setStatus(`\u5DF2\u53D6\u6D88${card.dataset.modelName || "\u6A21\u578B"}`);
           });
           ["x", "y", "z"].forEach((axis) => {
             var _a2, _b;
@@ -28623,17 +28516,17 @@ void main() {
             try {
               const payload = JSON.parse(json);
               if (payload.type === "model" && payload.url) {
-                createDroppedModel(payload.key, payload.url, payload.name || "\u59AF\u2033\u7037", point);
+                createDroppedModel(payload.key, payload.url, payload.name || "\u6A21\u578B", point);
                 return;
               }
-              createDroppedPlaceholder(payload.key, payload.placeholder || "crystal", payload.name || "\u59AF\u2033\u7037", point);
+              createDroppedPlaceholder(payload.key, payload.placeholder || "crystal", payload.name || "\u6A21\u578B", point);
               return;
             } catch (error) {
               console.warn("[world] drop payload parse failed:", error);
             }
           }
           const type = event.dataTransfer.getData("text/plain") || "crystal";
-          createDroppedPlaceholder(`placeholder-${type}`, type, "\u59AF\u2033\u7037", point);
+          createDroppedPlaceholder(`placeholder-${type}`, type, "\u6A21\u578B", point);
         });
       }
       function animate() {
@@ -28676,13 +28569,14 @@ void main() {
         state.camera = new PerspectiveCamera(48, 1, 0.1, 500);
         state.loader = new GLTFLoader();
         state.characterPivot.name = "DraggableCharacterPivot";
+        exposeDebugState();
         addBaseWorld();
         installCharacter(createFallbackCharacter(), "FallbackCharacter");
         state.controls = new OrbitControls(state.camera, state.renderer.domElement);
         state.controls.enableDamping = true;
         state.controls.target.set(0, 1.8, 0);
         state.controls.minDistance = 1.2;
-        state.controls.maxDistance = 56;
+        state.controls.maxDistance = 110;
         state.controls.maxPolarAngle = Math.PI * 0.49;
         state.controls.addEventListener("change", syncCameraPanelFromCamera);
         resizeRenderer();
