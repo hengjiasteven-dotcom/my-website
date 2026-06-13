@@ -5,8 +5,10 @@
 
     window.__worldBootState.started = true;
 
+    const MODEL_ASSET_BASE = 'https://raw.githubusercontent.com/hengjiasteven-dotcom/my-website/main/world/models/';
+    const modelAssetUrl = (fileName, version) => `${MODEL_ASSET_BASE}${encodeURIComponent(fileName)}?v=${version}`;
     const ASSETS = {
-      character: '/world/models/犬夜叉.glb?v=20260613-1315'
+      character: modelAssetUrl('犬夜叉.glb', '20260613-1315')
     };
     const WORLD_BOUNDS = {
       minX: -22,

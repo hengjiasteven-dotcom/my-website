@@ -8,6 +8,7 @@ db.json
 *.log
 .codex-*
 .friend-links-temp/
+source/world/models/*.glb
 
 .vercel
 
