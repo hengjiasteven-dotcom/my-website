@@ -27481,8 +27481,8 @@ void main() {
         }
       };
       var WORLD_BOUNDS = {
-        minX: -22,
-        maxX: 22,
+        minX: -46,
+        maxX: 46,
         minZ: -22,
         maxZ: 22
       };
@@ -27793,7 +27793,7 @@ void main() {
         fill.position.set(-5, 6, -5);
         scene.add(fill);
         const waterSurface = new Reflector(
-          new PlaneGeometry(48, 48),
+          new PlaneGeometry(96, 48),
           {
             clipBias: 3e-3,
             textureWidth: Math.min(2048, window.innerWidth * window.devicePixelRatio),
@@ -27808,7 +27808,8 @@ void main() {
         waterSurface.receiveShadow = true;
         state.waterSurface = waterSurface;
         scene.add(waterSurface);
-        const grid = new GridHelper(48, 48, 10217711, 3105136);
+        const grid = new GridHelper(96, 96, 10217711, 3105136);
+        grid.scale.z = 0.5;
         grid.position.y = 0.018;
         grid.material.transparent = true;
         grid.material.opacity = 0.12;

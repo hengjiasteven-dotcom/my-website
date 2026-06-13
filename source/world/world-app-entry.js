@@ -13,8 +13,8 @@ import * as THREE from '../js/vendor/three/build/three.module.js';
       }
     };
     const WORLD_BOUNDS = {
-      minX: -22,
-      maxX: 22,
+      minX: -46,
+      maxX: 46,
       minZ: -22,
       maxZ: 22
     };
@@ -360,7 +360,7 @@ import * as THREE from '../js/vendor/three/build/three.module.js';
       scene.add(fill);
 
       const waterSurface = new Reflector(
-        new THREE.PlaneGeometry(48, 48),
+        new THREE.PlaneGeometry(96, 48),
         {
           clipBias: 0.003,
           textureWidth: Math.min(2048, window.innerWidth * window.devicePixelRatio),
@@ -376,7 +376,8 @@ import * as THREE from '../js/vendor/three/build/three.module.js';
       state.waterSurface = waterSurface;
       scene.add(waterSurface);
 
-      const grid = new THREE.GridHelper(48, 48, 0x9be8ef, 0x2f6170);
+      const grid = new THREE.GridHelper(96, 96, 0x9be8ef, 0x2f6170);
+      grid.scale.z = 0.5;
       grid.position.y = 0.018;
       grid.material.transparent = true;
       grid.material.opacity = 0.12;
