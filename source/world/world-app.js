@@ -27616,10 +27616,8 @@ void main() {
       init_GLTFLoader();
       init_Reflector();
       window.__worldBootState.started = true;
-      var MODEL_ASSET_BASE = "https://raw.githubusercontent.com/hengjiasteven-dotcom/my-website/main/world/models/";
-      var modelAssetUrl = (fileName, version) => `${MODEL_ASSET_BASE}${encodeURIComponent(fileName)}?v=${version}`;
       var ASSETS = {
-        character: modelAssetUrl("\u72AC\u591C\u53C9.glb", "20260613-1315")
+        character: "/world/models/\u72AC\u591C\u53C9.glb?v=20260613-1315"
       };
       var WORLD_BOUNDS = {
         minX: -22,
