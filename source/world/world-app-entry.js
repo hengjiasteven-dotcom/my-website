@@ -9,7 +9,7 @@ import * as THREE from '../js/vendor/three/build/three.module.js';
       character: '/world/models/犬夜叉.glb?v=20260613-1315',
       environment: {
         url: '/world/models/环境-树.glb?v=20260613-full-local',
-        manifest: '/world/models/environment-trees.manifest.json?v=20260613-full-env-chunks'
+        manifest: '/world/models/environment-trees.manifest.json?v=20260613-edgeone25'
       }
     };
     const WORLD_BOUNDS = {
@@ -937,12 +937,22 @@ import * as THREE from '../js/vendor/three/build/three.module.js';
       setStatus('已把右侧占位模型拖入 3D 世界，可拖动，可取消');
     }
 
-    async function createDroppedModel(key, modelUrl, modelName, position) {
+    async function loadDroppedModelGltf(modelAsset, modelName) {
+      if (typeof modelAsset === 'string') {
+        return state.loader.loadAsync(modelAsset);
+      }
+      if (modelAsset?.manifest) {
+        return loadGltfFromChunks(modelAsset, modelName);
+      }
+      return state.loader.loadAsync(modelAsset.url);
+    }
+
+    async function createDroppedModel(key, modelAsset, modelName, position) {
       const clampedPosition = clampToWorldBounds(position);
       clearDroppedModel(key);
       setStatus(`正在加载${modelName}...`);
       try {
-        const gltf = await state.loader.loadAsync(modelUrl);
+        const gltf = await loadDroppedModelGltf(modelAsset, modelName);
         const model = gltf.scene;
         model.name = `DroppedModel_${modelName}`;
         model.userData.droppedModelKey = key;
@@ -1098,9 +1108,10 @@ import * as THREE from '../js/vendor/three/build/three.module.js';
           }
           const payload = {
             key: card.dataset.modelKey,
-            type: card.dataset.modelUrl ? 'model' : 'placeholder',
+            type: card.dataset.modelUrl || card.dataset.modelManifest ? 'model' : 'placeholder',
             placeholder: card.dataset.dummyModel || 'crystal',
             url: card.dataset.modelUrl || '',
+            manifest: card.dataset.modelManifest || '',
             name: card.dataset.modelName || card.querySelector('strong')?.textContent || '模型'
           };
           event.dataTransfer.setData('application/json', JSON.stringify(payload));
@@ -1151,8 +1162,13 @@ import * as THREE from '../js/vendor/three/build/three.module.js';
         if (json) {
           try {
             const payload = JSON.parse(json);
-            if (payload.type === 'model' && payload.url) {
-              createDroppedModel(payload.key, payload.url, payload.name || '模型', point);
+            if (payload.type === 'model' && (payload.url || payload.manifest)) {
+              createDroppedModel(
+                payload.key,
+                { url: payload.url || '', manifest: payload.manifest || '' },
+                payload.name || '模型',
+                point
+              );
               return;
             }
             createDroppedPlaceholder(payload.key, payload.placeholder || 'crystal', payload.name || '模型', point);

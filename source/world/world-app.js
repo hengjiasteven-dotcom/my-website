@@ -27477,7 +27477,7 @@ void main() {
         character: "/world/models/\u72AC\u591C\u53C9.glb?v=20260613-1315",
         environment: {
           url: "/world/models/\u73AF\u5883-\u6811.glb?v=20260613-full-local",
-          manifest: "/world/models/environment-trees.manifest.json?v=20260613-full-env-chunks"
+          manifest: "/world/models/environment-trees.manifest.json?v=20260613-edgeone25"
         }
       };
       var WORLD_BOUNDS = {
@@ -28316,12 +28316,21 @@ void main() {
         updateModelEditor(key);
         setStatus("\u5DF2\u628A\u53F3\u4FA7\u5360\u4F4D\u6A21\u578B\u62D6\u5165 3D \u4E16\u754C\uFF0C\u53EF\u62D6\u52A8\uFF0C\u53EF\u53D6\u6D88");
       }
-      async function createDroppedModel(key, modelUrl, modelName, position) {
+      async function loadDroppedModelGltf(modelAsset, modelName) {
+        if (typeof modelAsset === "string") {
+          return state.loader.loadAsync(modelAsset);
+        }
+        if (modelAsset == null ? void 0 : modelAsset.manifest) {
+          return loadGltfFromChunks(modelAsset, modelName);
+        }
+        return state.loader.loadAsync(modelAsset.url);
+      }
+      async function createDroppedModel(key, modelAsset, modelName, position) {
         const clampedPosition = clampToWorldBounds(position);
         clearDroppedModel(key);
         setStatus(`\u6B63\u5728\u52A0\u8F7D${modelName}...`);
         try {
-          const gltf = await state.loader.loadAsync(modelUrl);
+          const gltf = await loadDroppedModelGltf(modelAsset, modelName);
           const model = gltf.scene;
           model.name = `DroppedModel_${modelName}`;
           model.userData.droppedModelKey = key;
@@ -28468,9 +28477,10 @@ void main() {
             }
             const payload = {
               key: card.dataset.modelKey,
-              type: card.dataset.modelUrl ? "model" : "placeholder",
+              type: card.dataset.modelUrl || card.dataset.modelManifest ? "model" : "placeholder",
               placeholder: card.dataset.dummyModel || "crystal",
               url: card.dataset.modelUrl || "",
+              manifest: card.dataset.modelManifest || "",
               name: card.dataset.modelName || ((_a2 = card.querySelector("strong")) == null ? void 0 : _a2.textContent) || "\u6A21\u578B"
             };
             event.dataTransfer.setData("application/json", JSON.stringify(payload));
@@ -28515,8 +28525,13 @@ void main() {
           if (json) {
             try {
               const payload = JSON.parse(json);
-              if (payload.type === "model" && payload.url) {
-                createDroppedModel(payload.key, payload.url, payload.name || "\u6A21\u578B", point);
+              if (payload.type === "model" && (payload.url || payload.manifest)) {
+                createDroppedModel(
+                  payload.key,
+                  { url: payload.url || "", manifest: payload.manifest || "" },
+                  payload.name || "\u6A21\u578B",
+                  point
+                );
                 return;
               }
               createDroppedPlaceholder(payload.key, payload.placeholder || "crystal", payload.name || "\u6A21\u578B", point);
