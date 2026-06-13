@@ -5,10 +5,11 @@
 
     window.__worldBootState.started = true;
 
-    const MODEL_ASSET_BASE = 'https://raw.githubusercontent.com/hengjiasteven-dotcom/my-website/main/world/models/';
-    const modelAssetUrl = (fileName, version) => `${MODEL_ASSET_BASE}${encodeURIComponent(fileName)}?v=${version}`;
+    const WORLD_ASSET_BASE = 'https://raw.githubusercontent.com/hengjiasteven-dotcom/my-website/world-assets/world-assets/';
+    const worldAssetUrl = (path, version = '20260613-full') => `${WORLD_ASSET_BASE}${path}?v=${version}`;
     const ASSETS = {
-      character: modelAssetUrl('犬夜叉.glb', '20260613-1315')
+      character: worldAssetUrl('inuyasha.glb'),
+      environmentManifest: worldAssetUrl('environment-trees-full/manifest.json')
     };
     const WORLD_BOUNDS = {
       minX: -22,
@@ -283,7 +284,7 @@
 
     function resetLightSettings() {
       setLightInputs(LIGHT_DEFAULTS);
-      setStatus('鐏厜鍜岃儗鏅凡鎭㈠榛樿');
+      setStatus('灯光和背景已恢复默认');
     }
 
     function addBaseWorld() {
@@ -562,6 +563,61 @@
       });
     }
 
+    async function fetchArrayBuffer(url, label) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`${label} 下载失败：HTTP ${response.status}`);
+      }
+      return response.arrayBuffer();
+    }
+
+    async function loadChunkedGLB(manifestUrl) {
+      setStatus('正在读取完整树环境清单...');
+      const manifestResponse = await fetch(manifestUrl);
+      if (!manifestResponse.ok) {
+        throw new Error(`完整树环境清单下载失败：HTTP ${manifestResponse.status}`);
+      }
+
+      const manifest = await manifestResponse.json();
+      const manifestBaseUrl = new URL(manifestUrl, window.location.href);
+      manifestBaseUrl.search = '';
+      const baseUrl = new URL('.', manifestBaseUrl).href;
+      const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
+      if (!chunks.length) {
+        throw new Error('完整树环境清单没有分片信息');
+      }
+
+      let offset = 0;
+      const totalSize = chunks.reduce((sum, chunk) => sum + Number(chunk.size || 0), 0);
+      const merged = new Uint8Array(Number(manifest.size || totalSize));
+
+      for (let index = 0; index < chunks.length; index += 1) {
+        const chunk = chunks[index];
+        const chunkUrl = new URL(chunk.name, baseUrl).href;
+        setStatus(`正在加载完整树环境 ${index + 1}/${chunks.length}...`);
+        const chunkBuffer = await fetchArrayBuffer(chunkUrl, `完整树环境分片 ${index + 1}`);
+        if (chunk.size && chunkBuffer.byteLength !== Number(chunk.size)) {
+          throw new Error(`完整树环境分片 ${index + 1} 大小不一致`);
+        }
+        merged.set(new Uint8Array(chunkBuffer), offset);
+        offset += chunkBuffer.byteLength;
+      }
+
+      if (offset !== merged.byteLength) {
+        throw new Error('完整树环境分片合并大小不一致');
+      }
+
+      setStatus('完整树环境下载完成，正在解析 GLB...');
+      return new Promise((resolve, reject) => {
+        state.loader.parse(
+          merged.buffer,
+          '',
+          (gltf) => resolve(gltf),
+          (error) => reject(error)
+        );
+      });
+    }
+
     function rebuildCharacterTargets() {
       state.characterHitTargets.length = 0;
       state.characterPivot.traverse((node) => {
@@ -605,7 +661,7 @@
       card.classList.toggle('is-active', Boolean(entry));
       editor.hidden = !entry;
       if (!entry) return;
-      stateLabel.textContent = `宸叉姇鏀撅細${entry.name}`;
+      stateLabel.textContent = `已投放：${entry.name}`;
       const inputs = {
         x: card.querySelector('[data-model-x]'),
         y: card.querySelector('[data-model-y]'),
@@ -764,12 +820,20 @@
 
       state.scene.add(env);
       state.environment = env;
-      setStatus('轻量树环境已加载：可部署上线，角色和模型可继续拖动');
+      setStatus('备用轻量树环境已加载：完整环境加载失败时临时显示');
       return env;
     }
 
     async function loadEnvironment() {
-      createProceduralEnvironment();
+      const gltf = await loadChunkedGLB(ASSETS.environmentManifest);
+      const environment = gltf.scene;
+      environment.name = 'FullEnvironmentTreesGLB';
+      makeModelRenderable(environment);
+      fitObject(environment, { targetWidth: ENVIRONMENT_TARGET_WIDTH });
+      state.scene.add(environment);
+      state.environment = environment;
+      setStatus('完整树环境已加载：角色可拖动，点击角色可 AI 对话');
+      return environment;
     }
 
     async function loadCharacter() {
@@ -780,7 +844,7 @@
         state.characterMixer = new THREE.AnimationMixer(character);
         state.characterMixer.clipAction(gltf.animations[0]).play();
       }
-      setStatus('瑙掕壊鍜岀幆澧冨凡鍔犺浇锛氭嫋鍔ㄨ鑹诧紝鐐瑰嚮瑙掕壊瀵硅瘽');
+      setStatus('犬夜叉已加载：完整树环境继续加载中，点击角色可 AI 对话');
     }
 
     function pointerFromEvent(event) {
@@ -826,7 +890,7 @@
 
     function openChat() {
       chat.hidden = false;
-      chatState.textContent = '??';
+      chatState.textContent = '在线';
       setStatus('已打开犬夜叉 AI 对话');
       if (!state.chatOpenedOnce) {
         addMessage('我在这里。', false);
@@ -837,7 +901,7 @@
 
     function closeChatPanel() {
       chat.hidden = true;
-      chatState.textContent = '??';
+      chatState.textContent = '待机';
       setStatus('拖动角色，点击角色对话');
     }
 
@@ -871,7 +935,7 @@
       state.chatSending = sending;
       chatInput.disabled = sending;
       chatSubmit.disabled = sending;
-      chatInput.placeholder = sending ? '绛夊緟鍥炲涓?..' : '杈撳叆涓€鍙ヨ瘽';
+      chatInput.placeholder = sending ? '等待回复中...' : '输入一句话';
     }
 
     function createDroppedPlaceholder(key, type, modelName, position) {
@@ -898,18 +962,18 @@
       state.scene.add(mesh);
       state.droppedModels.set(key, {
         key,
-        name: modelName || (type === 'stone' ? '鍗犱綅鐭冲潡' : '鍗犱綅姘存櫠'),
+        name: modelName || (type === 'stone' ? '占位石块' : '占位水晶'),
         object: mesh
       });
       rebuildDroppedModelTargets();
       updateModelEditor(key);
-      setStatus('宸叉妸鍙充晶鍗犱綅妯″瀷鎷栧叆 3D 涓栫晫锛屽彲鎷栧姩锛屽彲鍙栨秷');
+      setStatus('已把右侧占位模型拖入 3D 世界，可拖动，可取消');
     }
 
     async function createDroppedModel(key, modelUrl, modelName, position) {
       const clampedPosition = clampToWorldBounds(position);
       clearDroppedModel(key);
-      setStatus(`姝ｅ湪鍔犺浇${modelName}...`);
+      setStatus(`正在加载${modelName}...`);
       try {
         const gltf = await state.loader.loadAsync(modelUrl);
         const model = gltf.scene;
@@ -927,10 +991,10 @@
         state.droppedModels.set(key, { key, name: modelName, object: model });
         rebuildDroppedModelTargets();
         updateModelEditor(key);
-        setStatus(`${modelName}宸叉斁鍏?3D 涓栫晫锛屽彲鎷栧姩锛屽彲鍙栨秷`);
+        setStatus(`${modelName}已放入 3D 世界，可拖动，可取消`);
       } catch (error) {
         console.warn('[world] dropped model load failed:', error);
-        setStatus(`${modelName}鍔犺浇澶辫触锛屽凡鏀惧叆鍗犱綅妯″瀷`);
+        setStatus(`${modelName}加载失败，已放入占位模型`);
         createDroppedPlaceholder(key, 'crystal', modelName, clampedPosition);
       }
     }
@@ -950,14 +1014,14 @@
       [backgroundColorInput, waterColorInput, ambientLightInput, sunLightInput, sunColorInput].forEach((input) => {
         input.addEventListener('input', () => {
           applyLightSettings();
-          setStatus('鐏厜鍜岃儗鏅凡璋冩暣');
+          setStatus('灯光和背景已调整');
         });
       });
       [cameraXInput, cameraYInput, cameraZInput].forEach((input) => {
         input.addEventListener('input', () => {
           if (state.syncingCameraPanel) return;
           applyCameraSettings();
-          setStatus('鎽勫儚鏈轰綅缃凡璋冩暣');
+          setStatus('摄像机位置已调整');
         });
       });
       closeChat.addEventListener('click', closeChatPanel);
@@ -1024,9 +1088,9 @@
         } else if (state.dragSubjectType === 'dropped') {
           const entry = state.droppedModels.get(state.dragSubjectKey);
           if (entry) updateModelEditor(state.dragSubjectKey);
-          setStatus(`${entry?.name || '妯″瀷'}宸茬Щ鍔紝鍙户缁嫋鍔ㄦ垨鍙栨秷`);
+          setStatus(`${entry?.name || '模型'}已移动，可继续拖动或取消`);
         } else {
-          setStatus('瑙掕壊宸茬Щ鍔細鐐瑰嚮瑙掕壊鍙墦寮€ AI 瀵硅瘽');
+          setStatus('角色已移动：点击角色可打开 AI 对话');
         }
         state.dragSubject = null;
         state.dragSubjectType = '';
@@ -1047,14 +1111,14 @@
         if (!text) return;
         chatInput.value = '';
         addMessage(text, true);
-        chatState.textContent = '鎬濊€冧腑';
+        chatState.textContent = '思考中';
         setChatSending(true);
         try {
           const reply = await sendToAI(text);
           addMessage(reply, false);
         } finally {
           setChatSending(false);
-          chatState.textContent = '鍦ㄧ嚎';
+          chatState.textContent = '在线';
           chatInput.focus();
         }
       });
@@ -1070,7 +1134,7 @@
             type: card.dataset.modelUrl ? 'model' : 'placeholder',
             placeholder: card.dataset.dummyModel || 'crystal',
             url: card.dataset.modelUrl || '',
-            name: card.dataset.modelName || card.querySelector('strong')?.textContent || '妯″瀷'
+            name: card.dataset.modelName || card.querySelector('strong')?.textContent || '模型'
           };
           event.dataTransfer.setData('application/json', JSON.stringify(payload));
           event.dataTransfer.setData('text/plain', payload.placeholder);
@@ -1081,7 +1145,7 @@
           event.preventDefault();
           event.stopPropagation();
           clearDroppedModel(card.dataset.modelKey);
-          setStatus(`宸插彇娑?{card.dataset.modelName || '妯″瀷'}`);
+          setStatus(`已取消${card.dataset.modelName || '模型'}`);
         });
 
         ['x', 'y', 'z'].forEach((axis) => {
@@ -1121,17 +1185,17 @@
           try {
             const payload = JSON.parse(json);
             if (payload.type === 'model' && payload.url) {
-              createDroppedModel(payload.key, payload.url, payload.name || '妯″瀷', point);
+              createDroppedModel(payload.key, payload.url, payload.name || '模型', point);
               return;
             }
-            createDroppedPlaceholder(payload.key, payload.placeholder || 'crystal', payload.name || '妯″瀷', point);
+            createDroppedPlaceholder(payload.key, payload.placeholder || 'crystal', payload.name || '模型', point);
             return;
           } catch (error) {
             console.warn('[world] drop payload parse failed:', error);
           }
         }
         const type = event.dataTransfer.getData('text/plain') || 'crystal';
-        createDroppedPlaceholder(`placeholder-${type}`, type, '妯″瀷', point);
+        createDroppedPlaceholder(`placeholder-${type}`, type, '模型', point);
       });
     }
 
@@ -1172,7 +1236,8 @@
         await loadEnvironment();
       } catch (error) {
         console.warn('[world] environment load failed:', error);
-        setStatus('环境树加载失败，但基础 3D 和角色仍会显示：' + (error.message || error));
+        createProceduralEnvironment();
+        setStatus('完整树环境加载失败，已临时显示备用树：' + (error.message || error));
       }
     }
 

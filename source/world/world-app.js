@@ -26706,14 +26706,14 @@ void main() {
             return this.sourceCache[sourceIndex].then((texture) => texture.clone());
           }
           const sourceDef = json.images[sourceIndex];
-          const URL = self.URL || self.webkitURL;
+          const URL2 = self.URL || self.webkitURL;
           let sourceURI = sourceDef.uri || "";
           let isObjectURL = false;
           if (sourceDef.bufferView !== void 0) {
             sourceURI = parser.getDependency("bufferView", sourceDef.bufferView).then(function(bufferView) {
               isObjectURL = true;
               const blob = new Blob([bufferView], { type: sourceDef.mimeType });
-              sourceURI = URL.createObjectURL(blob);
+              sourceURI = URL2.createObjectURL(blob);
               return sourceURI;
             });
           } else if (sourceDef.uri === void 0) {
@@ -26733,7 +26733,7 @@ void main() {
             });
           }).then(function(texture) {
             if (isObjectURL === true) {
-              URL.revokeObjectURL(sourceURI);
+              URL2.revokeObjectURL(sourceURI);
             }
             assignExtrasToUserData(texture, sourceDef);
             texture.userData.mimeType = sourceDef.mimeType || getImageURIMimeType(sourceDef.uri);
@@ -27616,10 +27616,11 @@ void main() {
       init_GLTFLoader();
       init_Reflector();
       window.__worldBootState.started = true;
-      var MODEL_ASSET_BASE = "https://raw.githubusercontent.com/hengjiasteven-dotcom/my-website/main/world/models/";
-      var modelAssetUrl = (fileName, version) => `${MODEL_ASSET_BASE}${encodeURIComponent(fileName)}?v=${version}`;
+      var WORLD_ASSET_BASE = "https://raw.githubusercontent.com/hengjiasteven-dotcom/my-website/world-assets/world-assets/";
+      var worldAssetUrl = (path, version = "20260613-full") => `${WORLD_ASSET_BASE}${path}?v=${version}`;
       var ASSETS = {
-        character: modelAssetUrl("\u72AC\u591C\u53C9.glb", "20260613-1315")
+        character: worldAssetUrl("inuyasha.glb"),
+        environmentManifest: worldAssetUrl("environment-trees-full/manifest.json")
       };
       var WORLD_BOUNDS = {
         minX: -22,
@@ -27632,6 +27633,7 @@ void main() {
       var DEFAULT_MODEL_COLLISION_RADIUS = 1;
       var MAX_COLLISION_SOLVE_STEPS = 8;
       var CHARACTER_TARGET_HEIGHT = 2.4;
+      var ENVIRONMENT_TARGET_WIDTH = 68;
       var PROCEDURAL_TREE_COUNT = 52;
       var CAMERA_DEFAULTS = {
         x: 10,
@@ -27867,7 +27869,7 @@ void main() {
       }
       function resetLightSettings() {
         setLightInputs(LIGHT_DEFAULTS);
-        setStatus("\u940F\uE21A\u539C\u935C\u5C83\u5117\u93C5\uE21A\u51E1\u93AD\u3220\uE632\u699B\u6A3F\uE17B");
+        setStatus("\u706F\u5149\u548C\u80CC\u666F\u5DF2\u6062\u590D\u9ED8\u8BA4");
       }
       function addBaseWorld() {
         const scene = state.scene;
@@ -28112,6 +28114,54 @@ void main() {
           }
         });
       }
+      async function fetchArrayBuffer(url, label) {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`${label} \u4E0B\u8F7D\u5931\u8D25\uFF1AHTTP ${response.status}`);
+        }
+        return response.arrayBuffer();
+      }
+      async function loadChunkedGLB(manifestUrl) {
+        setStatus("\u6B63\u5728\u8BFB\u53D6\u5B8C\u6574\u6811\u73AF\u5883\u6E05\u5355...");
+        const manifestResponse = await fetch(manifestUrl);
+        if (!manifestResponse.ok) {
+          throw new Error(`\u5B8C\u6574\u6811\u73AF\u5883\u6E05\u5355\u4E0B\u8F7D\u5931\u8D25\uFF1AHTTP ${manifestResponse.status}`);
+        }
+        const manifest = await manifestResponse.json();
+        const manifestBaseUrl = new URL(manifestUrl, window.location.href);
+        manifestBaseUrl.search = "";
+        const baseUrl = new URL(".", manifestBaseUrl).href;
+        const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
+        if (!chunks.length) {
+          throw new Error("\u5B8C\u6574\u6811\u73AF\u5883\u6E05\u5355\u6CA1\u6709\u5206\u7247\u4FE1\u606F");
+        }
+        let offset = 0;
+        const totalSize = chunks.reduce((sum, chunk) => sum + Number(chunk.size || 0), 0);
+        const merged = new Uint8Array(Number(manifest.size || totalSize));
+        for (let index = 0; index < chunks.length; index += 1) {
+          const chunk = chunks[index];
+          const chunkUrl = new URL(chunk.name, baseUrl).href;
+          setStatus(`\u6B63\u5728\u52A0\u8F7D\u5B8C\u6574\u6811\u73AF\u5883 ${index + 1}/${chunks.length}...`);
+          const chunkBuffer = await fetchArrayBuffer(chunkUrl, `\u5B8C\u6574\u6811\u73AF\u5883\u5206\u7247 ${index + 1}`);
+          if (chunk.size && chunkBuffer.byteLength !== Number(chunk.size)) {
+            throw new Error(`\u5B8C\u6574\u6811\u73AF\u5883\u5206\u7247 ${index + 1} \u5927\u5C0F\u4E0D\u4E00\u81F4`);
+          }
+          merged.set(new Uint8Array(chunkBuffer), offset);
+          offset += chunkBuffer.byteLength;
+        }
+        if (offset !== merged.byteLength) {
+          throw new Error("\u5B8C\u6574\u6811\u73AF\u5883\u5206\u7247\u5408\u5E76\u5927\u5C0F\u4E0D\u4E00\u81F4");
+        }
+        setStatus("\u5B8C\u6574\u6811\u73AF\u5883\u4E0B\u8F7D\u5B8C\u6210\uFF0C\u6B63\u5728\u89E3\u6790 GLB...");
+        return new Promise((resolve, reject) => {
+          state.loader.parse(
+            merged.buffer,
+            "",
+            (gltf) => resolve(gltf),
+            (error) => reject(error)
+          );
+        });
+      }
       function rebuildCharacterTargets() {
         state.characterHitTargets.length = 0;
         state.characterPivot.traverse((node) => {
@@ -28152,7 +28202,7 @@ void main() {
         card.classList.toggle("is-active", Boolean(entry));
         editor.hidden = !entry;
         if (!entry) return;
-        stateLabel.textContent = `\u5BB8\u53C9\u59C7\u93C0\u6485\u7D30${entry.name}`;
+        stateLabel.textContent = `\u5DF2\u6295\u653E\uFF1A${entry.name}`;
         const inputs = {
           x: card.querySelector("[data-model-x]"),
           y: card.querySelector("[data-model-y]"),
@@ -28300,11 +28350,19 @@ void main() {
         }
         state.scene.add(env);
         state.environment = env;
-        setStatus("\u8F7B\u91CF\u6811\u73AF\u5883\u5DF2\u52A0\u8F7D\uFF1A\u53EF\u90E8\u7F72\u4E0A\u7EBF\uFF0C\u89D2\u8272\u548C\u6A21\u578B\u53EF\u7EE7\u7EED\u62D6\u52A8");
+        setStatus("\u5907\u7528\u8F7B\u91CF\u6811\u73AF\u5883\u5DF2\u52A0\u8F7D\uFF1A\u5B8C\u6574\u73AF\u5883\u52A0\u8F7D\u5931\u8D25\u65F6\u4E34\u65F6\u663E\u793A");
         return env;
       }
       async function loadEnvironment() {
-        createProceduralEnvironment();
+        const gltf = await loadChunkedGLB(ASSETS.environmentManifest);
+        const environment = gltf.scene;
+        environment.name = "FullEnvironmentTreesGLB";
+        makeModelRenderable(environment);
+        fitObject(environment, { targetWidth: ENVIRONMENT_TARGET_WIDTH });
+        state.scene.add(environment);
+        state.environment = environment;
+        setStatus("\u5B8C\u6574\u6811\u73AF\u5883\u5DF2\u52A0\u8F7D\uFF1A\u89D2\u8272\u53EF\u62D6\u52A8\uFF0C\u70B9\u51FB\u89D2\u8272\u53EF AI \u5BF9\u8BDD");
+        return environment;
       }
       async function loadCharacter() {
         const gltf = await state.loader.loadAsync(ASSETS.character);
@@ -28314,7 +28372,7 @@ void main() {
           state.characterMixer = new AnimationMixer(character);
           state.characterMixer.clipAction(gltf.animations[0]).play();
         }
-        setStatus("\u7459\u6395\u58CA\u935C\u5C80\u5E46\u6FA7\u51A8\u51E1\u9354\u72BA\u6D47\u951B\u6C2D\u5ACB\u9354\u3128\uE757\u9479\u8BE7\u7D1D\u9410\u7470\u56AE\u7459\u6395\u58CA\u7035\u7845\u763D");
+        setStatus("\u72AC\u591C\u53C9\u5DF2\u52A0\u8F7D\uFF1A\u5B8C\u6574\u6811\u73AF\u5883\u7EE7\u7EED\u52A0\u8F7D\u4E2D\uFF0C\u70B9\u51FB\u89D2\u8272\u53EF AI \u5BF9\u8BDD");
       }
       function pointerFromEvent(event) {
         const rect = canvas.getBoundingClientRect();
@@ -28353,7 +28411,7 @@ void main() {
       }
       function openChat() {
         chat.hidden = false;
-        chatState.textContent = "??";
+        chatState.textContent = "\u5728\u7EBF";
         setStatus("\u5DF2\u6253\u5F00\u72AC\u591C\u53C9 AI \u5BF9\u8BDD");
         if (!state.chatOpenedOnce) {
           addMessage("\u6211\u5728\u8FD9\u91CC\u3002", false);
@@ -28363,7 +28421,7 @@ void main() {
       }
       function closeChatPanel() {
         chat.hidden = true;
-        chatState.textContent = "??";
+        chatState.textContent = "\u5F85\u673A";
         setStatus("\u62D6\u52A8\u89D2\u8272\uFF0C\u70B9\u51FB\u89D2\u8272\u5BF9\u8BDD");
       }
       async function sendToAI(message) {
@@ -28394,7 +28452,7 @@ void main() {
         state.chatSending = sending;
         chatInput.disabled = sending;
         chatSubmit.disabled = sending;
-        chatInput.placeholder = sending ? "\u7EDB\u590A\u7DDF\u9365\u70B2\uE632\u6D93?.." : "\u6748\u64B3\u53C6\u6D93\u20AC\u9359\u30E8\u763D";
+        chatInput.placeholder = sending ? "\u7B49\u5F85\u56DE\u590D\u4E2D..." : "\u8F93\u5165\u4E00\u53E5\u8BDD";
       }
       function createDroppedPlaceholder(key, type, modelName, position) {
         const clampedPosition = clampToWorldBounds(position);
@@ -28418,17 +28476,17 @@ void main() {
         state.scene.add(mesh);
         state.droppedModels.set(key, {
           key,
-          name: modelName || (type === "stone" ? "\u9357\u72B1\u7D85\u942D\u51B2\u6F61" : "\u9357\u72B1\u7D85\u59D8\u5B58\u6AE0"),
+          name: modelName || (type === "stone" ? "\u5360\u4F4D\u77F3\u5757" : "\u5360\u4F4D\u6C34\u6676"),
           object: mesh
         });
         rebuildDroppedModelTargets();
         updateModelEditor(key);
-        setStatus("\u5BB8\u53C9\u59B8\u9359\u5145\u6676\u9357\u72B1\u7D85\u59AF\u2033\u7037\u93B7\u6827\u53C6 3D \u6D93\u682B\u666B\u951B\u5C7D\u5F72\u93B7\u6827\u59E9\u951B\u5C7D\u5F72\u9359\u6828\u79F7");
+        setStatus("\u5DF2\u628A\u53F3\u4FA7\u5360\u4F4D\u6A21\u578B\u62D6\u5165 3D \u4E16\u754C\uFF0C\u53EF\u62D6\u52A8\uFF0C\u53EF\u53D6\u6D88");
       }
       async function createDroppedModel(key, modelUrl, modelName, position) {
         const clampedPosition = clampToWorldBounds(position);
         clearDroppedModel(key);
-        setStatus(`\u59DD\uFF45\u6E6A\u9354\u72BA\u6D47${modelName}...`);
+        setStatus(`\u6B63\u5728\u52A0\u8F7D${modelName}...`);
         try {
           const gltf = await state.loader.loadAsync(modelUrl);
           const model = gltf.scene;
@@ -28446,10 +28504,10 @@ void main() {
           state.droppedModels.set(key, { key, name: modelName, object: model });
           rebuildDroppedModelTargets();
           updateModelEditor(key);
-          setStatus(`${modelName}\u5BB8\u53C9\u6581\u934F?3D \u6D93\u682B\u666B\u951B\u5C7D\u5F72\u93B7\u6827\u59E9\u951B\u5C7D\u5F72\u9359\u6828\u79F7`);
+          setStatus(`${modelName}\u5DF2\u653E\u5165 3D \u4E16\u754C\uFF0C\u53EF\u62D6\u52A8\uFF0C\u53EF\u53D6\u6D88`);
         } catch (error) {
           console.warn("[world] dropped model load failed:", error);
-          setStatus(`${modelName}\u9354\u72BA\u6D47\u6FB6\u8FAB\u89E6\u951B\u5C7D\u51E1\u93C0\u60E7\u53C6\u9357\u72B1\u7D85\u59AF\u2033\u7037`);
+          setStatus(`${modelName}\u52A0\u8F7D\u5931\u8D25\uFF0C\u5DF2\u653E\u5165\u5360\u4F4D\u6A21\u578B`);
           createDroppedPlaceholder(key, "crystal", modelName, clampedPosition);
         }
       }
@@ -28467,14 +28525,14 @@ void main() {
         [backgroundColorInput, waterColorInput, ambientLightInput, sunLightInput, sunColorInput].forEach((input) => {
           input.addEventListener("input", () => {
             applyLightSettings();
-            setStatus("\u940F\uE21A\u539C\u935C\u5C83\u5117\u93C5\uE21A\u51E1\u748B\u51A9\u66A3");
+            setStatus("\u706F\u5149\u548C\u80CC\u666F\u5DF2\u8C03\u6574");
           });
         });
         [cameraXInput, cameraYInput, cameraZInput].forEach((input) => {
           input.addEventListener("input", () => {
             if (state.syncingCameraPanel) return;
             applyCameraSettings();
-            setStatus("\u93BD\u52EB\u511A\u93C8\u8F70\u7D85\u7F03\uE1BC\u51E1\u748B\u51A9\u66A3");
+            setStatus("\u6444\u50CF\u673A\u4F4D\u7F6E\u5DF2\u8C03\u6574");
           });
         });
         closeChat.addEventListener("click", closeChatPanel);
@@ -28535,9 +28593,9 @@ void main() {
           } else if (state.dragSubjectType === "dropped") {
             const entry = state.droppedModels.get(state.dragSubjectKey);
             if (entry) updateModelEditor(state.dragSubjectKey);
-            setStatus(`${(entry == null ? void 0 : entry.name) || "\u59AF\u2033\u7037"}\u5BB8\u832C\u0429\u9354\uE7D2\u7D1D\u9359\uE21C\u6237\u7F01\uE15F\u5ACB\u9354\u3126\u57A8\u9359\u6828\u79F7`);
+            setStatus(`${(entry == null ? void 0 : entry.name) || "\u6A21\u578B"}\u5DF2\u79FB\u52A8\uFF0C\u53EF\u7EE7\u7EED\u62D6\u52A8\u6216\u53D6\u6D88`);
           } else {
-            setStatus("\u7459\u6395\u58CA\u5BB8\u832C\u0429\u9354\uE7D2\u7D30\u9410\u7470\u56AE\u7459\u6395\u58CA\u9359\uE21B\u58A6\u5BEE\u20AC AI \u7035\u7845\u763D");
+            setStatus("\u89D2\u8272\u5DF2\u79FB\u52A8\uFF1A\u70B9\u51FB\u89D2\u8272\u53EF\u6253\u5F00 AI \u5BF9\u8BDD");
           }
           state.dragSubject = null;
           state.dragSubjectType = "";
@@ -28556,14 +28614,14 @@ void main() {
           if (!text) return;
           chatInput.value = "";
           addMessage(text, true);
-          chatState.textContent = "\u93AC\u6FCA\u20AC\u51A7\u8151";
+          chatState.textContent = "\u601D\u8003\u4E2D";
           setChatSending(true);
           try {
             const reply = await sendToAI(text);
             addMessage(reply, false);
           } finally {
             setChatSending(false);
-            chatState.textContent = "\u9366\u3127\u568E";
+            chatState.textContent = "\u5728\u7EBF";
             chatInput.focus();
           }
         });
@@ -28580,7 +28638,7 @@ void main() {
               type: card.dataset.modelUrl ? "model" : "placeholder",
               placeholder: card.dataset.dummyModel || "crystal",
               url: card.dataset.modelUrl || "",
-              name: card.dataset.modelName || ((_a2 = card.querySelector("strong")) == null ? void 0 : _a2.textContent) || "\u59AF\u2033\u7037"
+              name: card.dataset.modelName || ((_a2 = card.querySelector("strong")) == null ? void 0 : _a2.textContent) || "\u6A21\u578B"
             };
             event.dataTransfer.setData("application/json", JSON.stringify(payload));
             event.dataTransfer.setData("text/plain", payload.placeholder);
@@ -28590,7 +28648,7 @@ void main() {
             event.preventDefault();
             event.stopPropagation();
             clearDroppedModel(card.dataset.modelKey);
-            setStatus(`\u5BB8\u63D2\u5F47\u5A11?{card.dataset.modelName || '\u59AF\u2033\u7037'}`);
+            setStatus(`\u5DF2\u53D6\u6D88${card.dataset.modelName || "\u6A21\u578B"}`);
           });
           ["x", "y", "z"].forEach((axis) => {
             var _a2, _b;
@@ -28625,17 +28683,17 @@ void main() {
             try {
               const payload = JSON.parse(json);
               if (payload.type === "model" && payload.url) {
-                createDroppedModel(payload.key, payload.url, payload.name || "\u59AF\u2033\u7037", point);
+                createDroppedModel(payload.key, payload.url, payload.name || "\u6A21\u578B", point);
                 return;
               }
-              createDroppedPlaceholder(payload.key, payload.placeholder || "crystal", payload.name || "\u59AF\u2033\u7037", point);
+              createDroppedPlaceholder(payload.key, payload.placeholder || "crystal", payload.name || "\u6A21\u578B", point);
               return;
             } catch (error) {
               console.warn("[world] drop payload parse failed:", error);
             }
           }
           const type = event.dataTransfer.getData("text/plain") || "crystal";
-          createDroppedPlaceholder(`placeholder-${type}`, type, "\u59AF\u2033\u7037", point);
+          createDroppedPlaceholder(`placeholder-${type}`, type, "\u6A21\u578B", point);
         });
       }
       function animate() {
@@ -28668,7 +28726,8 @@ void main() {
           await loadEnvironment();
         } catch (error) {
           console.warn("[world] environment load failed:", error);
-          setStatus("\u73AF\u5883\u6811\u52A0\u8F7D\u5931\u8D25\uFF0C\u4F46\u57FA\u7840 3D \u548C\u89D2\u8272\u4ECD\u4F1A\u663E\u793A\uFF1A" + (error.message || error));
+          createProceduralEnvironment();
+          setStatus("\u5B8C\u6574\u6811\u73AF\u5883\u52A0\u8F7D\u5931\u8D25\uFF0C\u5DF2\u4E34\u65F6\u663E\u793A\u5907\u7528\u6811\uFF1A" + (error.message || error));
         }
       }
       async function init() {
