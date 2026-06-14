@@ -3,6 +3,7 @@
 
   var assets = window.DREAM_THEME_ASSETS || { pictures: [], music: [] };
   var storageKey = 'DreamFluidPlayer';
+  var visitStorageKey = 'DreamVisitorCounters';
   var walineServerURL = 'https://my-blog-eta-one-13.vercel.app';
   var root = document.documentElement;
   var searchShortcutBound = false;
@@ -39,6 +40,20 @@
   function setStored(value) {
     try {
       localStorage.setItem(storageKey, JSON.stringify(value));
+    } catch (err) {}
+  }
+
+  function getVisitStored() {
+    try {
+      return JSON.parse(localStorage.getItem(visitStorageKey) || '{}');
+    } catch (err) {
+      return {};
+    }
+  }
+
+  function setVisitStored(value) {
+    try {
+      localStorage.setItem(visitStorageKey, JSON.stringify(value));
     } catch (err) {}
   }
 
@@ -321,7 +336,7 @@
     });
   }
 
-  function initWalineCounters() {
+  function initWalineCountersLegacy() {
     if (!walineServerURL) return;
 
     var oldHolder = document.querySelector('[data-dream-hidden-counters]');
@@ -361,6 +376,72 @@
       })
       .catch(function(error) {
         setCounterText('[data-dream-visit-total], [data-dream-visit-today]', '暂不可用');
+        console.warn('Waline pageview failed:', error);
+      });
+    }, 1800);
+  }
+
+  function initWalineCounters() {
+    if (!walineServerURL) return;
+
+    var oldHolder = document.querySelector('[data-dream-hidden-counters]');
+    if (oldHolder && oldHolder.parentNode) {
+      oldHolder.parentNode.removeChild(oldHolder);
+    }
+
+    var currentPath = normalizedCurrentPath();
+    var todayKey = chinaDateKey();
+    var totalPath = '/__site_total__';
+    var todayPath = '/__site_daily__/' + todayKey;
+    var totalVisitorPath = '/__site_unique_total__';
+    var todayVisitorPath = '/__site_unique_daily__/' + todayKey;
+    var visitorState = getVisitStored();
+    var shouldUpdateTotalVisitor = visitorState.total !== true;
+    var shouldUpdateTodayVisitor = visitorState.date !== todayKey;
+    var counterLoadingSelector = [
+      '[data-dream-visit-total]',
+      '[data-dream-visit-today]',
+      '[data-dream-visitor-total]',
+      '[data-dream-visitor-today]'
+    ].join(', ');
+    var counters = [
+      { path: totalPath, selector: '[data-dream-visit-total]' },
+      { path: todayPath, selector: '[data-dream-visit-today]' },
+      { path: totalVisitorPath, selector: '[data-dream-visitor-total]', update: shouldUpdateTotalVisitor },
+      { path: todayVisitorPath, selector: '[data-dream-visitor-today]', update: shouldUpdateTodayVisitor }
+    ];
+
+    ensureWalineCounter('[data-dream-visit-total]', 'data-dream-visit-total', totalPath);
+    ensureWalineCounter('[data-dream-visit-today]', 'data-dream-visit-today', todayPath);
+    ensureWalineCounter('[data-dream-visitor-total]', 'data-dream-visitor-total', totalVisitorPath);
+    ensureWalineCounter('[data-dream-visitor-today]', 'data-dream-visitor-today', todayVisitorPath);
+    setCounterText(counterLoadingSelector, '加载中');
+
+    if (appendPostPageview(currentPath)) {
+      counters.push({ path: currentPath, selector: '[data-dream-article-view]' });
+    }
+
+    runWhenIdle(function() {
+      import(siteAssetUrl('js/vendor/waline/pageview.js'))
+      .then(function(module) {
+        if (!module || !module.pageviewCount) return;
+        counters.forEach(function(counter) {
+          module.pageviewCount({
+            serverURL: walineServerURL,
+            path: counter.path,
+            selector: counter.selector,
+            update: counter.update !== false,
+            lang: 'zh-CN'
+          });
+        });
+        if (shouldUpdateTotalVisitor || shouldUpdateTodayVisitor) {
+          visitorState.total = true;
+          visitorState.date = todayKey;
+          setVisitStored(visitorState);
+        }
+      })
+      .catch(function(error) {
+        setCounterText(counterLoadingSelector, '暂不可用');
         console.warn('Waline pageview failed:', error);
       });
     }, 1800);

@@ -18,7 +18,7 @@ custom_css:
 
 custom_js:
   - /js/dream-theme-manifest.js?v=20260613-music-refresh
-  - /js/dream-fluid.js?v=20260614-left-profile
+  - /js/dream-fluid.js?v=20260614-visitor-counters
 
 static_prefix:
   waline: /js/vendor/waline/
@@ -187,7 +187,7 @@ about:
   banner_img: /assets/picture/436a-6ab4aad6b794aeec9d4d8b7c39a4d22b.jpg
   banner_img_height: 48
   banner_mask_alpha: 0
-  avatar: /img/avatar.png
+  avatar: /img/about-avatar.webp
   icons:
     - { class: "iconfont icon-link-fill", link: "https://space.bilibili.com/1067868117", tip: "B站主页" }
     - { class: "iconfont icon-github-fill", link: "https://github.com/hengjiasteven-dotcom", tip: "GitHub" }
