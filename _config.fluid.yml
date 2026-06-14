@@ -14,11 +14,11 @@ font:
   code_font_size: 85%
 
 custom_css:
-  - /css/dream-fluid.css?v=20260612-refresh
+  - /css/dream-fluid.css?v=20260614-soft-pink-tags
 
 custom_js:
   - /js/dream-theme-manifest.js?v=20260613-music-refresh
-  - /js/dream-fluid.js?v=20260613-music-refresh
+  - /js/dream-fluid.js?v=20260614-left-profile
 
 static_prefix:
   waline: /js/vendor/waline/
@@ -260,8 +260,8 @@ waline:
 
 footer:
   content: '
-    <p><a href="https://github.com/hengjiasteven-dotcom">GitHub</a> &nbsp;|&nbsp; Powered by <a href="https://hexo.io">Hexo</a> &amp; <a href="https://fluid-dev.github.io/">Fluid</a></p>
-    <p>&copy; 2026 小呆呆 · Dream Fluid</p>
+    <p><a href="https://github.com/hengjiasteven-dotcom">GitHub</a> &nbsp;|&nbsp; Powered by <a href="https://hexo.io">Hexo</a> &amp; 小呆呆</p>
+    <p>&copy; 2026 小呆呆 · Dream 小呆呆</p>
     <p class="dream-icp"><a href="https://icp.redcha.cn/beian/ICP-2026060360.html" title="茶ICP备2026060360号" target="_blank" rel="nofollow noopener"><span class="dream-icp-dot" aria-hidden="true"></span><span>茶ICP备2026060360号</span></a></p>
   '
   statistics:

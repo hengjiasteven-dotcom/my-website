@@ -1101,7 +1101,7 @@ import * as THREE from '../js/vendor/three/build/three.module.js';
         }
       });
 
-      document.querySelectorAll('[data-dummy-model], [data-model-url]').forEach((card) => {
+      document.querySelectorAll('[data-dummy-model], [data-model-url], [data-model-manifest]').forEach((card) => {
         card.addEventListener('dragstart', (event) => {
           if (event.target instanceof Element && event.target.closest('[data-model-editor], [data-clear-model]')) {
             event.preventDefault();

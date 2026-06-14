@@ -28468,7 +28468,7 @@ void main() {
             chatInput.focus();
           }
         });
-        document.querySelectorAll("[data-dummy-model], [data-model-url]").forEach((card) => {
+        document.querySelectorAll("[data-dummy-model], [data-model-url], [data-model-manifest]").forEach((card) => {
           var _a;
           card.addEventListener("dragstart", (event) => {
             var _a2;

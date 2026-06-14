@@ -12,6 +12,7 @@
   var pjaxController = null;
   var friendLinksRequest = null;
   var siteDataPromise = null;
+  var homeHeroTypingTimers = [];
   var initialPictureNames = (assets.pictures || []).map(function(picture) {
     return picture.name;
   });
@@ -397,7 +398,7 @@
       '</div>'
     ].join('');
 
-    layoutRow.appendChild(profile);
+    layoutRow.insertBefore(profile, postsCol);
   }
 
   function createHomeWorldPortal() {
@@ -587,6 +588,84 @@
     document.body.classList.toggle('dream-scrolled', window.scrollY > 28);
   }
 
+  function clearHomeHeroTyping() {
+    while (homeHeroTypingTimers.length) {
+      window.clearTimeout(homeHeroTypingTimers.pop());
+    }
+  }
+
+  function queueHomeHeroTyping(callback, delay) {
+    var timer = window.setTimeout(function() {
+      homeHeroTypingTimers = homeHeroTypingTimers.filter(function(item) {
+        return item !== timer;
+      });
+      callback();
+    }, delay);
+    homeHeroTypingTimers.push(timer);
+  }
+
+  function typeHeroText(element, text, speed, done) {
+    var chars = Array.from(text || '');
+    var index = 0;
+
+    element.textContent = '';
+    element.setAttribute('aria-label', text || '');
+    element.classList.remove('dream-typewriter-caret');
+    element.classList.add('dream-typewriter-active');
+
+    if (!chars.length) {
+      element.classList.remove('dream-typewriter-active');
+      if (done) done();
+      return;
+    }
+
+    function tick() {
+      index += 1;
+      element.textContent = chars.slice(0, index).join('');
+      if (index < chars.length) {
+        queueHomeHeroTyping(tick, speed);
+        return;
+      }
+
+      element.classList.remove('dream-typewriter-active');
+      if (done) {
+        queueHomeHeroTyping(done, 180);
+      }
+    }
+
+    queueHomeHeroTyping(tick, 180);
+  }
+
+  function playHomeHeroTypewriter(title, subcopy, bannerText) {
+    if (!title || !subcopy || !bannerText) return;
+    if (bannerText.getAttribute('data-dream-typewriter') === 'done') return;
+
+    var titleText = title.getAttribute('data-dream-typewriter-text') ||
+      title.getAttribute('data-typed-text') ||
+      title.textContent.trim();
+    var subcopyText = subcopy.getAttribute('data-dream-typewriter-text') ||
+      subcopy.textContent.trim();
+
+    bannerText.setAttribute('data-dream-typewriter', 'done');
+    title.setAttribute('data-dream-typewriter-text', titleText);
+    subcopy.setAttribute('data-dream-typewriter-text', subcopyText);
+    clearHomeHeroTyping();
+    subcopy.textContent = '';
+    subcopy.classList.remove('dream-typewriter-active', 'dream-typewriter-caret');
+
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      title.textContent = titleText;
+      subcopy.textContent = subcopyText;
+      return;
+    }
+
+    typeHeroText(title, titleText, 58, function() {
+      typeHeroText(subcopy, subcopyText, 34, function() {
+        subcopy.classList.add('dream-typewriter-caret');
+      });
+    });
+  }
+
   function enhanceHomeHero() {
     if (!document.body.classList.contains('home')) return;
 
@@ -618,12 +697,15 @@
       }
     }
 
-    if (bannerText.querySelector('.dream-hero-subcopy')) return;
+    var subcopy = bannerText.querySelector('.dream-hero-subcopy');
+    if (!subcopy) {
+      subcopy = document.createElement('p');
+      subcopy.className = 'dream-hero-subcopy';
+      subcopy.textContent = '在代码与文字之间，寻找热爱，保持思考，成为更好的自己。';
+      bannerText.appendChild(subcopy);
+    }
 
-    var subcopy = document.createElement('p');
-    subcopy.className = 'dream-hero-subcopy';
-    subcopy.textContent = '在代码与文字之间，寻找热爱，保持思考，成为更好的自己。';
-    bannerText.appendChild(subcopy);
+    playHomeHeroTypewriter(subtitle, subcopy, bannerText);
   }
 
   function revealCards() {
