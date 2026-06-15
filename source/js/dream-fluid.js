@@ -2104,6 +2104,7 @@
     var playFallbackTimer = null;
     var playRequested = false;
     var dragCleanupTimer = null;
+    var activeReturnTarget = null;
 
     volume.value = state.volume;
 
@@ -2141,6 +2142,48 @@
       };
     }
 
+    function dragReturnTarget() {
+      if (!canDragPlayer()) return null;
+
+      var targetProfileCard = currentProfileCard();
+      if (!targetProfileCard) return null;
+      if (profilePlaceholder && profilePlaceholder.parentNode) return profilePlaceholder;
+      return targetProfileCard;
+    }
+
+    function isPlayerOverReturnTarget() {
+      var target = dragReturnTarget();
+      if (!target || player.classList.contains('dream-player-in-profile')) return false;
+
+      var targetRect = target.getBoundingClientRect();
+      if (!targetRect.width || !targetRect.height) return false;
+
+      var playerRect = player.getBoundingClientRect();
+      var centerX = playerRect.left + playerRect.width / 2;
+      var centerY = playerRect.top + playerRect.height / 2;
+      var padding = target === profilePlaceholder ? 46 : 28;
+      return centerX >= targetRect.left - padding &&
+        centerX <= targetRect.right + padding &&
+        centerY >= targetRect.top - padding &&
+        centerY <= targetRect.bottom + padding;
+    }
+
+    function setReturnTargetActive(active) {
+      var target = active ? dragReturnTarget() : null;
+      if (activeReturnTarget && activeReturnTarget !== target) {
+        activeReturnTarget.classList.remove('is-player-return-target');
+      }
+      activeReturnTarget = target || null;
+      if (activeReturnTarget) {
+        activeReturnTarget.classList.toggle('is-player-return-target', Boolean(active));
+      }
+      player.classList.toggle('is-return-ready', Boolean(active && activeReturnTarget));
+    }
+
+    function updateReturnTargetState() {
+      setReturnTargetActive(isPlayerOverReturnTarget());
+    }
+
     function detachPlayerFromProfile() {
       if (!player.classList.contains('dream-player-in-profile')) return player.getBoundingClientRect();
 
@@ -2156,8 +2199,9 @@
 
     function restorePlayerToProfile() {
       profileCard = currentProfileCard();
-      if (!profileCard || player.classList.contains('dream-player-in-profile')) return;
+      if (!profileCard || player.classList.contains('dream-player-in-profile')) return false;
 
+      setReturnTargetActive(false);
       state.position = null;
       player.classList.remove('is-drag-positioned', 'is-dragging');
       player.style.left = '';
@@ -2172,6 +2216,7 @@
       }
       profilePlaceholder = null;
       persist({ position: null }, { keepTime: true });
+      return true;
     }
 
     function movePlayerToBodyForPjax() {
@@ -2486,6 +2531,7 @@
         moved: false
       };
       player.classList.add('is-dragging');
+      updateReturnTargetState();
       if (player.setPointerCapture && event.pointerId !== undefined) {
         try {
           player.setPointerCapture(event.pointerId);
@@ -2526,6 +2572,7 @@
         x: dragState.originX + dx,
         y: dragState.originY + dy
       }, { save: false });
+      updateReturnTargetState();
       scheduleDragCleanup();
       event.preventDefault();
     }
@@ -2533,6 +2580,10 @@
     function endDrag(event) {
       if (!dragState && !player.classList.contains('is-dragging')) return;
 
+      var shouldRestoreToProfile = dragState && (
+        isPlayerOverReturnTarget() ||
+        (!dragState.moved && profilePlaceholder && profilePlaceholder.parentNode)
+      );
       clearDragCleanup();
       if (dragState && dragState.moved) {
         suppressClickUntil = Date.now() + 120;
@@ -2550,7 +2601,10 @@
       document.removeEventListener('pointercancel', endDrag);
       window.removeEventListener('blur', endDrag);
       dragState = null;
-      persist({ position: state.position }, { keepTime: true });
+      setReturnTargetActive(false);
+      if (!shouldRestoreToProfile || !restorePlayerToProfile()) {
+        persist({ position: state.position }, { keepTime: true });
+      }
       if (event) event.preventDefault();
     }
 
