@@ -14,11 +14,11 @@ font:
   code_font_size: 85%
 
 custom_css:
-  - /css/dream-fluid.css?v=20260614-soft-pink-tags
+  - /css/dream-fluid.css?v=20260615-pet-ai
 
 custom_js:
   - /js/dream-theme-manifest.js?v=20260613-music-refresh
-  - /js/dream-fluid.js?v=20260614-visitor-counters
+  - /js/dream-fluid.js?v=20260615-pet-ai
 
 static_prefix:
   waline: /js/vendor/waline/

@@ -18,6 +18,9 @@ const staticVercelJson = `${JSON.stringify({
   functions: {
     'api/world-chat.js': {
       maxDuration: 30
+    },
+    'api/pet-chat.js': {
+      maxDuration: 30
     }
   }
 }, null, 2)}\n`;
@@ -68,6 +71,7 @@ console.log('Prepared static output for Vercel.');
 
 hexo.extend.generator.register('vercel_static_output', function() {
   const worldChatApi = path.join(hexo.base_dir, 'api', 'world-chat.js');
+  const petChatApi = path.join(hexo.base_dir, 'api', 'pet-chat.js');
 
   return [{
     path: 'package.json',
@@ -81,5 +85,8 @@ hexo.extend.generator.register('vercel_static_output', function() {
   }, {
     path: 'api/world-chat.js',
     data: () => Promise.resolve(fs.readFileSync(worldChatApi))
+  }, {
+    path: 'api/pet-chat.js',
+    data: () => Promise.resolve(fs.readFileSync(petChatApi))
   }];
 });

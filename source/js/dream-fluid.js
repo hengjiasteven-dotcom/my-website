@@ -4,6 +4,7 @@
   var assets = window.DREAM_THEME_ASSETS || { pictures: [], music: [] };
   var storageKey = 'DreamFluidPlayer';
   var visitStorageKey = 'DreamVisitorCounters';
+  var petStorageKey = 'DreamNetworkPet';
   var walineServerURL = 'https://my-blog-eta-one-13.vercel.app';
   var root = document.documentElement;
   var searchShortcutBound = false;
@@ -54,6 +55,20 @@
   function setVisitStored(value) {
     try {
       localStorage.setItem(visitStorageKey, JSON.stringify(value));
+    } catch (err) {}
+  }
+
+  function getPetStored() {
+    try {
+      return JSON.parse(localStorage.getItem(petStorageKey) || '{}');
+    } catch (err) {
+      return {};
+    }
+  }
+
+  function setPetStored(value) {
+    try {
+      localStorage.setItem(petStorageKey, JSON.stringify(value));
     } catch (err) {}
   }
 
@@ -1501,6 +1516,503 @@
     initAudioConverter();
   }
 
+  function createNetworkPet() {
+    if (document.querySelector('.dream-network-pet')) return;
+
+    var messages = [
+      '\u4f60\u597d\uff0c\u6211\u4f4f\u8fdb\u535a\u5ba2\u5566\u3002',
+      '\u4eca\u5929\u4e5f\u8981\u597d\u597d\u5199\u4e00\u70b9\u70b9\u3002',
+      '\u6211\u5728\u8fd9\u91cc\u966a\u4f60\u5de1\u903b\u9875\u9762\u3002',
+      '\u6709\u65b0\u7075\u611f\u7684\u8bdd\uff0c\u5148\u6293\u4f4f\u5b83\u3002',
+      '\u6b63\u5728\u770b\u98ce\u666f\u3002'
+    ];
+    var touchMessages = [
+      '\u6478\u6478\u6536\u5230\uff0c\u80fd\u91cf\u52a0\u4e00\u3002',
+      '\u6211\u56de\u6765\u5566\u3002',
+      '\u62d6\u5230\u559c\u6b22\u7684\u4f4d\u7f6e\uff0c\u53cc\u51fb\u6211\u53ef\u4ee5\u56de\u89d2\u843d\u3002'
+    ];
+    var state = Object.assign({
+      collapsed: false,
+      position: null,
+      touches: 0,
+      lastMessage: '',
+      chatHistory: []
+    }, getPetStored());
+    var pet = document.createElement('section');
+    var speechTimer = null;
+    var idleTimer = null;
+    var sleepTimer = null;
+    var dragState = null;
+    var suppressClickUntil = 0;
+    var lastActionAt = Date.now();
+
+    state.collapsed = Boolean(state.collapsed);
+    state.position = normalizePetPosition(state.position);
+    state.touches = Math.max(0, Number(state.touches || 0));
+    state.chatHistory = normalizeChatHistory(state.chatHistory);
+
+    pet.className = 'dream-network-pet';
+    if (state.collapsed) {
+      pet.classList.add('is-collapsed');
+    }
+    pet.setAttribute('aria-label', '\u7f51\u7edc\u5ba0\u7269');
+    pet.innerHTML = [
+      '<div class="dream-pet-bubble" role="status" aria-live="polite"><span></span></div>',
+      '<form class="dream-pet-chatbox" hidden>',
+        '<input class="dream-pet-input" type="text" maxlength="120" autocomplete="off" placeholder="\u548c\u5b83\u8bf4\u53e5\u8bdd">',
+        '<button class="dream-pet-send" type="submit" aria-label="\u53d1\u9001">\u53d1\u9001</button>',
+      '</form>',
+      '<div class="dream-pet-shell">',
+        '<button class="dream-pet-control dream-pet-home" type="button">',
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12 12 6l7 6"></path><path d="M7 11v7h10v-7"></path></svg>',
+        '</button>',
+        '<button class="dream-pet-control dream-pet-chat" type="button">',
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5h14v9H9l-4 3v-12Z"></path><path d="M8.5 10h7M8.5 13h4"></path></svg>',
+        '</button>',
+        '<button class="dream-pet-control dream-pet-toggle" type="button"><span class="dream-pet-toggle-mark" aria-hidden="true"></span></button>',
+        '<button class="dream-pet-figure" type="button">',
+          '<span class="dream-pet-shadow"></span>',
+          '<img class="dream-pet-img dream-pet-img-front" src="' + siteAssetUrl('assets/pet/reg-front.png') + '" alt="\u5ba0\u7269\u6b63\u9762">',
+          '<img class="dream-pet-img dream-pet-img-head" src="' + siteAssetUrl('assets/pet/reg-head.png') + '" alt="\u5ba0\u7269\u5934\u50cf">',
+          '<span class="dream-pet-sleep-mark" aria-hidden="true">Z</span>',
+        '</button>',
+      '</div>'
+    ].join('');
+    document.body.appendChild(pet);
+
+    var bubble = pet.querySelector('.dream-pet-bubble span');
+    var figure = pet.querySelector('.dream-pet-figure');
+    var toggle = pet.querySelector('.dream-pet-toggle');
+    var home = pet.querySelector('.dream-pet-home');
+    var chatButton = pet.querySelector('.dream-pet-chat');
+    var chatForm = pet.querySelector('.dream-pet-chatbox');
+    var chatInput = pet.querySelector('.dream-pet-input');
+    var chatSubmit = pet.querySelector('.dream-pet-send');
+
+    figure.setAttribute('aria-label', '\u6478\u6478\u5ba0\u7269');
+    figure.title = '\u62d6\u52a8\u5ba0\u7269';
+    home.setAttribute('aria-label', '\u5ba0\u7269\u56de\u5230\u89d2\u843d');
+    home.title = '\u5ba0\u7269\u56de\u5230\u89d2\u843d';
+    chatButton.setAttribute('aria-label', '\u548c\u5ba0\u7269\u804a\u5929');
+    chatButton.title = '\u548c\u5ba0\u7269\u804a\u5929';
+    updateToggleLabel();
+
+    if (state.position) {
+      requestAnimationFrame(function() {
+        applyPetPosition(state.position, { save: false });
+      });
+    }
+
+    function normalizePetPosition(position) {
+      if (!position || typeof position !== 'object') return null;
+
+      var x = Number(position.x);
+      var y = Number(position.y);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+      return { x: x, y: y };
+    }
+
+    function normalizeChatHistory(history) {
+      if (!Array.isArray(history)) return [];
+
+      return history.slice(-8).map(function(item) {
+        var role = item && item.role === 'assistant' ? 'assistant' : 'user';
+        var content = String(item && item.content || '').replace(/\s+/g, ' ').trim().slice(0, 220);
+        return content ? { role: role, content: content } : null;
+      }).filter(Boolean);
+    }
+
+    function petChatEndpoints() {
+      var primary = siteAssetUrl('api/pet-chat');
+      var fallback = 'https://my-website-zeta-indol-39.vercel.app/api/pet-chat';
+
+      if (primary === fallback) {
+        return [primary];
+      }
+
+      return [primary, fallback];
+    }
+
+    function clampPetPosition(position) {
+      var margin = 8;
+      var maxX = Math.max(margin, window.innerWidth - pet.offsetWidth - margin);
+      var maxY = Math.max(margin, window.innerHeight - pet.offsetHeight - margin);
+      return {
+        x: Math.min(maxX, Math.max(margin, Number(position.x || 0))),
+        y: Math.min(maxY, Math.max(margin, Number(position.y || 0)))
+      };
+    }
+
+    function pick(list) {
+      return list[Math.floor(Math.random() * list.length)] || '';
+    }
+
+    function persist(extra) {
+      state = Object.assign(state, extra || {});
+      state.position = normalizePetPosition(state.position);
+      setPetStored({
+        collapsed: Boolean(state.collapsed),
+        position: state.position,
+        touches: Math.max(0, Number(state.touches || 0)),
+        lastMessage: state.lastMessage || '',
+        chatHistory: normalizeChatHistory(state.chatHistory),
+        updatedAt: Date.now()
+      });
+    }
+
+    function updateToggleLabel() {
+      var label = state.collapsed ? '\u53eb\u9192\u5ba0\u7269' : '\u6536\u8d77\u5ba0\u7269';
+      toggle.setAttribute('aria-label', label);
+      toggle.title = label;
+    }
+
+    function showMessage(text, options) {
+      options = options || {};
+      if (!text || state.collapsed) return;
+
+      window.clearTimeout(speechTimer);
+      state.lastMessage = text;
+      bubble.textContent = text;
+      pet.classList.add('is-talking');
+      speechTimer = window.setTimeout(function() {
+        pet.classList.remove('is-talking');
+      }, options.duration || 4600);
+      persist();
+    }
+
+    function wakePet() {
+      pet.classList.remove('is-sleeping');
+      lastActionAt = Date.now();
+      scheduleIdle();
+      scheduleSleep();
+    }
+
+    function setCollapsed(collapsed) {
+      state.collapsed = Boolean(collapsed);
+      pet.classList.toggle('is-collapsed', state.collapsed);
+      pet.classList.remove('is-talking', 'is-sleeping', 'is-happy');
+      updateToggleLabel();
+      persist();
+      if (state.collapsed) {
+        bubble.textContent = '';
+        window.clearTimeout(speechTimer);
+        closeChat();
+        showCollapsedHint();
+      } else {
+        wakePet();
+        showMessage('\u6211\u56de\u6765\u5566\u3002', { duration: 3200 });
+      }
+    }
+
+    function openChat() {
+      if (state.collapsed) {
+        setCollapsed(false);
+      }
+      wakePet();
+      pet.classList.add('is-chat-open');
+      chatForm.hidden = false;
+      window.setTimeout(function() {
+        chatInput.focus();
+      }, 0);
+    }
+
+    function closeChat() {
+      pet.classList.remove('is-chat-open', 'is-chat-sending');
+      chatForm.hidden = true;
+      chatInput.value = '';
+      chatInput.disabled = false;
+      chatSubmit.disabled = false;
+    }
+
+    function toggleChat() {
+      if (chatForm.hidden) {
+        openChat();
+      } else {
+        closeChat();
+      }
+    }
+
+    function setChatSending(sending) {
+      pet.classList.toggle('is-chat-sending', sending);
+      chatInput.disabled = sending;
+      chatSubmit.disabled = sending;
+      chatInput.placeholder = sending ? '\u5b83\u6b63\u5728\u614c\u5fd9\u601d\u8003...' : '\u548c\u5b83\u8bf4\u53e5\u8bdd';
+    }
+
+    function rememberChat(role, content) {
+      state.chatHistory = normalizeChatHistory(state.chatHistory.concat([{
+        role: role,
+        content: content
+      }]));
+      persist({ chatHistory: state.chatHistory });
+    }
+
+    function fallbackPetReply(error) {
+      if (error && error.name === 'AbortError') {
+        return '\u600e\u4e48\u529e\u2026\u2026\u6211\u521a\u521a\u60f3\u4e86\u597d\u4e45\uff0c\u597d\u50cf\u8fde\u4e0d\u4e0a\u3002\u6ca1\u4e8b\u7684\uff0c\u7b49\u4e00\u4e0b\u518d\u8bd5\u8bd5\u3002';
+      }
+      return '\u54a6\u2026\u2026AI\u90a3\u8fb9\u597d\u50cf\u6ca1\u6709\u56de\u5e94\u3002\u6ca1\u4e8b\u7684\uff0c\u6211\u8fd8\u5728\u8fd9\u91cc\u966a\u4f60\u3002';
+    }
+
+    function requestPetChat(endpoint, message) {
+      var controller = new AbortController();
+      var timeout = window.setTimeout(function() {
+        controller.abort();
+      }, 26000);
+
+      return fetch(endpoint, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: message,
+          history: state.chatHistory
+        })
+      }).then(function(response) {
+        return response.json().catch(function() {
+          return {};
+        }).then(function(data) {
+          if (!response.ok) {
+            var error = new Error(data.error || 'Pet chat failed');
+            error.statusCode = response.status;
+            throw error;
+          }
+          return data.reply || '';
+        });
+      }).finally(function() {
+        window.clearTimeout(timeout);
+      });
+    }
+
+    function shouldTryPetChatFallback(error) {
+      if (!error) return false;
+      return error.name === 'TypeError' || error.statusCode === 404 || error.statusCode === 405;
+    }
+
+    function sendPetChat(message) {
+      var endpoints = petChatEndpoints();
+      var index = 0;
+
+      function next() {
+        return requestPetChat(endpoints[index], message).catch(function(error) {
+          index += 1;
+          if (index < endpoints.length && shouldTryPetChatFallback(error)) {
+            return next();
+          }
+
+          throw error;
+        });
+      }
+
+      return next();
+    }
+
+    function showCollapsedHint() {
+      pet.setAttribute('data-pet-hint', '\u53eb\u9192\u5ba0\u7269');
+    }
+
+    function resetHome() {
+      state.position = null;
+      pet.classList.remove('is-drag-positioned', 'is-dragging');
+      pet.style.left = '';
+      pet.style.top = '';
+      pet.style.right = '';
+      pet.style.bottom = '';
+      wakePet();
+      persist({ position: null });
+      showMessage('\u5df2\u56de\u5230\u89d2\u843d\u3002', { duration: 3000 });
+    }
+
+    function applyPetPosition(position, options) {
+      options = options || {};
+      if (!position) return;
+
+      var nextPosition = clampPetPosition(position);
+      state.position = nextPosition;
+      pet.classList.add('is-drag-positioned');
+      pet.style.left = nextPosition.x + 'px';
+      pet.style.top = nextPosition.y + 'px';
+      pet.style.right = 'auto';
+      pet.style.bottom = 'auto';
+      if (options.save) {
+        persist({ position: nextPosition });
+      }
+    }
+
+    function resetPetPositionIfNeeded() {
+      if (state.position) {
+        applyPetPosition(state.position, { save: false });
+      }
+    }
+
+    function scheduleIdle() {
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(function() {
+        if (!state.collapsed && !pet.classList.contains('is-dragging') && Date.now() - lastActionAt > 14000) {
+          showMessage(pick(messages), { duration: 4200 });
+        }
+        scheduleIdle();
+      }, 22000 + Math.floor(Math.random() * 14000));
+    }
+
+    function scheduleSleep() {
+      window.clearTimeout(sleepTimer);
+      sleepTimer = window.setTimeout(function() {
+        if (state.collapsed || pet.classList.contains('is-dragging')) return;
+        pet.classList.add('is-sleeping');
+        showMessage('\u6211\u772f\u4e00\u4f1a\u513f\uff0c\u6709\u4e8b\u70b9\u6211\u3002', { duration: 5200 });
+      }, 90000);
+    }
+
+    function touchPet() {
+      if (Date.now() < suppressClickUntil) return;
+      if (state.collapsed) {
+        setCollapsed(false);
+        return;
+      }
+
+      state.touches += 1;
+      wakePet();
+      pet.classList.add('is-happy');
+      window.setTimeout(function() {
+        pet.classList.remove('is-happy');
+      }, 900);
+      showMessage(pick(touchMessages), { duration: 3600 });
+      persist({ touches: state.touches });
+    }
+
+    function beginDrag(event) {
+      if (event.button !== undefined && event.button !== 0) return;
+
+      var target = event.target;
+      if (target && target.closest && target.closest('.dream-pet-control')) return;
+
+      var rect = pet.getBoundingClientRect();
+      dragState = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: rect.left,
+        originY: rect.top,
+        moved: false
+      };
+      applyPetPosition({ x: rect.left, y: rect.top }, { save: false });
+      wakePet();
+      if (pet.setPointerCapture && event.pointerId !== undefined) {
+        try {
+          pet.setPointerCapture(event.pointerId);
+        } catch (err) {}
+      }
+      window.addEventListener('pointermove', onDragMove);
+      window.addEventListener('pointerup', endDrag);
+      window.addEventListener('pointercancel', endDrag);
+      window.addEventListener('blur', endDrag);
+      event.preventDefault();
+    }
+
+    function onDragMove(event) {
+      if (!dragState) return;
+
+      var dx = event.clientX - dragState.startX;
+      var dy = event.clientY - dragState.startY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        dragState.moved = true;
+        pet.classList.add('is-dragging');
+      }
+      applyPetPosition({
+        x: dragState.originX + dx,
+        y: dragState.originY + dy
+      }, { save: false });
+      event.preventDefault();
+    }
+
+    function endDrag(event) {
+      if (!dragState) return;
+
+      if (dragState.moved) {
+        suppressClickUntil = Date.now() + 180;
+      }
+      if (pet.releasePointerCapture && dragState.pointerId !== undefined) {
+        try {
+          pet.releasePointerCapture(dragState.pointerId);
+        } catch (err) {}
+      }
+      pet.classList.remove('is-dragging');
+      window.removeEventListener('pointermove', onDragMove);
+      window.removeEventListener('pointerup', endDrag);
+      window.removeEventListener('pointercancel', endDrag);
+      window.removeEventListener('blur', endDrag);
+      dragState = null;
+      persist({ position: state.position });
+      if (event) event.preventDefault();
+    }
+
+    pet.addEventListener('pointerdown', beginDrag);
+    figure.addEventListener('click', touchPet);
+    figure.addEventListener('dblclick', function(event) {
+      event.preventDefault();
+      resetHome();
+    });
+    toggle.addEventListener('click', function(event) {
+      event.preventDefault();
+      setCollapsed(!state.collapsed);
+      if (state.collapsed) {
+        persist();
+      } else {
+        showMessage('\u6211\u56de\u6765\u5566\u3002', { duration: 3200 });
+      }
+    });
+    home.addEventListener('click', function(event) {
+      event.preventDefault();
+      resetHome();
+    });
+    chatButton.addEventListener('click', function(event) {
+      event.preventDefault();
+      toggleChat();
+    });
+    chatForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      var text = chatInput.value.replace(/\s+/g, ' ').trim();
+      if (!text || pet.classList.contains('is-chat-sending')) return;
+
+      wakePet();
+      rememberChat('user', text);
+      chatInput.value = '';
+      setChatSending(true);
+      showMessage('\u600e\u4e48\u529e\u2026\u2026\u6211\u5728\u60f3\uff0c\u522b\u6025\u3002', { duration: 8000 });
+      sendPetChat(text).then(function(reply) {
+        var message = reply || '\u6ca1\u4e8b\u7684\uff0c\u6211\u5728\u8fd9\u91cc\u3002';
+        rememberChat('assistant', message);
+        showMessage(message, { duration: 9000 });
+      }).catch(function(error) {
+        showMessage(fallbackPetReply(error), { duration: 7200 });
+      }).finally(function() {
+        setChatSending(false);
+        if (!chatForm.hidden) {
+          chatInput.focus();
+        }
+      });
+    });
+    window.addEventListener('resize', resetPetPositionIfNeeded);
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'hidden') {
+        persist();
+      }
+    });
+
+    scheduleIdle();
+    scheduleSleep();
+    if (!state.collapsed) {
+      window.setTimeout(function() {
+        showMessage(state.lastMessage || messages[0], { duration: 3800 });
+      }, 900);
+    } else {
+      showCollapsedHint();
+    }
+  }
+
   function createPlayer() {
     if (!assets.music || assets.music.length === 0 || document.querySelector('.dream-player')) return;
 
@@ -2575,6 +3087,7 @@
     initLinksPage();
     createPlayer();
     createHomeWorldPortal();
+    createNetworkPet();
   }
 
   function initOnce() {

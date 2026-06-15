@@ -4,6 +4,7 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const zlib = require('node:zlib');
 const worldChat = require('../api/world-chat');
+const petChat = require('../api/pet-chat');
 
 const rootDir = path.resolve(__dirname, '..');
 const publicDir = path.join(rootDir, 'public');
@@ -153,6 +154,11 @@ function serveFile(request, response) {
 const server = http.createServer((request, response) => {
   if ((request.url || '').startsWith('/api/world-chat')) {
     worldChat(request, response);
+    return;
+  }
+
+  if ((request.url || '').startsWith('/api/pet-chat')) {
+    petChat(request, response);
     return;
   }
 
