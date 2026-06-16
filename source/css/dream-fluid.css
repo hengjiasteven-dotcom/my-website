@@ -21,6 +21,19 @@
   --dream-shadow: 0 18px 52px rgba(35, 54, 72, 0.16);
   --dream-radius: 8px;
   --dream-blur: 22px;
+  --dream-cursor-normal: url("/assets/cursor/douyin/normal.ani") 6 0, url("/assets/cursor/douyin/normal.cur") 6 0, auto;
+  --dream-cursor-link: url("/assets/cursor/douyin/link.ani") 10 5, url("/assets/cursor/douyin/link.cur") 10 5, pointer;
+  --dream-cursor-text: url("/assets/cursor/douyin/text.ani") 15 14, url("/assets/cursor/douyin/text.cur") 15 14, text;
+  --dream-cursor-help: url("/assets/cursor/douyin/help.ani") 6 0, url("/assets/cursor/douyin/help.cur") 6 0, help;
+  --dream-cursor-working: url("/assets/cursor/douyin/working.ani") 6 0, url("/assets/cursor/douyin/working.cur") 6 0, progress;
+  --dream-cursor-busy: url("/assets/cursor/douyin/busy.ani") 16 16, url("/assets/cursor/douyin/busy.cur") 16 16, wait;
+  --dream-cursor-precision: url("/assets/cursor/douyin/precision.ani") 14 15, url("/assets/cursor/douyin/precision.cur") 14 15, crosshair;
+  --dream-cursor-unavailable: url("/assets/cursor/douyin/unavailable.ani") 15 16, url("/assets/cursor/douyin/unavailable.cur") 15 16, not-allowed;
+  --dream-cursor-move: url("/assets/cursor/douyin/move.ani") 15 13, url("/assets/cursor/douyin/move.cur") 15 13, move;
+  --dream-cursor-ew-resize: url("/assets/cursor/douyin/horizontal.ani") 15 13, url("/assets/cursor/douyin/horizontal.cur") 15 13, ew-resize;
+  --dream-cursor-ns-resize: url("/assets/cursor/douyin/vertical.ani") 14 16, url("/assets/cursor/douyin/vertical.cur") 14 16, ns-resize;
+  --dream-cursor-nesw-resize: url("/assets/cursor/douyin/diagonal2.ani") 16 16, url("/assets/cursor/douyin/diagonal2.cur") 16 16, nesw-resize;
+  --dream-cursor-nwse-resize: url("/assets/cursor/douyin/diagonal1.ani") 16 16, url("/assets/cursor/douyin/diagonal1.cur") 16 16, nwse-resize;
   --navbar-bg-color: rgba(255, 255, 255, 0.22);
   --navbar-text-color: #ffffff;
   --body-bg-color: #f7fbfb;
@@ -4197,4 +4210,117 @@ body.home .dream-home-posts .index-card:focus-within .index-header a {
     0 -1px 0 rgba(201, 156, 84, 0.72),
     -1px 0 0 rgba(218, 175, 101, 0.78),
     0 0 12px rgba(235, 194, 124, 0.58);
+}
+
+html,
+body {
+  cursor: var(--dream-cursor-normal);
+}
+
+p,
+li,
+dt,
+dd,
+td,
+th,
+blockquote,
+figcaption,
+.banner-text,
+.index-excerpt,
+.markdown-body,
+.post-content,
+.dream-profile-bio,
+.dream-world-copy,
+.about-section,
+.message-card {
+  cursor: var(--dream-cursor-text);
+}
+
+a[href],
+a[href] *,
+area[href],
+button,
+button *,
+summary,
+summary *,
+select,
+label[for],
+input[type="button"],
+input[type="checkbox"],
+input[type="file"],
+input[type="radio"],
+input[type="reset"],
+input[type="submit"],
+[role="button"],
+[role="button"] *,
+[role="link"],
+[role="link"] *,
+[role="menuitem"],
+[role="tab"],
+[tabindex]:not([tabindex="-1"]),
+.btn,
+.nav-link,
+.page-number,
+.extend,
+.index-card,
+.dream-world-entry,
+.dream-icon-btn,
+.dream-track-select,
+.friends-apply-button,
+.about-link-pill,
+.tools-card,
+.tool-button {
+  cursor: var(--dream-cursor-link) !important;
+}
+
+input:not([type]),
+input[type="date"],
+input[type="datetime-local"],
+input[type="email"],
+input[type="month"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="text"],
+input[type="time"],
+input[type="url"],
+input[type="week"],
+textarea,
+[contenteditable="true"],
+#local-search-input {
+  cursor: var(--dream-cursor-text) !important;
+}
+
+button:disabled,
+select:disabled,
+input:disabled,
+textarea:disabled,
+[aria-disabled="true"],
+.disabled {
+  cursor: var(--dream-cursor-unavailable) !important;
+}
+
+[aria-busy="true"],
+.is-loading,
+.loading,
+.tool-button:disabled,
+.dream-pet-send:disabled,
+.dream-pet-input:disabled {
+  cursor: var(--dream-cursor-working) !important;
+}
+
+.dream-network-pet,
+.dream-network-pet *,
+.dream-player-drag,
+.dream-player-drag *,
+[draggable="true"] {
+  cursor: var(--dream-cursor-move) !important;
+}
+
+.dream-network-pet.is-dragging,
+.dream-network-pet.is-dragging *,
+.dream-player.is-dragging,
+.dream-player.is-dragging * {
+  cursor: var(--dream-cursor-move) !important;
 }
