@@ -242,7 +242,10 @@ app.post('/admin/api/build', requireAuth, (req, res) => {
 
 app.post('/admin/api/deploy', requireAuth, (req, res) => {
   try {
-    const job = startDeploySourceJob('部署上线');
+    const job = startSequenceJob([
+      ['__publish_source__'],
+      ['npm', 'run', 'deploy']
+    ], '部署上线');
     res.json({ ok: true, job: publicJob(job) });
   } catch (error) {
     res.status(409).json({ error: error.message, job: activeJob ? publicJob(activeJob) : null });
@@ -253,7 +256,8 @@ app.post('/admin/api/build-deploy', requireAuth, (req, res) => {
   try {
     const job = startSequenceJob([
       ['npm', 'run', 'build'],
-      ['__deploy_source__']
+      ['__publish_source__'],
+      ['npm', 'run', 'deploy']
     ], '构建并部署');
     res.json({ ok: true, job: publicJob(job) });
   } catch (error) {
@@ -576,7 +580,7 @@ function startSequenceJob(commands, label) {
       return;
     }
 
-    if (commands[index][0] === '__deploy_source__') {
+    if (commands[index][0] === '__publish_source__') {
       runDeploySource(job, () => runNext(index + 1), (code) => finishJob(job, code));
       return;
     }

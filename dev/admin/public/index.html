@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>博客发布台</title>
+  <link rel="stylesheet" href="/admin/assets/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section id="loginView" class="login-view" hidden>
+      <div class="login-panel">
+        <div class="brand-mark">博</div>
+        <h1>博客发布台</h1>
+        <p>本地私有后台，仅用于上传文章和部署你的网站。</p>
+        <form id="loginForm" class="login-form">
+          <label for="password">管理密码</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <button type="submit">登录</button>
+          <p id="loginMessage" class="form-message" role="status"></p>
+        </form>
+      </div>
+    </section>
+
+    <section id="appView" class="app-view" hidden>
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-mark">博</div>
+          <div>
+            <strong>博客发布台</strong>
+            <span>Markdown to Hexo</span>
+          </div>
+        </div>
+        <nav class="nav-tabs" aria-label="后台功能">
+          <button class="nav-tab is-active" type="button" data-panel="postPanel">文章</button>
+          <button class="nav-tab" type="button" data-panel="mediaPanel">媒体</button>
+          <button class="nav-tab" type="button" data-panel="publishPanel">发布</button>
+        </nav>
+        <div class="sidebar-foot">
+          <button id="logoutButton" class="ghost-button" type="button">退出登录</button>
+        </div>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <h1>发布新内容</h1>
+            <p>上传 Markdown、图片、音乐或视频，然后构建部署到线上博客。</p>
+          </div>
+          <div class="stats" aria-live="polite">
+            <span><strong id="postCount">0</strong> 篇文章</span>
+            <span><strong id="pictureCount">0</strong> 张图片</span>
+            <span><strong id="musicCount">0</strong> 首音乐</span>
+          </div>
+        </header>
+
+        <section id="postPanel" class="panel is-active">
+          <form id="postForm" class="grid-form">
+            <div class="field span-2">
+              <label for="markdownFile">Markdown 文件</label>
+              <input id="markdownFile" name="markdown" type="file" accept=".md,.markdown" required>
+            </div>
+            <div class="field">
+              <label for="postTitle">文章标题</label>
+              <input id="postTitle" name="title" type="text" placeholder="留空则使用文件名">
+            </div>
+            <div class="field">
+              <label for="coverPath">封面图片路径</label>
+              <input id="coverPath" name="coverPath" type="text" placeholder="/assets/picture/cover.jpg">
+            </div>
+            <div class="field">
+              <label for="categories">分类</label>
+              <input id="categories" name="categories" type="text" placeholder="生活, 技术">
+            </div>
+            <div class="field">
+              <label for="tags">标签</label>
+              <input id="tags" name="tags" type="text" placeholder="Hexo, 随笔">
+            </div>
+            <div class="field">
+              <label for="postMusicFile">文章音乐文件</label>
+              <input id="postMusicFile" name="postMusicFile" type="file" accept=".mp3,.ogg,.wav,.m4a,.flac,audio/*">
+            </div>
+            <div class="field">
+              <label for="postMusicPlacement">音乐位置</label>
+              <select id="postMusicPlacement" name="postMusicPlacement">
+                <option value="after-front-matter">文章开头</option>
+                <option value="end">文章结尾</option>
+              </select>
+            </div>
+            <input id="postMusicPath" name="postMusicPath" type="hidden">
+            <input id="postMusicName" name="postMusicName" type="hidden">
+            <p id="selectedPostMusic" class="form-message span-2">未选择文章音乐</p>
+            <label class="checkbox-row span-2">
+              <input id="addPostMusicToPlaylist" name="addPostMusicToPlaylist" type="checkbox">
+              <span>同时加入全站背景播放器</span>
+            </label>
+            <label class="checkbox-row span-2">
+              <input id="publishNow" name="publishNow" type="checkbox">
+              <span>上传后立即构建网站</span>
+            </label>
+            <div class="form-actions span-2">
+              <button type="submit">上传文章</button>
+              <p id="postMessage" class="form-message" role="status"></p>
+            </div>
+          </form>
+        </section>
+
+        <section id="mediaPanel" class="panel">
+          <form id="mediaForm" class="media-form">
+            <div class="segmented" role="radiogroup" aria-label="媒体类型">
+              <label><input type="radio" name="kind" value="picture" checked><span>图片</span></label>
+              <label><input type="radio" name="kind" value="music"><span>音乐</span></label>
+              <label><input type="radio" name="kind" value="video"><span>视频</span></label>
+            </div>
+            <div class="field">
+              <label for="mediaFiles">上传文件</label>
+              <input id="mediaFiles" name="files" type="file" multiple required>
+            </div>
+            <label class="checkbox-row">
+              <input id="addToPlaylist" name="addToPlaylist" type="checkbox">
+              <span>音乐上传后加入全站播放器</span>
+            </label>
+            <div class="form-actions">
+              <button type="submit">上传媒体</button>
+              <p id="mediaMessage" class="form-message" role="status"></p>
+            </div>
+          </form>
+
+          <div class="library-toolbar">
+            <h2>媒体库</h2>
+            <button id="refreshMediaButton" class="ghost-button" type="button">刷新</button>
+          </div>
+          <div id="mediaList" class="media-list" aria-live="polite"></div>
+        </section>
+
+        <section id="publishPanel" class="panel">
+          <div class="publish-actions">
+            <button id="buildButton" type="button">构建网站</button>
+            <button id="deployButton" type="button">推送触发 EdgeOne</button>
+            <button id="buildDeployButton" type="button">构建并推送</button>
+          </div>
+          <div class="job-card">
+            <div class="job-head">
+              <div>
+                <h2 id="jobTitle">暂无任务</h2>
+                <p id="jobMeta">构建、提交和推送日志会显示在这里。</p>
+              </div>
+              <span id="jobStatus" class="status-pill">idle</span>
+            </div>
+            <pre id="jobOutput" class="job-output"></pre>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+  <script src="/admin/assets/app.js" defer></script>
+</body>
+</html>
