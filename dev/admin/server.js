@@ -462,10 +462,20 @@ function mediaMarkdown(kind, name) {
 }
 
 function normalizeMediaReferencePath(value, kind) {
-  if (!value) return '';
-  if (/^https?:\/\//i.test(value) || value.startsWith('/assets/')) return value;
+  let reference = String(value || '').trim();
+  if (!reference) return '';
 
-  const normalized = value.replace(/\\/g, '/');
+  const markdownMatch = reference.match(/!\[[^\]]*]\(([^)\s]+)(?:\s+["'][^"']*["'])?\)/);
+  if (markdownMatch) {
+    reference = markdownMatch[1];
+  }
+
+  reference = reference.replace(/^["']|["']$/g, '').trim();
+  reference = decodeRepeatedly(reference);
+
+  if (/^https?:\/\//i.test(reference) || reference.startsWith('/assets/')) return reference;
+
+  const normalized = reference.replace(/\\/g, '/');
   const folder = kind === 'picture' ? 'picture' : kind === 'music' ? 'music' : 'video';
   const marker = `/${folder}/`;
   const index = normalized.toLowerCase().lastIndexOf(marker);
@@ -475,7 +485,21 @@ function normalizeMediaReferencePath(value, kind) {
     return mediaUrl(kind, path.basename(name));
   }
 
-  return value;
+  return reference;
+}
+
+function decodeRepeatedly(value) {
+  let current = value;
+  for (let index = 0; index < 3; index += 1) {
+    try {
+      const next = decodeURIComponent(current);
+      if (next === current) break;
+      current = next;
+    } catch {
+      break;
+    }
+  }
+  return current;
 }
 
 function insertArticleMusic(content, music, placement) {
