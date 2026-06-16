@@ -483,7 +483,7 @@
       '<div class="dream-profile-stack">',
       '<section class="dream-profile-card" aria-label="profile">',
       '<div class="dream-profile-avatar-wrap">',
-      '<img class="dream-profile-avatar" src="' + siteAssetUrl('assets/picture/profile-avatar.jpeg') + '" alt="&#x5C0F;&#x5446;&#x5446;">',
+      '<img class="dream-profile-avatar" src="' + siteAssetUrl('assets/picture/头像背面.jpeg') + '" alt="&#x5C0F;&#x5446;&#x5446;">',
       '</div>',
       '<div class="dream-profile-copy">',
       '<h2 class="dream-profile-name">&#x5C0F;&#x5446;&#x5446;</h2>',

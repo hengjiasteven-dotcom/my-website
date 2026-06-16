@@ -126,10 +126,10 @@ index:
     tag: true
 
 post:
-  banner_img: /assets/picture/436a-6ab4aad6b794aeec9d4d8b7c39a4d22b.jpg
+  banner_img: /assets/picture/小王子3.jpg
   banner_img_height: 58
   banner_mask_alpha: 0
-  default_index_img: /assets/picture/5878-6bb05a194388855e8373ac1fc91cfc1d.jpg
+  default_index_img: /assets/picture/小王子4.jpg
   meta:
     author:
       enable: true
@@ -167,24 +167,24 @@ post:
     enable: false
 
 archive:
-  banner_img: /assets/picture/d945-a2c8585abdd4e74da51039cd46646ce6.jpg
+  banner_img: /assets/picture/小王子6.jpg
   banner_img_height: 48
   banner_mask_alpha: 0
 
 category:
-  banner_img: /assets/picture/25c6-b37f22d8454c036b8cc433a2c38cdca5.jpg
+  banner_img: /assets/picture/小王子2.jpg
   banner_img_height: 48
   banner_mask_alpha: 0
 
 tag:
-  banner_img: /assets/picture/1af2-a1a9ea19a5d462e2fe31526a31f608b7.jpg
+  banner_img: /assets/picture/小王子1.jpg
   banner_img_height: 48
   banner_mask_alpha: 0
 
 about:
   name: "小呆呆"
   intro: "如果神明肯听一听我的愿望，那么我想你晚安，愿你的梦里总有星星。-余光中"
-  banner_img: /assets/picture/436a-6ab4aad6b794aeec9d4d8b7c39a4d22b.jpg
+  banner_img: /assets/picture/小王子3.jpg
   banner_img_height: 48
   banner_mask_alpha: 0
   avatar: /img/about-avatar.webp
@@ -196,7 +196,7 @@ links:
   enable: true
   title: 友情链接
   subtitle: 这里是我的朋友们，欢迎互相访问交流
-  banner_img: /assets/picture/25c6-b37f22d8454c036b8cc433a2c38cdca5.jpg
+  banner_img: /assets/picture/小王子2.jpg
   banner_img_height: 48
   banner_mask_alpha: 0
   onerror_avatar: /img/avatar.png

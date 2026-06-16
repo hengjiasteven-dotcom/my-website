@@ -7,12 +7,12 @@ const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
 const AUDIO_EXTS = new Set(['.mp3', '.ogg', '.wav', '.m4a', '.flac']);
 const VIDEO_EXTS = new Set(['.mp4', '.webm', '.mov', '.m4v', '.ogv']);
 const BACKGROUND_IMAGE_NAMES = new Set([
-  'aec0-11053ce5a3a4e0317e912fb4c83ac425.jpg',
-  '5878-6bb05a194388855e8373ac1fc91cfc1d.jpg',
-  'd945-a2c8585abdd4e74da51039cd46646ce6.jpg',
-  '436a-6ab4aad6b794aeec9d4d8b7c39a4d22b.jpg',
-  '1af2-a1a9ea19a5d462e2fe31526a31f608b7.jpg',
-  '25c6-b37f22d8454c036b8cc433a2c38cdca5.jpg'
+  '小王子5.jpg',
+  '小王子4.jpg',
+  '小王子6.jpg',
+  '小王子3.jpg',
+  '小王子1.jpg',
+  '小王子2.jpg'
 ]);
 
 function ensureDir(dir) {

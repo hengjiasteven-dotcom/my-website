@@ -5,7 +5,7 @@ description: 访客留言、建议与交流入口，基于 Waline 评论系统�
 layout: page
 comments: true
 comment: waline
-banner_img: /assets/picture/d945-a2c8585abdd4e74da51039cd46646ce6.jpg
+banner_img: /assets/picture/小王子6.jpg
 banner_img_height: 48
 banner_mask_alpha: 0
 ---

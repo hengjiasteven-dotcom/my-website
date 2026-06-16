@@ -3015,6 +3015,51 @@ body.home #banner {
   background-size: 100% auto !important;
 }
 
+#banner[style*="%E8%8F%B2%E6%AF%94%E8%B0%88%E4%BA%BA%E7%94%9F"] {
+  background-color: var(--dream-v2-page) !important;
+  background-position: center 6.9rem !important;
+  background-repeat: no-repeat !important;
+  background-size: auto min(50vh, 34rem) !important;
+}
+
+#banner[style*="%E8%8F%B2%E6%AF%94%E8%B0%88%E4%BA%BA%E7%94%9F"] .banner-text {
+  position: absolute;
+  top: calc(6.9rem + min(50vh, 34rem) + 2rem);
+  right: 0;
+  left: 0;
+  animation: none !important;
+  transform: none !important;
+}
+
+#banner[style*="%E8%8F%B2%E6%AF%94%E8%B0%88%E4%BA%BA%E7%94%9F"]::after {
+  display: none;
+}
+
+body:has(#banner[style*="%E8%8F%B2%E6%AF%94%E8%B0%88%E4%BA%BA%E7%94%9F"]) .container.nopadding-x-md > #board {
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  #banner[style*="%E8%8F%B2%E6%AF%94%E8%B0%88%E4%BA%BA%E7%94%9F"] {
+    background-position: center 5.1rem !important;
+    background-size: min(86vw, 21rem) auto !important;
+  }
+
+  #banner[style*="%E8%8F%B2%E6%AF%94%E8%B0%88%E4%BA%BA%E7%94%9F"] .banner-text {
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+    top: calc(5.1rem + min(80vw, 19.5rem) + 1.8rem);
+  }
+
+  #banner[style*="%E8%8F%B2%E6%AF%94%E8%B0%88%E4%BA%BA%E7%94%9F"] #subtitle {
+    display: block;
+    max-width: calc(100vw - 1.5rem);
+    font-size: clamp(2rem, 9vw, 2.4rem);
+    line-height: 1.12;
+    overflow-wrap: anywhere;
+  }
+}
+
 .dream-hero-art {
   position: absolute;
   inset: 0;

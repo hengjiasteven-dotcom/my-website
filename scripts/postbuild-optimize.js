@@ -170,7 +170,7 @@ function optimizeImages() {
     const ext = path.extname(file).toLowerCase();
     const stem = path.basename(file, ext);
     const outputDir = path.join(tmpDir, stem);
-    const largeArticleImage = /^(?:mom[2-5]|bg|9488dc7a0c9a3c3df587a60260527835|postpost_memo_image)/i.test(path.basename(file));
+    const largeArticleImage = /^(?:mom[2-5]|mom-bg|blog1|blog2)/i.test(path.basename(file));
     const maxWidth = largeArticleImage ? 1600 : 1400;
     const format = ext === '.png' ? 'png' : ext === '.webp' ? 'webp' : 'jpeg';
     const quality = format === 'png' ? undefined : 82;
