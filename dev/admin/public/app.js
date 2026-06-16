@@ -106,9 +106,10 @@ function bindForms() {
     document.querySelector('#postMusicPath').value = '';
     document.querySelector('#postMusicName').value = '';
     document.querySelector('#selectedPostMusic').textContent = '未选择文章音乐';
+    const deployMessage = result.job ? '，已开始部署上线' : '';
     setMessage(postMessage, result.music
-      ? `已保存：${result.post.path}，并添加音乐`
-      : `已保存：${result.post.path}`, 'success');
+      ? `已保存：${result.post.path}，并添加音乐${deployMessage}`
+      : `已保存：${result.post.path}${deployMessage}`, 'success');
     refreshMedia();
     refreshStatus();
   });

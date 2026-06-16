@@ -140,6 +140,14 @@ app.post('/admin/api/posts', requireAuth, upload.single('markdown'), (req, res) 
     const postMusicPlacement = String(req.body.postMusicPlacement || 'after-front-matter');
     const publishNow = req.body.publishNow === 'true';
 
+    if (publishNow && activeJob) {
+      cleanupFiles(req.file);
+      return res.status(409).json({
+        error: `当前正在${activeJob.label}，请稍后再试`,
+        job: publicJob(activeJob)
+      });
+    }
+
     const originalContent = fs.readFileSync(req.file.path, 'utf8');
     let content = ensurePostFrontMatter(originalContent, {
       title,
@@ -163,7 +171,7 @@ app.post('/admin/api/posts', requireAuth, upload.single('markdown'), (req, res) 
     };
 
     if (publishNow) {
-      startCommandJob(['npm', 'run', 'build'], '构建网站');
+      startSequenceJob(buildDeployCommands(), '构建并部署');
     }
 
     res.json({
@@ -254,11 +262,7 @@ app.post('/admin/api/deploy', requireAuth, (req, res) => {
 
 app.post('/admin/api/build-deploy', requireAuth, (req, res) => {
   try {
-    const job = startSequenceJob([
-      ['npm', 'run', 'build'],
-      ['__publish_source__'],
-      ['npm', 'run', 'deploy']
-    ], '构建并部署');
+    const job = startSequenceJob(buildDeployCommands(), '构建并部署');
     res.json({ ok: true, job: publicJob(job) });
   } catch (error) {
     res.status(409).json({ error: error.message, job: activeJob ? publicJob(activeJob) : null });
@@ -591,6 +595,14 @@ function startSequenceJob(commands, label) {
 
   runNext(0);
   return job;
+}
+
+function buildDeployCommands() {
+  return [
+    ['npm', 'run', 'build'],
+    ['__publish_source__'],
+    ['npm', 'run', 'deploy']
+  ];
 }
 
 function runDeploySource(job, onSuccess = () => finishJob(job, 0), onFailure = (code) => finishJob(job, code)) {
