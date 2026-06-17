@@ -3578,6 +3578,149 @@ body:not(.home) #board-ctn #board {
   background: rgba(255, 255, 255, 0.58);
 }
 
+.dream-task-card {
+  border: 1px solid var(--dream-v2-border);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(241, 247, 248, 0.82));
+  box-shadow: var(--dream-v2-shadow);
+  padding: 1rem;
+}
+
+html[data-user-color-scheme="dark"] .dream-task-card {
+  background: linear-gradient(180deg, rgba(21, 31, 42, 0.9), rgba(17, 27, 38, 0.94));
+}
+
+.dream-task-card-head {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.dream-task-eyebrow {
+  display: inline-block;
+  color: var(--dream-v2-teal);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dream-task-card h3 {
+  margin: 0.18rem 0 0;
+  color: var(--dream-v2-ink);
+  font-size: 1rem;
+  font-weight: 840;
+}
+
+.dream-task-progress {
+  flex-shrink: 0;
+  min-width: 3.2rem;
+  border-radius: 999px;
+  background: rgba(33, 127, 138, 0.12);
+  color: var(--dream-v2-teal);
+  padding: 0.36rem 0.62rem;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.dream-task-summary,
+.dream-task-empty {
+  margin: 0.78rem 0 0;
+  color: var(--dream-v2-muted);
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+
+.dream-task-list {
+  display: grid;
+  gap: 0.72rem;
+  margin-top: 0.82rem;
+}
+
+.dream-task-item {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  gap: 0.72rem;
+  align-items: start;
+  margin: 0;
+  padding: 0.82rem 0.85rem;
+  border: 1px solid rgba(33, 127, 138, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.56);
+  cursor: pointer;
+}
+
+html[data-user-color-scheme="dark"] .dream-task-item {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dream-task-item.is-complete {
+  opacity: 0.72;
+}
+
+.dream-task-check {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.18rem;
+  accent-color: var(--dream-v2-teal);
+}
+
+.dream-task-copy {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.dream-task-title-row {
+  display: flex;
+  gap: 0.65rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.dream-task-title-row strong {
+  min-width: 0;
+  color: var(--dream-v2-ink);
+  font-size: 0.92rem;
+  font-weight: 760;
+  overflow-wrap: anywhere;
+}
+
+.dream-task-item.is-complete .dream-task-title-row strong {
+  text-decoration: line-through;
+}
+
+.dream-task-title-row small,
+.dream-task-meta {
+  color: var(--dream-v2-muted);
+  font-size: 0.8rem;
+}
+
+.dream-task-repeat-badge {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  background: rgba(33, 127, 138, 0.1);
+  color: var(--dream-v2-teal);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 760;
+}
+
+.dream-task-meta {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 575.98px) {
+  .dream-task-title-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .dream-archive-month {
   position: relative;
   align-items: center;

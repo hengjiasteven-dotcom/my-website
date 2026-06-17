@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
+
 function asDate(value) {
   if (!value) return null;
   if (typeof value.toDate === 'function') return value.toDate();
@@ -35,6 +38,37 @@ function daysSince(date, now) {
   const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   return Math.max(0, Math.floor((end - start) / 86400000));
+}
+
+function readTasks() {
+  const filePath = path.join(hexo.source_dir, '_data', 'tasks.json');
+  if (!fs.existsSync(filePath)) return [];
+
+  try {
+    const value = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    if (!Array.isArray(value)) return [];
+
+    return value
+      .filter((task) => task && typeof task === 'object' && task.title)
+      .map((task) => ({
+        id: String(task.id || ''),
+        title: String(task.title || ''),
+        date: String(task.date || ''),
+        startTime: String(task.startTime || ''),
+        endTime: String(task.endTime || ''),
+        repeatMode: String(task.repeatMode || 'none'),
+        repeatDays: Array.isArray(task.repeatDays) ? task.repeatDays : [],
+        repeatUntil: String(task.repeatUntil || ''),
+        notes: String(task.notes || ''),
+        completed: Boolean(task.completed),
+        completedAt: String(task.completedAt || ''),
+        createdAt: String(task.createdAt || ''),
+        updatedAt: String(task.updatedAt || '')
+      }));
+  } catch (error) {
+    hexo.log.warn(`[DreamTheme] Failed to read tasks.json: ${error.message}`);
+    return [];
+  }
 }
 
 hexo.extend.generator.register('dream_site_data', function(locals) {
@@ -91,7 +125,8 @@ hexo.extend.generator.register('dream_site_data', function(locals) {
       latestUpdateDate: latestUpdateDate ? dateKey(latestUpdateDate) : ''
     },
     tags,
-    calendar
+    calendar,
+    tasks: readTasks()
   };
 
   return {

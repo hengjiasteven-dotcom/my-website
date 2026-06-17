@@ -5,6 +5,7 @@
   var storageKey = 'DreamFluidPlayer';
   var visitStorageKey = 'DreamVisitorCounters';
   var petStorageKey = 'DreamNetworkPet';
+  var taskStorageKey = 'DreamHomeTaskState';
   var walineServerURL = 'https://my-blog-eta-one-13.vercel.app';
   var root = document.documentElement;
   var searchShortcutBound = false;
@@ -70,6 +71,24 @@
     try {
       localStorage.setItem(petStorageKey, JSON.stringify(value));
     } catch (err) {}
+  }
+
+  function getTaskStored() {
+    try {
+      return JSON.parse(localStorage.getItem(taskStorageKey) || '{}');
+    } catch (err) {
+      return {};
+    }
+  }
+
+  function setTaskStored(value) {
+    try {
+      localStorage.setItem(taskStorageKey, JSON.stringify(value));
+    } catch (err) {}
+  }
+
+  function localDateKey(date) {
+    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
   }
 
   function normalizeIndex(index, length) {
@@ -536,6 +555,285 @@
     } else {
       profileCard.appendChild(portal);
     }
+  }
+
+  function compareHomeTaskDate(left, right) {
+    if (left && right) return left.localeCompare(right);
+    if (left) return -1;
+    if (right) return 1;
+    return 0;
+  }
+
+  function compareHomeTaskTime(left, right) {
+    if (left && right) return left.localeCompare(right);
+    if (left) return -1;
+    if (right) return 1;
+    return 0;
+  }
+
+  function normalizeHomeTasks(tasks) {
+    return (Array.isArray(tasks) ? tasks : []).filter(function(task) {
+      return task && task.id && task.title;
+    }).slice().sort(function(a, b) {
+      var completedDelta = Number(Boolean(a.completed)) - Number(Boolean(b.completed));
+      if (completedDelta !== 0) return completedDelta;
+
+      var dateDelta = compareHomeTaskDate(String(a.date || ''), String(b.date || ''));
+      if (dateDelta !== 0) return dateDelta;
+
+      var timeDelta = compareHomeTaskTime(String(a.startTime || ''), String(b.startTime || ''));
+      if (timeDelta !== 0) return timeDelta;
+
+      return String(a.createdAt || '').localeCompare(String(b.createdAt || ''));
+    });
+  }
+
+  function isHomeTaskCompleted(task, overrides) {
+    if (overrides && Object.prototype.hasOwnProperty.call(overrides, task.id)) {
+      return Boolean(overrides[task.id]);
+    }
+    return Boolean(task.completed);
+  }
+
+  function formatHomeTaskTime(task) {
+    if (task.startTime && task.endTime) return task.startTime + '-' + task.endTime;
+    return task.startTime || task.endTime || '';
+  }
+
+  function setHomeTaskCompleted(taskId, completed) {
+    var stored = getTaskStored();
+    stored[taskId] = Boolean(completed);
+    setTaskStored(stored);
+  }
+
+  function renderHomeTasksCard(card, tasks) {
+    if (!card) return;
+
+    var taskItems = normalizeHomeTasks(tasks);
+    var todayKey = localDateKey(new Date());
+    var overrides = getTaskStored();
+    var todays = taskItems.filter(function(task) {
+      return String(task.date || '') === todayKey;
+    });
+    var visible = todays.length ? todays : taskItems.filter(function(task) {
+      return !isHomeTaskCompleted(task, overrides) && String(task.date || '') > todayKey;
+    }).slice(0, 3);
+    var completedCount = todays.filter(function(task) {
+      return isHomeTaskCompleted(task, overrides);
+    }).length;
+    var progressLabel = todays.length ? (completedCount + '/' + todays.length) : (visible.length ? 'next' : '0/0');
+    var helperText = todays.length
+      ? '打开主页就能看到今天的安排。'
+      : (visible.length ? '今天空着，先看接下来的安排。' : '今天还没有排任务。');
+
+    card.innerHTML = [
+      '<div class="dream-task-card-head">',
+      '<div>',
+      '<span class="dream-task-eyebrow">Planner</span>',
+      '<h3>今日计划</h3>',
+      '</div>',
+      '<span class="dream-task-progress">' + escapeHtml(progressLabel) + '</span>',
+      '</div>',
+      '<p class="dream-task-summary">' + escapeHtml(helperText) + '</p>',
+      visible.length ? '<div class="dream-task-list">' + visible.map(function(task) {
+        var completed = isHomeTaskCompleted(task, overrides);
+        var meta = [task.date === todayKey ? formatHomeTaskTime(task) : [task.date || '', formatHomeTaskTime(task)].filter(Boolean).join(' '), task.notes || ''].filter(Boolean);
+        return [
+          '<label class="dream-task-item' + (completed ? ' is-complete' : '') + '">',
+          '<input class="dream-task-check" type="checkbox" data-task-check="' + escapeHtml(task.id) + '"' + (completed ? ' checked' : '') + '>',
+          '<span class="dream-task-copy">',
+          '<span class="dream-task-title-row">',
+          '<strong>' + escapeHtml(task.title) + '</strong>',
+          formatHomeTaskTime(task) ? '<small>' + escapeHtml(formatHomeTaskTime(task)) + '</small>' : '',
+          '</span>',
+          meta.length ? '<span class="dream-task-meta">' + escapeHtml(meta.join(' · ')) + '</span>' : '',
+          '</span>',
+          '</label>'
+        ].join('');
+      }).join('') + '</div>' : '<div class="dream-task-empty">后台里新增任务后，这里会自动出现。</div>'
+    ].join('');
+
+    Array.prototype.slice.call(card.querySelectorAll('[data-task-check]')).forEach(function(input) {
+      input.addEventListener('change', function() {
+        setHomeTaskCompleted(input.getAttribute('data-task-check'), input.checked);
+        renderHomeTasksCard(card, tasks);
+      });
+    });
+  }
+
+  function createHomeTasksCard() {
+    if (!document.body.classList.contains('home')) return;
+
+    var profileCard = document.querySelector('.dream-profile-stack') || document.querySelector('.dream-profile-card');
+    if (!profileCard || profileCard.querySelector('.dream-task-card')) return;
+
+    var card = document.createElement('section');
+    card.className = 'dream-task-card';
+    card.setAttribute('aria-label', 'home planner');
+    card.innerHTML = [
+      '<div class="dream-task-card-head">',
+      '<div>',
+      '<span class="dream-task-eyebrow">Planner</span>',
+      '<h3>今日计划</h3>',
+      '</div>',
+      '<span class="dream-task-progress">...</span>',
+      '</div>',
+      '<p class="dream-task-summary">正在读取任务安排...</p>'
+    ].join('');
+
+    var worldEntry = profileCard.querySelector('.dream-world-entry');
+    if (worldEntry && worldEntry.nextSibling) {
+      profileCard.insertBefore(card, worldEntry.nextSibling);
+    } else {
+      profileCard.appendChild(card);
+    }
+
+    getSiteData().then(function(data) {
+      renderHomeTasksCard(card, (data || {}).tasks || []);
+    }).catch(function(error) {
+      console.warn('Home tasks failed:', error);
+      card.innerHTML = '<div class="dream-task-empty">任务暂时无法加载。</div>';
+    });
+  }
+
+  function shiftDateKey(dateKey, amount) {
+    var date = new Date(dateKey + 'T00:00:00');
+    date.setDate(date.getDate() + amount);
+    return localDateKey(date);
+  }
+
+  function weekdayFromDateKey(dateKey) {
+    var date = new Date(dateKey + 'T00:00:00');
+    return Number.isNaN(date.getTime()) ? -1 : date.getDay();
+  }
+
+  function taskOccursOnDate(task, dateKey) {
+    var taskDate = String(task.date || '');
+    var repeatMode = String(task.repeatMode || 'none');
+    var repeatUntil = String(task.repeatUntil || '');
+    var repeatDays = Array.isArray(task.repeatDays) ? task.repeatDays : [];
+
+    if (repeatMode === 'none') return taskDate ? taskDate === dateKey : false;
+    if (!taskDate || dateKey < taskDate) return false;
+    if (repeatUntil && dateKey > repeatUntil) return false;
+    if (repeatMode === 'daily') return true;
+    if (repeatMode === 'weekly') return repeatDays.indexOf(weekdayFromDateKey(dateKey)) >= 0;
+    return false;
+  }
+
+  function buildTaskOccurrence(task, dateKey) {
+    return {
+      occurrenceId: String(task.id) + '@' + dateKey,
+      taskId: String(task.id),
+      date: dateKey,
+      title: String(task.title || ''),
+      startTime: String(task.startTime || ''),
+      endTime: String(task.endTime || ''),
+      notes: String(task.notes || ''),
+      repeatMode: String(task.repeatMode || 'none'),
+      completed: Boolean(task.completed)
+    };
+  }
+
+  function expandHomeTaskOccurrences(tasks, startDateKey, days) {
+    var taskItems = Array.isArray(tasks) ? tasks.filter(function(task) {
+      return task && task.id && task.title;
+    }) : [];
+    var occurrences = [];
+
+    for (var offset = 0; offset < days; offset += 1) {
+      var dateKey = shiftDateKey(startDateKey, offset);
+      taskItems.forEach(function(task) {
+        if (taskOccursOnDate(task, dateKey)) occurrences.push(buildTaskOccurrence(task, dateKey));
+      });
+    }
+
+    return occurrences.sort(function(a, b) {
+      var dateDelta = compareHomeTaskDate(a.date, b.date);
+      if (dateDelta !== 0) return dateDelta;
+      var timeDelta = compareHomeTaskTime(a.startTime, b.startTime);
+      if (timeDelta !== 0) return timeDelta;
+      return String(a.taskId).localeCompare(String(b.taskId));
+    });
+  }
+
+  function isHomeTaskCompleted(task, overrides) {
+    if (overrides && Object.prototype.hasOwnProperty.call(overrides, task.occurrenceId)) {
+      return Boolean(overrides[task.occurrenceId]);
+    }
+    return Boolean(task.completed);
+  }
+
+  function formatHomeTaskRepeat(task) {
+    if (task.repeatMode === 'daily') return 'daily';
+    if (task.repeatMode === 'weekly') return 'weekly';
+    return '';
+  }
+
+  function setHomeTaskCompleted(occurrenceId, completed) {
+    var stored = getTaskStored();
+    stored[occurrenceId] = Boolean(completed);
+    setTaskStored(stored);
+  }
+
+  function renderHomeTasksCard(card, tasks) {
+    if (!card) return;
+
+    var todayKey = localDateKey(new Date());
+    var overrides = getTaskStored();
+    var occurrences = expandHomeTaskOccurrences(tasks, todayKey, 14);
+    var todays = occurrences.filter(function(task) {
+      return task.date === todayKey;
+    });
+    var visible = todays.length ? todays : occurrences.filter(function(task) {
+      return task.date > todayKey || (task.date === todayKey && !isHomeTaskCompleted(task, overrides));
+    }).slice(0, 3);
+    var completedCount = todays.filter(function(task) {
+      return isHomeTaskCompleted(task, overrides);
+    }).length;
+    var progressLabel = todays.length ? (completedCount + '/' + todays.length) : (visible.length ? 'next' : '0/0');
+    var helperText = todays.length
+      ? 'Open the homepage to see today\'s plan.'
+      : (visible.length ? 'No fixed task today. Here is what comes next.' : 'Add tasks in the admin panel and they will appear here.');
+
+    card.innerHTML = [
+      '<div class="dream-task-card-head">',
+      '<div>',
+      '<span class="dream-task-eyebrow">Planner</span>',
+      '<h3>Today</h3>',
+      '</div>',
+      '<span class="dream-task-progress">' + escapeHtml(progressLabel) + '</span>',
+      '</div>',
+      '<p class="dream-task-summary">' + escapeHtml(helperText) + '</p>',
+      visible.length ? '<div class="dream-task-list">' + visible.map(function(task) {
+        var completed = isHomeTaskCompleted(task, overrides);
+        var timeLabel = formatHomeTaskTime(task);
+        var metaParts = [];
+        if (task.date !== todayKey) metaParts.push(task.date);
+        if (timeLabel) metaParts.push(timeLabel);
+        if (task.notes) metaParts.push(task.notes);
+        return [
+          '<label class="dream-task-item' + (completed ? ' is-complete' : '') + '">',
+          '<input class="dream-task-check" type="checkbox" data-task-check="' + escapeHtml(task.occurrenceId) + '"' + (completed ? ' checked' : '') + '>',
+          '<span class="dream-task-copy">',
+          '<span class="dream-task-title-row">',
+          '<strong>' + escapeHtml(task.title) + '</strong>',
+          timeLabel ? '<small>' + escapeHtml(timeLabel) + '</small>' : '',
+          '</span>',
+          formatHomeTaskRepeat(task) ? '<span class="dream-task-repeat-badge">' + escapeHtml(formatHomeTaskRepeat(task)) + '</span>' : '',
+          metaParts.length ? '<span class="dream-task-meta">' + escapeHtml(metaParts.join(' · ')) + '</span>' : '',
+          '</span>',
+          '</label>'
+        ].join('');
+      }).join('') + '</div>' : '<div class="dream-task-empty">No tasks yet.</div>'
+    ].join('');
+
+    Array.prototype.slice.call(card.querySelectorAll('[data-task-check]')).forEach(function(input) {
+      input.addEventListener('change', function() {
+        setHomeTaskCompleted(input.getAttribute('data-task-check'), input.checked);
+        renderHomeTasksCard(card, tasks);
+      });
+    });
   }
 
   function friendLinkBranchApiUrl() {
@@ -3141,6 +3439,7 @@
     initLinksPage();
     createPlayer();
     createHomeWorldPortal();
+    createHomeTasksCard();
     createNetworkPet();
   }
 

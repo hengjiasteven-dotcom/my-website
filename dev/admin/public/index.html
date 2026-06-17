@@ -10,9 +10,9 @@
   <main class="shell">
     <section id="loginView" class="login-view" hidden>
       <div class="login-panel">
-        <div class="brand-mark">博</div>
+        <div class="brand-mark">台</div>
         <h1>博客发布台</h1>
-        <p>本地私有后台，仅用于上传文章和部署你的网站。</p>
+        <p>本地私有后台，仅用于上传文章、整理任务和部署你的博客。</p>
         <form id="loginForm" class="login-form">
           <label for="password">管理密码</label>
           <input id="password" name="password" type="password" autocomplete="current-password" required>
@@ -25,15 +25,16 @@
     <section id="appView" class="app-view" hidden>
       <aside class="sidebar">
         <div class="sidebar-brand">
-          <div class="brand-mark">博</div>
+          <div class="brand-mark">台</div>
           <div>
             <strong>博客发布台</strong>
-            <span>Markdown to Hexo</span>
+            <span>Markdown / Media / Tasks</span>
           </div>
         </div>
         <nav class="nav-tabs" aria-label="后台功能">
           <button class="nav-tab is-active" type="button" data-panel="postPanel">文章</button>
           <button class="nav-tab" type="button" data-panel="mediaPanel">媒体</button>
+          <button class="nav-tab" type="button" data-panel="taskPanel">任务</button>
           <button class="nav-tab" type="button" data-panel="publishPanel">发布</button>
         </nav>
         <div class="sidebar-foot">
@@ -44,17 +45,18 @@
       <section class="workspace">
         <header class="topbar">
           <div>
-            <h1>发布新内容</h1>
-            <p>上传 Markdown、图片、音乐或视频，然后构建部署到线上博客。</p>
+            <h1 id="workspaceTitle">发布新内容</h1>
+            <p id="workspaceIntro">上传 Markdown、图片、音乐或视频，然后构建部署到你的博客。</p>
           </div>
           <div class="stats" aria-live="polite">
             <span><strong id="postCount">0</strong> 篇文章</span>
             <span><strong id="pictureCount">0</strong> 张图片</span>
             <span><strong id="musicCount">0</strong> 首音乐</span>
+            <span><strong id="taskCount">0</strong> 个任务</span>
           </div>
         </header>
 
-        <section id="postPanel" class="panel is-active">
+        <section id="postPanel" class="panel is-active" data-title="发布新内容" data-description="上传 Markdown、图片、音乐或视频，然后构建部署到你的博客。">
           <form id="postForm" class="grid-form">
             <div class="field span-2">
               <label for="markdownFile">Markdown 文件</label>
@@ -105,7 +107,7 @@
           </form>
         </section>
 
-        <section id="mediaPanel" class="panel">
+        <section id="mediaPanel" class="panel" data-title="管理媒体" data-description="上传图片、音乐和视频，也可以把资源快速插入文章或播放器。">
           <form id="mediaForm" class="media-form">
             <div class="segmented" role="radiogroup" aria-label="媒体类型">
               <label><input type="radio" name="kind" value="picture" checked><span>图片</span></label>
@@ -133,7 +135,89 @@
           <div id="mediaList" class="media-list" aria-live="polite"></div>
         </section>
 
-        <section id="publishPanel" class="panel">
+        <section id="taskPanel" class="panel" data-title="任务板" data-description="在后台集中增删改任务，首页只负责展示和快速打勾。">
+          <div class="task-grid">
+            <form id="taskForm" class="grid-form task-form">
+              <input id="taskEditId" type="hidden">
+              <div class="field span-2">
+                <label for="taskTitle">任务内容</label>
+                <input id="taskTitle" type="text" placeholder="例如：14:00-16:00 学习编译原理" required>
+              </div>
+              <div class="field">
+                <label for="taskDate">日期</label>
+                <input id="taskDate" type="date">
+              </div>
+              <div class="field">
+                <label for="taskStartTime">开始时间</label>
+                <input id="taskStartTime" type="time">
+              </div>
+              <div class="field">
+                <label for="taskEndTime">结束时间</label>
+                <input id="taskEndTime" type="time">
+              </div>
+              <div class="field">
+                <label for="taskRepeatMode">重复方式</label>
+                <select id="taskRepeatMode">
+                  <option value="none">单次任务</option>
+                  <option value="daily">每天重复</option>
+                  <option value="weekly">每周重复</option>
+                </select>
+              </div>
+              <div id="taskRepeatDaysField" class="field span-2" hidden>
+                <label>每周几执行</label>
+                <div class="weekday-group">
+                  <label><input type="checkbox" name="taskRepeatDays" value="1"><span>周一</span></label>
+                  <label><input type="checkbox" name="taskRepeatDays" value="2"><span>周二</span></label>
+                  <label><input type="checkbox" name="taskRepeatDays" value="3"><span>周三</span></label>
+                  <label><input type="checkbox" name="taskRepeatDays" value="4"><span>周四</span></label>
+                  <label><input type="checkbox" name="taskRepeatDays" value="5"><span>周五</span></label>
+                  <label><input type="checkbox" name="taskRepeatDays" value="6"><span>周六</span></label>
+                  <label><input type="checkbox" name="taskRepeatDays" value="0"><span>周日</span></label>
+                </div>
+              </div>
+              <div id="taskRepeatUntilField" class="field">
+                <label for="taskRepeatUntil">重复截止日期</label>
+                <input id="taskRepeatUntil" type="date">
+              </div>
+              <div class="field span-2">
+                <label for="taskNotes">备注</label>
+                <textarea id="taskNotes" rows="4" placeholder="可选：写点提醒、上下文或准备事项"></textarea>
+              </div>
+              <label class="checkbox-row span-2">
+                <input id="taskCompleted" type="checkbox">
+                <span>创建时标记为已完成</span>
+              </label>
+              <div class="form-actions span-2">
+                <button id="taskSubmitButton" type="submit">保存任务</button>
+                <button id="taskCancelButton" type="button" class="ghost-button" hidden>取消编辑</button>
+                <p id="taskMessage" class="form-message" role="status"></p>
+              </div>
+            </form>
+
+            <form id="taskBatchForm" class="task-batch-form">
+              <div class="field">
+                <label for="taskBatchDate">批量导入默认日期</label>
+                <input id="taskBatchDate" type="date">
+              </div>
+              <div class="field">
+                <label for="taskBatchText">批量导入文本</label>
+                <textarea id="taskBatchText" rows="10" placeholder="每行一条，例如：&#10;09:00-10:30 写博客&#10;14:00-16:00 学习编译原理&#10;2026-06-18 20:00-21:00 整理明日计划"></textarea>
+              </div>
+              <div class="form-actions">
+                <button type="submit">批量添加</button>
+                <p id="taskBatchMessage" class="form-message" role="status"></p>
+              </div>
+            </form>
+          </div>
+
+          <div class="library-toolbar">
+            <h2>任务列表</h2>
+            <button id="refreshTasksButton" class="ghost-button" type="button">刷新</button>
+          </div>
+          <div id="taskList" class="task-list" aria-live="polite"></div>
+        </section>
+
+        <section id="publishPanel" class="panel" data-title="构建与部署" data-description="构建站点、提交源文件并推送到线上环境。">
           <div class="publish-actions">
             <button id="buildButton" type="button">构建网站</button>
             <button id="deployButton" type="button">推送触发 EdgeOne</button>

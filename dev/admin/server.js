@@ -14,6 +14,8 @@ dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env'), quiet: true }
 
 const rootDir = path.resolve(__dirname, '..', '..');
 const postsDir = path.join(rootDir, 'source', '_posts');
+const dataDir = path.join(rootDir, 'source', '_data');
+const tasksPath = path.join(dataDir, 'tasks.json');
 const pictureDir = path.join(rootDir, 'picture');
 const musicDir = path.join(rootDir, 'music');
 const videoDir = path.join(rootDir, 'video');
@@ -44,9 +46,14 @@ if (!sessionSecret || sessionSecret.length < 16) {
 
 fs.mkdirSync(uploadTempDir, { recursive: true });
 fs.mkdirSync(postsDir, { recursive: true });
+fs.mkdirSync(dataDir, { recursive: true });
 fs.mkdirSync(pictureDir, { recursive: true });
 fs.mkdirSync(musicDir, { recursive: true });
 fs.mkdirSync(videoDir, { recursive: true });
+
+if (!fs.existsSync(tasksPath)) {
+  fs.writeFileSync(tasksPath, '[]\n', 'utf8');
+}
 
 const app = express();
 let activeJob = null;
@@ -124,6 +131,92 @@ app.get('/admin/api/media', requireAuth, (req, res) => {
     videos: listMediaFiles(videoDir, 'video'),
     playlist: readPlaylist()
   });
+});
+
+app.get('/admin/api/tasks', requireAuth, (req, res) => {
+  res.json({
+    tasks: sortTasks(readTasks())
+  });
+});
+
+app.post('/admin/api/tasks', requireAuth, (req, res) => {
+  try {
+    const tasks = readTasks();
+    const payloadTasks = Array.isArray(req.body.tasks) ? req.body.tasks : null;
+    const created = payloadTasks
+      ? payloadTasks.map((task) => normalizeTaskInput(task))
+      : [normalizeTaskInput(req.body)];
+    const nextTasks = tasks.concat(created);
+    writeTasks(nextTasks);
+    res.json({
+      ok: true,
+      tasks: sortTasks(nextTasks),
+      created
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put('/admin/api/tasks/:id', requireAuth, (req, res) => {
+  try {
+    const tasks = readTasks();
+    const index = tasks.findIndex((task) => task.id === req.params.id);
+    if (index < 0) throw new Error('Task not found');
+
+    const current = tasks[index];
+    const nextTask = normalizeTaskInput(req.body, current);
+    tasks[index] = nextTask;
+    writeTasks(tasks);
+    res.json({
+      ok: true,
+      task: nextTask,
+      tasks: sortTasks(tasks)
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/admin/api/tasks/:id/toggle', requireAuth, (req, res) => {
+  try {
+    const tasks = readTasks();
+    const index = tasks.findIndex((task) => task.id === req.params.id);
+    if (index < 0) throw new Error('Task not found');
+
+    const current = tasks[index];
+    const completed = typeof req.body.completed === 'boolean' ? req.body.completed : !current.completed;
+    const nextTask = normalizeTaskInput({
+      ...current,
+      completed,
+      completedAt: completed ? new Date().toISOString() : ''
+    }, current);
+
+    tasks[index] = nextTask;
+    writeTasks(tasks);
+    res.json({
+      ok: true,
+      task: nextTask,
+      tasks: sortTasks(tasks)
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/admin/api/tasks/:id', requireAuth, (req, res) => {
+  try {
+    const tasks = readTasks();
+    const nextTasks = tasks.filter((task) => task.id !== req.params.id);
+    if (nextTasks.length === tasks.length) throw new Error('Task not found');
+    writeTasks(nextTasks);
+    res.json({
+      ok: true,
+      tasks: sortTasks(nextTasks)
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 app.post('/admin/api/posts', requireAuth, upload.single('markdown'), (req, res) => {
@@ -739,8 +832,212 @@ function getLibraryCounts() {
     posts: fs.existsSync(postsDir) ? fs.readdirSync(postsDir).filter((name) => /\.md$/i.test(name)).length : 0,
     pictures: listMediaFiles(pictureDir, 'picture').length,
     music: listMediaFiles(musicDir, 'music').length,
-    videos: listMediaFiles(videoDir, 'video').length
+    videos: listMediaFiles(videoDir, 'video').length,
+    tasks: readTasks().length
   };
+}
+
+function readTasks() {
+  try {
+    const value = JSON.parse(fs.readFileSync(tasksPath, 'utf8'));
+    if (!Array.isArray(value)) return [];
+    return value
+      .map((task) => sanitizeStoredTask(task))
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function writeTasks(tasks) {
+  fs.writeFileSync(tasksPath, `${JSON.stringify(sortTasks(tasks), null, 2)}\n`, 'utf8');
+}
+
+function sanitizeStoredTask(task) {
+  if (!task || typeof task !== 'object') return null;
+
+  const title = String(task.title || '').trim();
+  if (!title) return null;
+
+  return {
+    id: String(task.id || crypto.randomUUID()),
+    title,
+    date: normalizeTaskDate(task.date),
+    startTime: normalizeTaskTime(task.startTime),
+    endTime: normalizeTaskTime(task.endTime),
+    repeatMode: normalizeTaskRepeatMode(task.repeatMode),
+    repeatDays: normalizeTaskRepeatDays(task.repeatDays),
+    repeatUntil: normalizeTaskDate(task.repeatUntil),
+    notes: String(task.notes || '').trim(),
+    completed: Boolean(task.completed),
+    completedAt: normalizeIsoDateTime(task.completedAt),
+    createdAt: normalizeIsoDateTime(task.createdAt) || new Date().toISOString(),
+    updatedAt: normalizeIsoDateTime(task.updatedAt) || new Date().toISOString()
+  };
+}
+
+function normalizeTaskInput(input, existingTask = null) {
+  const title = String(input.title || '').trim();
+  if (!title) throw new Error('Task title is required');
+
+  const date = normalizeTaskDate(input.date);
+  const startTime = normalizeTaskTime(input.startTime);
+  const endTime = normalizeTaskTime(input.endTime);
+  const repeatMode = normalizeTaskRepeatMode(input.repeatMode);
+  let repeatDays = normalizeTaskRepeatDays(input.repeatDays);
+  const repeatUntil = normalizeTaskDate(input.repeatUntil);
+
+  if (startTime && endTime && timeToMinutes(startTime) > timeToMinutes(endTime)) {
+    throw new Error('End time must be later than start time');
+  }
+
+  if (repeatMode !== 'none' && !date) {
+    throw new Error('Recurring tasks need a start date');
+  }
+
+  if (repeatMode === 'weekly' && !repeatDays.length) {
+    if (date) {
+      repeatDays = [weekdayFromDate(date)];
+    } else {
+      throw new Error('Weekly tasks need at least one weekday');
+    }
+  }
+
+  if (repeatMode === 'daily') {
+    repeatDays = [];
+  }
+
+  if (repeatUntil && date && repeatUntil < date) {
+    throw new Error('Repeat end date must be on or after the start date');
+  }
+
+  const completed = typeof input.completed === 'boolean'
+    ? input.completed
+    : existingTask
+      ? existingTask.completed
+      : false;
+
+  const completedAt = completed
+    ? normalizeIsoDateTime(input.completedAt) || (existingTask && existingTask.completed ? existingTask.completedAt : '') || new Date().toISOString()
+    : '';
+
+  return {
+    id: existingTask ? existingTask.id : String(input.id || crypto.randomUUID()),
+    title,
+    date,
+    startTime,
+    endTime,
+    repeatMode,
+    repeatDays,
+    repeatUntil,
+    notes: String(input.notes || '').trim(),
+    completed,
+    completedAt,
+    createdAt: existingTask ? existingTask.createdAt : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function normalizeTaskDate(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  const match = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) throw new Error(`Invalid task date: ${text}`);
+  return `${match[1]}-${match[2]}-${match[3]}`;
+}
+
+function normalizeTaskTime(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  const match = text.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) throw new Error(`Invalid task time: ${text}`);
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    throw new Error(`Invalid task time: ${text}`);
+  }
+
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+function normalizeIsoDateTime(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  const date = new Date(text);
+  return Number.isNaN(date.getTime()) ? '' : date.toISOString();
+}
+
+function normalizeTaskRepeatMode(value) {
+  const text = String(value || '').trim().toLowerCase();
+  if (!text) return 'none';
+  if (text === 'none' || text === 'daily' || text === 'weekly') return text;
+  throw new Error(`Invalid task repeat mode: ${text}`);
+}
+
+function normalizeTaskRepeatDays(value) {
+  if (value == null || value === '') return [];
+
+  const items = Array.isArray(value)
+    ? value
+    : String(value)
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+  const normalized = Array.from(new Set(items.map(function(item) {
+    const day = Number(item);
+    if (!Number.isInteger(day) || day < 0 || day > 6) {
+      throw new Error(`Invalid task weekday: ${item}`);
+    }
+    return day;
+  })));
+
+  normalized.sort(function(a, b) {
+    return a - b;
+  });
+  return normalized;
+}
+
+function weekdayFromDate(value) {
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return 0;
+  return date.getDay();
+}
+
+function timeToMinutes(value) {
+  const match = String(value).match(/^(\d{2}):(\d{2})$/);
+  if (!match) return 0;
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function compareTaskDate(left, right) {
+  if (left && right) return left.localeCompare(right);
+  if (left) return -1;
+  if (right) return 1;
+  return 0;
+}
+
+function compareTaskTime(left, right) {
+  if (left && right) return left.localeCompare(right);
+  if (left) return -1;
+  if (right) return 1;
+  return 0;
+}
+
+function sortTasks(tasks) {
+  return tasks.slice().sort((a, b) => {
+    const completedDelta = Number(a.completed) - Number(b.completed);
+    if (completedDelta !== 0) return completedDelta;
+
+    const dateDelta = compareTaskDate(a.date, b.date);
+    if (dateDelta !== 0) return dateDelta;
+
+    const timeDelta = compareTaskTime(a.startTime, b.startTime);
+    if (timeDelta !== 0) return timeDelta;
+
+    return String(a.createdAt || '').localeCompare(String(b.createdAt || ''));
+  });
 }
 
 function removeTemp(filePath) {
