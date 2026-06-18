@@ -1489,9 +1489,6 @@
     if (homeIntroState && homeIntroState.skipTimer) {
       window.clearTimeout(homeIntroState.skipTimer);
     }
-    if (homeIntroState && homeIntroState.guardTimer) {
-      window.clearTimeout(homeIntroState.guardTimer);
-    }
     if (homeIntroState && homeIntroState.playTimer) {
       window.clearTimeout(homeIntroState.playTimer);
     }
@@ -1588,7 +1585,6 @@
       skip: skip,
       finished: false,
       skipTimer: null,
-      guardTimer: null,
       playTimer: null
     };
 
@@ -1634,11 +1630,6 @@
         playPromise.catch(function() {});
       }
     }, 0);
-
-    homeIntroState.guardTimer = window.setTimeout(function() {
-      if (!homeIntroState || homeIntroState.overlay !== overlay || homeIntroState.finished) return;
-      finishIntro();
-    }, 7000);
 
     var initialPlayPromise = video.play();
     if (initialPlayPromise && typeof initialPlayPromise.catch === 'function') {
