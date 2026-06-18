@@ -80,7 +80,7 @@ color:
   button_hover_bg_color_dark: "rgba(128, 201, 208, 0.14)"
 
 navbar:
-  blog_title: "小呆呆的博客"
+  blog_title: "青禾札记"
   menu:
     - { key: "首页", link: "/", icon: "iconfont icon-home-fill" }
     - { key: "3D", link: "/world/", icon: "iconfont icon-map" }
@@ -210,7 +210,7 @@ links:
           <div>
             <h3>本站信息</h3>
             <ul>
-              <li>网站名称：小呆呆的博客</li>
+              <li>网站名称：青禾札记</li>
               <li>网站地址：https://xiaodaidai.site/</li>
               <li>网站描述：分享技术，记录生活，顺手做点小工具。</li>
               <li>网站头像：https://xiaodaidai.site/img/avatar.png</li>
@@ -260,9 +260,9 @@ waline:
 
 footer:
   content: '
-    <p><a href="https://github.com/hengjiasteven-dotcom">GitHub</a> &nbsp;|&nbsp; Powered by <a href="https://hexo.io">Hexo</a> &amp; 小呆呆</p>
-    <p>&copy; 2026 小呆呆 · Dream 小呆呆</p>
-    <p class="dream-icp"><a href="https://icp.redcha.cn/beian/ICP-2026060360.html" title="茶ICP备2026060360号" target="_blank" rel="nofollow noopener"><span class="dream-icp-dot" aria-hidden="true"></span><span>茶ICP备2026060360号</span></a></p>
+    <p><a href="https://github.com/hengjiasteven-dotcom">GitHub</a> &nbsp;|&nbsp; Powered by <a href="https://hexo.io">Hexo</a></p>
+    <p>&copy; 2026 青禾札记</p>
+    <p class="dream-footer-links"><a href="/about/#privacy-policy">隐私条款</a> &nbsp;|&nbsp; <a href="/about/#terms-of-service">服务条款</a> &nbsp;|&nbsp; <a href="/about/#copyright-notice">版权说明</a></p>
   '
   statistics:
     enable: false

@@ -9,7 +9,7 @@ comment: waline
   <section class="about-section">
     <h2>关于小呆呆</h2>
     <p>一名喜欢把技术笔记、生活观察和小工具收进同一个角落的全栈开发者。</p>
-    <p>这里会记录项目经验、阅读笔记、前后端实践，也会慢慢补上一些自己常用的实用工具。</p>
+    <p>这里会记录项目经验、阅读笔记、前后端实践，也会慢慢补上一些自己常用的实用工具。站点当前按个人非经营性网站维护，并补充了隐私、版权与使用规则说明。</p>
   </section>
 
   <section class="about-section">
@@ -20,6 +20,30 @@ comment: waline
       <a class="about-link-pill" href="/tools/">功能</a>
       <a class="about-link-pill" href="/message/">留言板</a>
     </div>
+  </section>
+
+  <section class="about-section about-legal-overview" id="site-policies">
+    <h2>站点规范</h2>
+    <p>为保持个人站点的合规、可持续与可预期使用，本站将公开展示访问规则，并在首次访问时要求用户确认后再继续浏览。完整版条款改为按需展开，避免关于页一次性堆叠过长文本。</p>
+    <div class="about-legal-jump">
+      <a class="about-legal-chip" href="#privacy-policy">隐私条款</a>
+      <a class="about-legal-chip" href="#terms-of-service">服务条款</a>
+      <a class="about-legal-chip" href="#copyright-notice">版权说明</a>
+    </div>
+    <dl class="about-legal-meta">
+      <div>
+        <dt>适用范围</dt>
+        <dd>站点首页、文章页、留言页、工具页与 3D 展示页</dd>
+      </div>
+      <div>
+        <dt>最近更新</dt>
+        <dd>2026-06-18</dd>
+      </div>
+      <div>
+        <dt>主体类型</dt>
+        <dd>个人非经营性网站</dd>
+      </div>
+    </dl>
   </section>
 
   <section class="about-section about-dashboard">
@@ -46,7 +70,7 @@ comment: waline
       </h2>
       <dl class="about-stats-list">
         <div class="about-stat-row">
-          <dt><i class="iconfont icon-articles" aria-hidden="true"></i><span>博客文章</span></dt>
+          <dt><i class="iconfont icon-articles" aria-hidden="true"></i><span>文章</span></dt>
           <dd data-stat="postCount">--</dd>
         </div>
         <div class="about-stat-row">
@@ -84,4 +108,9 @@ comment: waline
       </dl>
     </div>
   </section>
+
+<section class="about-section about-legal-list-section" aria-label="站点条款说明">
+  <h2>条款与说明</h2>
+  <div class="about-legal-list" data-about-legal-grid></div>
+</section>
 </div>

@@ -6,6 +6,6 @@
     </linearGradient>
   </defs>
   <rect width="1440" height="300" fill="url(#g)"/>
-  <text x="720" y="160" text-anchor="middle" fill="white" font-size="48" font-weight="bold" font-family="-apple-system, sans-serif">小呆呆的博客</text>
+  <text x="720" y="160" text-anchor="middle" fill="white" font-size="48" font-weight="bold" font-family="-apple-system, sans-serif">青禾札记</text>
   <text x="720" y="210" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="20" font-family="-apple-system, sans-serif">分享技术 · 记录成长 · 思考生活</text>
 </svg>

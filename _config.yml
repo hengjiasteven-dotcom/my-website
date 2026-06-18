@@ -2,11 +2,11 @@
 ## Docs: https://hexo.io/docs/configuration.html
 
 # Site
-title: 小呆呆的博客
+title: 青禾札记
 subtitle: 分享技术 · 记录成长 · 思考生活
-description: 小呆呆的个人博客，分享技术、阅读与生活思考
-keywords: 技术博客,前端,后端,编程
-author: 小呆呆
+description: 个人技术学习、项目实践、阅读思考与生活随笔记录
+keywords: 技术学习,项目实践,阅读,生活随笔
+author: 恒嘉
 language: zh-CN
 timezone: Asia/Shanghai
 

@@ -6,6 +6,8 @@
   var visitStorageKey = 'DreamVisitorCounters';
   var petStorageKey = 'DreamNetworkPet';
   var taskStorageKey = 'DreamHomeTaskState';
+  var legalConsentStorageKey = 'DreamLegalConsent';
+  var legalConsentVersion = '2026-06-18';
   var walineServerURL = 'https://my-blog-eta-one-13.vercel.app';
   var root = document.documentElement;
   var searchShortcutBound = false;
@@ -16,6 +18,99 @@
   var friendLinksRequest = null;
   var siteDataPromise = null;
   var homeHeroTypingTimers = [];
+  var deferredHomeFeaturesStarted = false;
+  var homeAutoScrollState = null;
+  var legalPolicyTemplates = {
+    'privacy-policy': [
+      '<article class="about-legal-modal-article">',
+      '<h2>隐私政策</h2>',
+      '<h3>1. 信息收集范围</h3>',
+      '<ol>',
+      '<li>本站仅会自动收集您访问网站时产生的基础访问日志，包含访问IP地址、访问时间、浏览器类型、访问页面、设备类型等匿名化访问数据，仅用于站点访问量统计、异常访问排查、网站安全防护与访问体验优化，不会定位到具体自然人身份。</li>',
+      '<li>仅当您主动在本站评论、留言时，您自愿填写的昵称、邮箱、留言内容会被本站存储；邮箱仅用于留言回复通知、防恶意刷评论校验，不会公开展示在页面中。</li>',
+      '<li>本站不会主动收集您的身份证、手机号、住址、银行卡等敏感个人隐私信息，不会强制要求您授权第三方账号登录。</li>',
+      '</ol>',
+      '<h3>2. 信息使用规则</h3>',
+      '<ol>',
+      '<li>所有收集的访问统计数据、留言信息仅用于本站正常运营，不会向任何无关第三方出售、出租、共享、泄露您的个人信息。</li>',
+      '<li>匿名访问日志会定期自动清理，仅保留最近12个月的站点统计数据；您的留言内容可由您联系站长申请删除、修改。</li>',
+      '<li>本站不会基于收集的用户数据开展精准广告推送、用户画像商业营销行为。</li>',
+      '</ol>',
+      '<h3>3. 第三方服务说明</h3>',
+      '<ol>',
+      '<li>本站可能接入第三方访客统计、评论系统、字体、图标、CDN加速等第三方服务，第三方将遵循其自身隐私政策处理相关访问数据，本站会优先选择合规正规的第三方服务商。</li>',
+      '<li>若您拒绝提供留言所需信息，仅会无法使用评论互动功能，不影响网站文章、页面的正常浏览。</li>',
+      '</ol>',
+      '<h3>4. 用户权利</h3>',
+      '<ol>',
+      '<li>您有权随时联系站长，申请查看、删除本人的留言记录；可通过浏览器清除Cookie拒绝本站本地存储的访问授权记录。</li>',
+      '<li>如后续本站隐私条款发生更新，您再次访问网站时将重新触发访问确认弹窗，需重新同意后方可继续浏览。</li>',
+      '</ol>',
+      '<h3>5. 数据安全保障</h3>',
+      '<p>本站会通过基础技术防护手段保护您的非公开数据，防止信息泄露、篡改、恶意访问；如遭遇非法网络攻击导致数据泄露，站长会第一时间采取补救措施并公示风险提示。</p>',
+      '</article>'
+    ].join(''),
+    'terms-of-service': [
+      '<article class="about-legal-modal-article">',
+      '<h2>网站服务协议</h2>',
+      '<h3>1. 站点性质说明</h3>',
+      '<ol>',
+      '<li>本站为<strong>个人非经营性公益向技术博客站点</strong>，仅用于站长个人技术学习记录、知识分享、技术交流，不开展任何线上交易、金融理财、付费咨询、托管担保、医疗法律专业意见、商品售卖等经营性商业活动。</li>',
+      '<li>本站所有免费公开内容仅作学习参考，不构成任何投资、就业、技术落地的专业保证，您依据本站内容产生的一切决策、行为风险由您个人自行承担。</li>',
+      '</ol>',
+      '<h3>2. 用户使用规范</h3>',
+      '<ol>',
+      '<li>您在本站留言、评论、转载分享站内内容时，必须严格遵守《中华人民共和国网络安全法》《互联网信息服务管理办法》等相关法律法规，禁止发布下列内容：<ul><li>造谣、诽谤、辱骂、人身攻击、色情暴力、涉恐涉赌、涉政违法违规言论；</li><li>广告引流、恶意灌水、外链推广、病毒木马、恶意程序、钓鱼网站相关内容；</li><li>侵犯他人肖像权、著作权、隐私权等合法权益的内容。</li></ul></li>',
+      '<li>禁止对本站实施恶意网络攻击、高频爬虫批量抓取全站资源、伪造请求滥用网站接口、破解站点权限、植入恶意脚本等破坏网站正常运营的行为；一经发现，站长有权封禁您的访问IP、删除违规留言，并保留追究法律责任的权利。</li>',
+      '<li>未成年人访问本站需在监护人陪同下浏览，请勿在留言区泄露自身家庭、学校、手机号等私密信息。</li>',
+      '</ol>',
+      '<h3>3. 服务免责声明</h3>',
+      '<ol>',
+      '<li>本站尽力保障网站稳定可访问，但因服务器故障、运营商网络波动、第三方服务异常、不可抗力等因素导致网站临时无法访问、数据短暂异常，本站不承担任何赔偿责任。</li>',
+      '<li>站内文章可能存在技术疏漏、时效性滞后等问题，站长会不定期修正内容，但不对信息绝对准确性、完整性作出承诺；站内第三方跳转链接的页面内容、服务由第三方平台负责，本站不对外链内容承担担保责任。</li>',
+      '<li>站长有权在不提前通知的前提下，对网站内容、页面功能、服务条款、隐私政策进行调整、更新，或临时关停、永久下线本站。</li>',
+      '</ol>',
+      '<h3>4. 协议生效与终止</h3>',
+      '<p>您勾选同意条款并进入网站，即代表本服务协议在您与本站之间生效；若您违反本服务条款及国家法律法规，站长有权随时终止您的本站访问、留言权限。</p>',
+      '</article>'
+    ].join(''),
+    'copyright-notice': [
+      '<article class="about-legal-modal-article">',
+      '<h2>版权声明</h2>',
+      '<h3>1. 原创内容版权归属</h3>',
+      '<ol>',
+      '<li>除页面明确标注转载、引用来源的内容外，本站内所有原创文章、技术笔记、页面文案、原创配图、代码示例、站点页面设计版式等内容，著作权均归本站主办者个人所有，受《中华人民共和国著作权法》保护。</li>',
+      '<li>未经站长书面授权，禁止任何单位、个人将本站原创内容用于商业用途转载、汇编、二次售卖、封装至付费产品内。</li>',
+      '</ol>',
+      '<h3>2. 非商业使用规范</h3>',
+      '<ol>',
+      '<li>个人学习、技术交流等<strong>非商业场景</strong>下，允许有限转载、摘抄本站原创内容，但必须同时满足以下两项要求：<ul><li>清晰标注原文作者、文章来源；</li><li>附上本站原文原始访问链接，不得篡改、删减原文内容后伪装为原创发布。</li></ul></li>',
+      '<li>社交媒体、技术社区等平台合理引用本站少量内容，需遵守上述署名、留来源链接规则，单次引用不得超过原文完整篇幅的30%。</li>',
+      '</ol>',
+      '<h3>3. 开源与第三方素材说明</h3>',
+      '<ol>',
+      '<li>本站部分图标、前端框架、开源工具、第三方开源代码片段遵循对应开源协议使用，相关知识产权归原开源作者所有，本站仅做合规学习部署使用。</li>',
+      '<li>站内标注转载的文章、图片、素材，版权归原作者所有，本站仅做知识分享用途；若权利人发现本站存在侵权内容，可联系站长，本站会在24小时内完成侵权内容下架、删除处理。</li>',
+      '</ol>',
+      '<h3>4. 侵权投诉方式</h3>',
+      '<p>如您发现本站存在侵犯您著作权、肖像权等合法权益的内容，可通过留言方式联系站长，提交权属证明、侵权位置等材料，本站核实后将第一时间处理侵权内容；若您违反本版权声明擅自商用、洗稿篡改本站原创内容，本站将依法维护自身著作权，追究侵权方相关法律责任。</p>',
+      '</article>'
+    ].join('')
+  };
+  var legalPolicySummaries = [
+    {
+      id: 'privacy-policy',
+      title: '隐私条款'
+    },
+    {
+      id: 'terms-of-service',
+      title: '服务条款'
+    },
+    {
+      id: 'copyright-notice',
+      title: '版权说明'
+    }
+  ];
   var initialPictureNames = (assets.pictures || []).map(function(picture) {
     return picture.name;
   });
@@ -84,6 +179,20 @@
   function setTaskStored(value) {
     try {
       localStorage.setItem(taskStorageKey, JSON.stringify(value));
+    } catch (err) {}
+  }
+
+  function getLegalConsentStored() {
+    try {
+      return JSON.parse(localStorage.getItem(legalConsentStorageKey) || '{}');
+    } catch (err) {
+      return {};
+    }
+  }
+
+  function setLegalConsentStored(value) {
+    try {
+      localStorage.setItem(legalConsentStorageKey, JSON.stringify(value));
     } catch (err) {}
   }
 
@@ -364,6 +473,229 @@
     return true;
   }
 
+  function hasAcceptedLegalConsent() {
+    var stored = getLegalConsentStored();
+    return stored && stored.version === legalConsentVersion && stored.accepted === true;
+  }
+
+  function closeCurrentPage() {
+    try {
+      window.open('about:blank', '_self');
+    } catch (err) {}
+    try {
+      window.close();
+    } catch (err) {}
+    window.setTimeout(function() {
+      if (!document.hidden) {
+        window.location.replace('about:blank');
+      }
+    }, 120);
+  }
+
+  function unlockLegalConsentGate() {
+    document.body.classList.remove('dream-consent-locked');
+    var gate = document.querySelector('.dream-consent-gate');
+    if (gate && gate.parentNode) {
+      gate.parentNode.removeChild(gate);
+    }
+  }
+
+  function buildLegalConsentGate() {
+    var gate = document.createElement('div');
+    gate.className = 'dream-consent-gate';
+    gate.setAttribute('role', 'dialog');
+    gate.setAttribute('aria-modal', 'true');
+    gate.setAttribute('aria-labelledby', 'dream-consent-title');
+    gate.innerHTML = [
+      '<div class="dream-consent-panel">',
+        '<h2 id="dream-consent-title">访问确认</h2>',
+        '<p class="dream-consent-intro">为使站点的展示、留言与互动使用更清晰可控，本站在首次访问或条款更新后，会要求你先确认隐私条款、服务条款与版权说明，再继续浏览页面内容。</p>',
+        '<div class="dream-consent-grid">',
+          '<div class="dream-consent-item">',
+            '<strong>隐私条款</strong>',
+            '<p>本站仅在必要范围内处理访问日志、基础统计与访客主动提交的留言信息，不向无关第三方出售个人数据。</p>',
+          '</div>',
+          '<div class="dream-consent-item">',
+            '<strong>服务条款</strong>',
+            '<p>本站属于个人非经营性内容站点，不提供交易、托管或专业意见保证，禁止恶意抓取、滥用接口与违法互动内容。</p>',
+          '</div>',
+          '<div class="dream-consent-item">',
+            '<strong>版权说明</strong>',
+            '<p>除特别标注外，原创文章、页面文案与站点整理内容归本站主办者所有；非商业引用请保留来源与原始链接。</p>',
+          '</div>',
+        '</div>',
+        '<div class="dream-consent-links">',
+          '<button type="button" class="dream-consent-link" data-consent-legal-open="privacy-policy">查看隐私条款</button>',
+          '<button type="button" class="dream-consent-link" data-consent-legal-open="terms-of-service">查看服务条款</button>',
+          '<button type="button" class="dream-consent-link" data-consent-legal-open="copyright-notice">查看版权说明</button>',
+        '</div>',
+        '<label class="dream-consent-check">',
+          '<input type="checkbox" data-dream-consent-check>',
+          '<span>我已阅读并同意本站的隐私条款、服务条款与版权说明，理解留言、互动和转载应在合法、克制与注明来源的前提下进行。</span>',
+        '</label>',
+        '<div class="dream-consent-actions">',
+          '<button type="button" class="dream-consent-btn is-primary" data-dream-consent-accept disabled>同意并进入网站</button>',
+          '<button type="button" class="dream-consent-btn" data-dream-consent-decline>暂不进入</button>',
+        '</div>',
+        '<p class="dream-consent-note" data-dream-consent-note>本确认仅用于站点访问规则留痕。若后续条款更新，系统会再次请求确认。</p>',
+      '</div>'
+    ].join('');
+    return gate;
+  }
+
+  function initLegalConsentGate() {
+    if (hasAcceptedLegalConsent()) {
+      unlockLegalConsentGate();
+      return;
+    }
+
+    document.body.classList.add('dream-consent-locked');
+
+    var gate = document.querySelector('.dream-consent-gate');
+    if (!gate) {
+      gate = buildLegalConsentGate();
+      document.body.appendChild(gate);
+    }
+
+    var checkbox = gate.querySelector('[data-dream-consent-check]');
+    var accept = gate.querySelector('[data-dream-consent-accept]');
+    var decline = gate.querySelector('[data-dream-consent-decline]');
+    var note = gate.querySelector('[data-dream-consent-note]');
+    var legalLinks = Array.prototype.slice.call(gate.querySelectorAll('[data-consent-legal-open]'));
+
+    if (!checkbox || !accept || !decline || !note) return;
+
+    accept.disabled = !checkbox.checked;
+
+    checkbox.addEventListener('change', function() {
+      accept.disabled = !checkbox.checked;
+      if (checkbox.checked) {
+        note.textContent = '确认后将记录当前条款版本，并允许继续访问站点内容。';
+      } else {
+        note.textContent = '本确认仅用于站点访问规则留痕。若后续条款更新，系统会再次请求确认。';
+      }
+    });
+
+    accept.addEventListener('click', function() {
+      if (!checkbox.checked) return;
+      setLegalConsentStored({
+        accepted: true,
+        version: legalConsentVersion,
+        acceptedAt: new Date().toISOString()
+      });
+      unlockLegalConsentGate();
+      initHomeAutoScroll();
+      startDeferredHomeFeatures();
+    });
+
+    decline.addEventListener('click', function() {
+      checkbox.checked = false;
+      accept.disabled = true;
+      note.textContent = '你尚未同意本站条款，因此页面内容继续保持不可访问状态。准备好后勾选同意并继续。';
+      closeCurrentPage();
+    });
+
+    legalLinks.forEach(function(button) {
+      button.addEventListener('click', function() {
+        var policyKey = button.getAttribute('data-consent-legal-open');
+        if (!policyKey) return;
+        openLegalModal(policyKey, { overConsent: true });
+      });
+    });
+  }
+
+  function closeLegalModal() {
+    document.body.classList.remove('dream-consent-locked');
+    var modal = document.querySelector('.dream-legal-modal');
+    if (modal && modal.parentNode) {
+      modal.parentNode.removeChild(modal);
+    }
+    if (/^#(privacy-policy|terms-of-service|copyright-notice)$/.test(window.location.hash || '')) {
+      history.replaceState(history.state || {}, '', window.location.pathname + window.location.search);
+    }
+  }
+
+  function openLegalModal(policyKey, options) {
+    options = options || {};
+    var template = legalPolicyTemplates[policyKey];
+    if (!template) return;
+
+    closeLegalModal();
+    document.body.classList.add('dream-consent-locked');
+
+    var modal = document.createElement('div');
+    modal.className = 'dream-legal-modal';
+    if (options.overConsent) {
+      modal.classList.add('is-over-consent');
+    }
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.innerHTML = [
+      '<div class="dream-legal-modal__panel">',
+        '<div class="dream-legal-modal__head">',
+          '<h2>完整条款</h2>',
+          '<button type="button" class="dream-legal-modal__close" data-legal-close aria-label="关闭">×</button>',
+        '</div>',
+        '<div class="dream-legal-modal__body"></div>',
+      '</div>'
+    ].join('');
+
+    var body = modal.querySelector('.dream-legal-modal__body');
+    if (!body) return;
+
+    body.innerHTML = template;
+    document.body.appendChild(modal);
+
+    var closeBtn = modal.querySelector('[data-legal-close]');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeLegalModal);
+    }
+
+    modal.addEventListener('click', function(event) {
+      if (event.target === modal) {
+        closeLegalModal();
+      }
+    });
+  }
+
+  function initAboutLegalPolicy() {
+    var root = document.querySelector('[data-about-legal-grid]');
+    if (!root) return;
+
+    if (!root.children.length) {
+      root.innerHTML = legalPolicySummaries.map(function(item) {
+        return [
+          '<button class="about-legal-entry" type="button" id="' + item.id + '" data-legal-open="' + item.id + '">',
+            item.title,
+          '</button>'
+        ].join('');
+      }).join('');
+    }
+
+    Array.prototype.slice.call(root.querySelectorAll('[data-legal-open]')).forEach(function(button) {
+      button.addEventListener('click', function() {
+        var policyKey = button.getAttribute('data-legal-open');
+        if (!policyKey) return;
+        openLegalModal(policyKey);
+      });
+    });
+
+    var hash = (window.location.hash || '').replace(/^#/, '');
+    if (hash === 'privacy-policy' || hash === 'terms-of-service' || hash === 'copyright-notice') {
+      openLegalModal(hash);
+    }
+  }
+
+  function shouldInitWalineCounters() {
+    if (isPostPath()) return true;
+    return Boolean(
+      document.querySelector('[data-dream-visit-total]') ||
+      document.querySelector('[data-dream-visit-today]') ||
+      document.querySelector('[data-dream-visitor-total]') ||
+      document.querySelector('[data-dream-visitor-today]')
+    );
+  }
+
   function setCounterText(selector, text) {
     Array.prototype.slice.call(document.querySelectorAll(selector)).forEach(function(node) {
       node.textContent = text;
@@ -417,6 +749,7 @@
 
   function initWalineCounters() {
     if (!walineServerURL) return;
+    if (!shouldInitWalineCounters()) return;
 
     var oldHolder = document.querySelector('[data-dream-hidden-counters]');
     if (oldHolder && oldHolder.parentNode) {
@@ -514,6 +847,81 @@
     ].join('');
 
     layoutRow.insertBefore(profile, postsCol);
+  }
+
+  function cancelHomeAutoScroll() {
+    if (!homeAutoScrollState) return;
+    if (homeAutoScrollState.timer) {
+      window.clearTimeout(homeAutoScrollState.timer);
+    }
+    homeAutoScrollState.cleanup.forEach(function(cleanup) {
+      cleanup();
+    });
+    homeAutoScrollState = null;
+  }
+
+  function initHomeAutoScroll() {
+    cancelHomeAutoScroll();
+    if (!document.body.classList.contains('home')) return;
+    if (document.body.classList.contains('dream-consent-locked')) return;
+    if ((window.location.hash || '') !== '') return;
+    if (window.scrollY > 8) return;
+
+    var board = document.getElementById('board');
+    if (!board) return;
+
+    var cancelled = false;
+    var cleanup = [];
+    var cancel = function() {
+      cancelled = true;
+      cancelHomeAutoScroll();
+    };
+
+    ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach(function(eventName) {
+      var handler = function() {
+        cancel();
+      };
+      window.addEventListener(eventName, handler, { once: true, passive: true });
+      cleanup.push(function() {
+        window.removeEventListener(eventName, handler, { once: true, passive: true });
+      });
+    });
+
+    var timer = window.setTimeout(function() {
+      if (cancelled || window.scrollY > 8) {
+        cancelHomeAutoScroll();
+        return;
+      }
+      var targetTop = Math.max(0, board.getBoundingClientRect().top + window.scrollY - 24);
+      window.scrollTo({ top: targetTop, behavior: 'smooth' });
+      window.setTimeout(cancelHomeAutoScroll, 1200);
+    }, 1800);
+
+    homeAutoScrollState = {
+      timer: timer,
+      cleanup: cleanup
+    };
+  }
+
+  function startDeferredHomeFeatures() {
+    if (deferredHomeFeaturesStarted) return;
+    if (document.body.classList.contains('dream-consent-locked')) return;
+    deferredHomeFeaturesStarted = true;
+
+    var boot = function() {
+      runWhenIdle(function() {
+        createPlayer();
+        createNetworkPet();
+        initWalineCounters();
+      }, 2400);
+    };
+
+    if (document.readyState === 'complete') {
+      boot();
+      return;
+    }
+
+    window.addEventListener('load', boot, { once: true });
   }
 
   function createHomeWorldPortal() {
@@ -1451,7 +1859,7 @@
         '',
         '- 支持列表',
         '- 支持 **加粗** 和 *斜体*',
-        '- 支持链接：[小呆呆的博客](https://xiaodaidai.site/)',
+        '- 支持链接：[青禾札记](https://xiaodaidai.site/)',
         '',
         '> 愿你的梦里总有星星。',
         '',
@@ -3423,9 +3831,11 @@
   }
 
   function initPage() {
+    deferredHomeFeaturesStarted = false;
     markPageType();
     pickBackgrounds();
     enhanceHomeHero();
+    initHomeAutoScroll();
     constrainListingImages();
     groupIndexCardsByDate();
     createHomeProfile();
@@ -3433,20 +3843,20 @@
     revealCards();
     enhanceSearch();
     initAboutDashboard();
+    initAboutLegalPolicy();
     initClassificationTags();
-    initWalineCounters();
     initDreamTools();
     initLinksPage();
-    createPlayer();
     createHomeWorldPortal();
     createHomeTasksCard();
-    createNetworkPet();
+    startDeferredHomeFeatures();
   }
 
   function initOnce() {
     addBackgroundLayer();
     window.addEventListener('scroll', onScroll, { passive: true });
     initPjaxNavigation();
+    initLegalConsentGate();
   }
 
   function init() {
