@@ -24,7 +24,7 @@ comment: waline
 
   <section class="about-section about-legal-overview" id="site-policies">
     <h2>站点规范</h2>
-    <p>为保持个人站点的合规、可持续与可预期使用，本站将公开展示访问规则，并在首次访问时要求用户确认后再继续浏览。完整版条款改为按需展开，避免关于页一次性堆叠过长文本。</p>
+    <p>为保持个人站点的合规、可持续与可预期使用，本站将公开展示访问规则，并在首次访问时要求用户确认后再继续浏览。</p>
     <div class="about-legal-jump">
       <a class="about-legal-chip" href="#privacy-policy">隐私条款</a>
       <a class="about-legal-chip" href="#terms-of-service">服务条款</a>
