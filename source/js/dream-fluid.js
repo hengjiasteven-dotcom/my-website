@@ -20,6 +20,8 @@
   var homeHeroTypingTimers = [];
   var deferredHomeFeaturesStarted = false;
   var homeAutoScrollState = null;
+  var homeIntroStorageKey = 'DreamHomeIntroSeen';
+  var homeIntroState = null;
   var legalPolicyTemplates = {
     'privacy-policy': [
       '<article class="about-legal-modal-article">',
@@ -193,6 +195,20 @@
   function setLegalConsentStored(value) {
     try {
       localStorage.setItem(legalConsentStorageKey, JSON.stringify(value));
+    } catch (err) {}
+  }
+
+  function getHomeIntroStored() {
+    try {
+      return JSON.parse(sessionStorage.getItem(homeIntroStorageKey) || '{}');
+    } catch (err) {
+      return {};
+    }
+  }
+
+  function setHomeIntroStored(value) {
+    try {
+      sessionStorage.setItem(homeIntroStorageKey, JSON.stringify(value));
     } catch (err) {}
   }
 
@@ -1466,6 +1482,168 @@
         subcopy.classList.add('dream-typewriter-caret');
       });
     });
+  }
+
+  function removeHomeIntroState(markSeen) {
+    var overlay = homeIntroState && homeIntroState.overlay;
+    if (homeIntroState && homeIntroState.skipTimer) {
+      window.clearTimeout(homeIntroState.skipTimer);
+    }
+    if (homeIntroState && homeIntroState.guardTimer) {
+      window.clearTimeout(homeIntroState.guardTimer);
+    }
+    if (homeIntroState && homeIntroState.playTimer) {
+      window.clearTimeout(homeIntroState.playTimer);
+    }
+
+    if (overlay) {
+      overlay.classList.remove('is-visible');
+      overlay.classList.add('is-leaving');
+      window.setTimeout(function() {
+        if (overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+      }, 320);
+    }
+
+    if (markSeen) {
+      var stored = getHomeIntroStored();
+      stored.seen = true;
+      stored.updatedAt = '2026-06-18';
+      setHomeIntroStored(stored);
+    }
+
+    document.body.classList.remove('dream-intro-lock');
+    homeIntroState = null;
+  }
+
+  function buildHomeIntroOverlay() {
+    var overlay = document.querySelector('[data-dream-home-intro]');
+    if (overlay) return overlay;
+
+    overlay = document.createElement('div');
+    overlay.className = 'dream-home-intro';
+    overlay.setAttribute('data-dream-home-intro', '');
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.innerHTML = [
+      '<div class="dream-home-intro__backdrop" aria-hidden="true"></div>',
+      '<div class="dream-home-intro__shell">',
+      '  <div class="dream-home-intro__stage">',
+      '    <video class="dream-home-intro__video" muted playsinline preload="auto" src="/video/intro.mp4"></video>',
+      '    <div class="dream-home-intro__veil" aria-hidden="true"></div>',
+      '    <div class="dream-home-intro__copy">',
+      '      <span class="dream-home-intro__eyebrow">HOME INTRO</span>',
+      '      <strong class="dream-home-intro__title">青栀札记</strong>',
+      '      <span class="dream-home-intro__subcopy">分享技术 · 记录成长 · 思考生活</span>',
+      '      <span class="dream-home-intro__meter" aria-hidden="true"><span></span></span>',
+      '    </div>',
+      '  </div>',
+      '  <button class="dream-home-intro__skip" type="button" aria-label="跳过开场">跳过开场</button>',
+      '</div>'
+    ].join('');
+
+    document.body.insertBefore(overlay, document.body.firstChild);
+    return overlay;
+  }
+
+  function startHomeIntro() {
+    if (!document.body.classList.contains('home')) {
+      var staleOverlay = document.querySelector('[data-dream-home-intro]');
+      if (staleOverlay && staleOverlay.parentNode) {
+        staleOverlay.parentNode.removeChild(staleOverlay);
+      }
+      document.body.classList.remove('dream-intro-lock');
+      return;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      removeHomeIntroState(true);
+      return;
+    }
+
+    var stored = getHomeIntroStored();
+    if (stored && stored.seen) {
+      var existingOverlay = document.querySelector('[data-dream-home-intro]');
+      if (existingOverlay && existingOverlay.parentNode) {
+        existingOverlay.parentNode.removeChild(existingOverlay);
+      }
+      document.body.classList.remove('dream-intro-lock');
+      return;
+    }
+
+    if (homeIntroState && homeIntroState.overlay) {
+      return;
+    }
+
+    var overlay = buildHomeIntroOverlay();
+    if (!overlay) return;
+
+    var video = overlay.querySelector('.dream-home-intro__video');
+    var skip = overlay.querySelector('.dream-home-intro__skip');
+    if (!video || !skip) return;
+
+    homeIntroState = {
+      overlay: overlay,
+      video: video,
+      skip: skip,
+      finished: false,
+      skipTimer: null,
+      guardTimer: null,
+      playTimer: null
+    };
+
+    document.body.classList.add('dream-intro-lock');
+    overlay.hidden = false;
+
+    window.requestAnimationFrame(function() {
+      if (!homeIntroState || homeIntroState.overlay !== overlay) return;
+      overlay.classList.add('is-visible');
+    });
+
+    function finishIntro() {
+      if (!homeIntroState || homeIntroState.finished) return;
+      homeIntroState.finished = true;
+      removeHomeIntroState(true);
+    }
+
+    skip.disabled = true;
+    homeIntroState.skipTimer = window.setTimeout(function() {
+      if (!homeIntroState || homeIntroState.overlay !== overlay || homeIntroState.finished) return;
+      skip.disabled = false;
+      overlay.classList.add('is-skippable');
+    }, 1200);
+
+    skip.addEventListener('click', function() {
+      finishIntro();
+    }, { once: true });
+
+    overlay.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        finishIntro();
+      }
+    });
+
+    video.addEventListener('ended', finishIntro, { once: true });
+    video.addEventListener('error', finishIntro, { once: true });
+
+    homeIntroState.playTimer = window.setTimeout(function() {
+      if (!homeIntroState || homeIntroState.overlay !== overlay || homeIntroState.finished) return;
+      var playPromise = video.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(function() {});
+      }
+    }, 0);
+
+    homeIntroState.guardTimer = window.setTimeout(function() {
+      if (!homeIntroState || homeIntroState.overlay !== overlay || homeIntroState.finished) return;
+      finishIntro();
+    }, 7000);
+
+    var initialPlayPromise = video.play();
+    if (initialPlayPromise && typeof initialPlayPromise.catch === 'function') {
+      initialPlayPromise.catch(function() {});
+    }
   }
 
   function enhanceHomeHero() {
@@ -3834,6 +4012,7 @@
     deferredHomeFeaturesStarted = false;
     markPageType();
     pickBackgrounds();
+    startHomeIntro();
     enhanceHomeHero();
     initHomeAutoScroll();
     constrainListingImages();

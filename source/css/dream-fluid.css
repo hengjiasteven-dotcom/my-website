@@ -4898,3 +4898,233 @@ textarea:disabled,
 .dream-player.is-dragging * {
   cursor: var(--dream-cursor-move) !important;
 }
+
+body.dream-intro-lock {
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+.dream-home-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 15000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 2rem);
+  opacity: 0;
+  pointer-events: auto;
+  transition: opacity 280ms ease;
+}
+
+.dream-home-intro.is-visible {
+  opacity: 1;
+}
+
+.dream-home-intro.is-leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dream-home-intro__backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 18%, rgba(255, 255, 255, 0.12) 44%, rgba(255, 255, 255, 0) 68%),
+    radial-gradient(circle at 50% 68%, rgba(79, 156, 167, 0.16) 0%, rgba(79, 156, 167, 0.05) 24%, rgba(79, 156, 167, 0) 58%),
+    linear-gradient(180deg, rgba(247, 251, 251, 0.96), rgba(244, 247, 250, 0.92));
+  backdrop-filter: blur(18px) saturate(1.12);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+}
+
+html[data-user-color-scheme="dark"] .dream-home-intro__backdrop {
+  background:
+    radial-gradient(circle at 50% 34%, rgba(24, 34, 47, 0.92) 0%, rgba(24, 34, 47, 0.72) 18%, rgba(24, 34, 47, 0.16) 44%, rgba(24, 34, 47, 0) 68%),
+    radial-gradient(circle at 50% 68%, rgba(128, 201, 208, 0.12) 0%, rgba(128, 201, 208, 0.04) 24%, rgba(128, 201, 208, 0) 58%),
+    linear-gradient(180deg, rgba(10, 17, 26, 0.92), rgba(16, 24, 34, 0.94));
+}
+
+.dream-home-intro__shell {
+  position: relative;
+  z-index: 1;
+  width: min(980px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dream-home-intro__stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  border-radius: clamp(18px, 2.8vw, 30px);
+  background: #f0e8de;
+  box-shadow:
+    0 30px 90px rgba(36, 52, 71, 0.24),
+    0 10px 30px rgba(36, 52, 71, 0.12);
+  transform: translateY(10px) scale(0.985);
+  transition: transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dream-home-intro.is-visible .dream-home-intro__stage {
+  transform: translateY(0) scale(1);
+}
+
+.dream-home-intro__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: saturate(0.9) contrast(0.96) brightness(1.04);
+}
+
+.dream-home-intro__veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.02) 34%, rgba(247, 251, 251, 0.18) 100%),
+    radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.08), transparent 30%),
+    linear-gradient(90deg, rgba(79, 156, 167, 0.06), rgba(255, 255, 255, 0) 18%, rgba(255, 183, 197, 0.06) 84%, rgba(255, 255, 255, 0.08));
+  mix-blend-mode: screen;
+}
+
+.dream-home-intro__copy {
+  position: absolute;
+  inset: auto clamp(1rem, 3vw, 2rem) clamp(1rem, 3vw, 1.75rem);
+  z-index: 1;
+  max-width: min(42ch, calc(100% - 2rem));
+  display: flex;
+  flex-direction: column;
+  gap: 0.48rem;
+  color: #fff;
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.24),
+    0 8px 28px rgba(0, 0, 0, 0.26);
+  pointer-events: none;
+}
+
+.dream-home-intro__eyebrow {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  opacity: 0.84;
+}
+
+.dream-home-intro__title {
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.02;
+}
+
+.dream-home-intro__subcopy {
+  font-size: clamp(0.98rem, 1.6vw, 1.08rem);
+  font-weight: 650;
+  line-height: 1.4;
+  opacity: 0.95;
+}
+
+.dream-home-intro__meter {
+  width: min(18rem, 62vw);
+  height: 2px;
+  margin-top: 0.28rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.dream-home-intro__meter span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, var(--dream-accent-strong), var(--dream-sakura));
+  animation: dream-home-intro-meter 5.04s linear forwards;
+}
+
+.dream-home-intro__skip {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1rem, 5.5vh, 2.2rem);
+  z-index: 2;
+  padding: 0.82rem 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(16, 23, 32, 0.42);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(16px) saturate(1.12);
+  -webkit-backdrop-filter: blur(16px) saturate(1.12);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(12px);
+  transition: opacity 220ms ease, transform 220ms ease, background 220ms ease, border-color 220ms ease;
+}
+
+.dream-home-intro.is-skippable .dream-home-intro__skip {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.dream-home-intro__skip:hover,
+.dream-home-intro__skip:focus-visible {
+  background: rgba(16, 23, 32, 0.58);
+  border-color: rgba(255, 255, 255, 0.46);
+}
+
+html[data-user-color-scheme="dark"] .dream-home-intro__skip {
+  background: rgba(20, 30, 42, 0.55);
+}
+
+html[data-user-color-scheme="dark"] .dream-home-intro__skip:hover,
+html[data-user-color-scheme="dark"] .dream-home-intro__skip:focus-visible {
+  background: rgba(20, 30, 42, 0.72);
+}
+
+@keyframes dream-home-intro-meter {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .dream-home-intro {
+    padding: 0.8rem;
+  }
+
+  .dream-home-intro__shell {
+    gap: 0.8rem;
+  }
+
+  .dream-home-intro__copy {
+    inset: auto 1rem 1rem;
+    max-width: calc(100% - 2rem);
+  }
+
+  .dream-home-intro__skip {
+    width: min(12rem, calc(100vw - 2rem));
+    padding-inline: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dream-home-intro,
+  .dream-home-intro__stage,
+  .dream-home-intro__skip,
+  .dream-home-intro__meter span {
+    transition: none !important;
+    animation: none !important;
+  }
+}
