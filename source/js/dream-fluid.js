@@ -1536,7 +1536,7 @@
       '      <span class="dream-home-intro__meter" aria-hidden="true"><span></span></span>',
       '    </div>',
       '  </div>',
-      '  <button class="dream-home-intro__skip" type="button" aria-label="跳过开场">跳过开场</button>',
+      '  <button class="dream-home-intro__skip" type="button" aria-label="跳过开场">跳过 Skip</button>',
       '</div>'
     ].join('');
 
