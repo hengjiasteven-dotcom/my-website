@@ -1486,9 +1486,6 @@
 
   function removeHomeIntroState(markSeen) {
     var overlay = homeIntroState && homeIntroState.overlay;
-    if (homeIntroState && homeIntroState.skipTimer) {
-      window.clearTimeout(homeIntroState.skipTimer);
-    }
     if (homeIntroState && homeIntroState.playTimer) {
       window.clearTimeout(homeIntroState.playTimer);
     }
@@ -1536,7 +1533,6 @@
       '      <span class="dream-home-intro__meter" aria-hidden="true"><span></span></span>',
       '    </div>',
       '  </div>',
-      '  <button class="dream-home-intro__skip" type="button" aria-label="跳过开场">跳过 Skip</button>',
       '</div>'
     ].join('');
 
@@ -1576,15 +1572,12 @@
     if (!overlay) return;
 
     var video = overlay.querySelector('.dream-home-intro__video');
-    var skip = overlay.querySelector('.dream-home-intro__skip');
-    if (!video || !skip) return;
+    if (!video) return;
 
     homeIntroState = {
       overlay: overlay,
       video: video,
-      skip: skip,
       finished: false,
-      skipTimer: null,
       playTimer: null
     };
 
@@ -1601,24 +1594,6 @@
       homeIntroState.finished = true;
       removeHomeIntroState(true);
     }
-
-    skip.disabled = true;
-    homeIntroState.skipTimer = window.setTimeout(function() {
-      if (!homeIntroState || homeIntroState.overlay !== overlay || homeIntroState.finished) return;
-      skip.disabled = false;
-      overlay.classList.add('is-skippable');
-    }, 1200);
-
-    skip.addEventListener('click', function() {
-      finishIntro();
-    }, { once: true });
-
-    overlay.addEventListener('keydown', function(event) {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        finishIntro();
-      }
-    });
 
     video.addEventListener('ended', finishIntro, { once: true });
     video.addEventListener('error', finishIntro, { once: true });

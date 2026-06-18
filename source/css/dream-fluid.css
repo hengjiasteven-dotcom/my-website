@@ -5048,48 +5048,6 @@ html[data-user-color-scheme="dark"] .dream-home-intro__backdrop {
   animation: dream-home-intro-meter 5.04s linear forwards;
 }
 
-.dream-home-intro__skip {
-  position: absolute;
-  right: clamp(1rem, 3vw, 1.5rem);
-  bottom: clamp(1rem, 5.5vh, 2.2rem);
-  z-index: 2;
-  padding: 0.72rem 1.05rem;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 650;
-  letter-spacing: 0.02em;
-  backdrop-filter: blur(12px) saturate(1.08);
-  -webkit-backdrop-filter: blur(12px) saturate(1.08);
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(10px);
-  transition: opacity 220ms ease, transform 220ms ease, background 220ms ease, border-color 220ms ease;
-}
-
-.dream-home-intro.is-skippable .dream-home-intro__skip {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-
-.dream-home-intro__skip:hover,
-.dream-home-intro__skip:focus-visible {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.72);
-}
-
-html[data-user-color-scheme="dark"] .dream-home-intro__skip {
-  background: rgba(18, 27, 38, 0.52);
-}
-
-html[data-user-color-scheme="dark"] .dream-home-intro__skip:hover,
-html[data-user-color-scheme="dark"] .dream-home-intro__skip:focus-visible {
-  background: rgba(18, 27, 38, 0.66);
-}
-
 @keyframes dream-home-intro-meter {
   from {
     transform: scaleX(0);
@@ -5112,18 +5070,11 @@ html[data-user-color-scheme="dark"] .dream-home-intro__skip:focus-visible {
     inset: auto 1rem 1rem;
     max-width: calc(100% - 2rem);
   }
-
-  .dream-home-intro__skip {
-    right: 1rem;
-    bottom: 1rem;
-    width: auto;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .dream-home-intro,
   .dream-home-intro__stage,
-  .dream-home-intro__skip,
   .dream-home-intro__meter span {
     transition: none !important;
     animation: none !important;
