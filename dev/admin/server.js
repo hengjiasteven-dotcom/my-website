@@ -2,6 +2,7 @@
 
 const crypto = require('crypto');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
 
@@ -23,6 +24,10 @@ const publicDir = path.join(__dirname, 'public');
 const uploadTempDir = path.join(rootDir, '.admin-uploads');
 const pendingPublishPath = path.join(uploadTempDir, 'pending-publish.json');
 const edgeoneBranch = process.env.ADMIN_EDGEONE_BRANCH || 'source';
+const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+const sshDir = path.join(homeDir, '.ssh');
+const sshKeyPath = path.join(sshDir, 'id_ed25519');
+const knownHostsPath = path.join(sshDir, 'known_hosts');
 
 const host = process.env.ADMIN_HOST || '127.0.0.1';
 const port = Number(process.env.ADMIN_PORT || 4001);
@@ -849,6 +854,7 @@ function createJob(label, command) {
 
 function runCommand(commandParts, job, onSuccess, onFailure) {
   const isGitCommand = commandParts[0] === 'git';
+  const isNpmCommand = commandParts[0] === 'npm';
   const executable = process.platform === 'win32' && commandParts[0] === 'npm'
     ? 'cmd.exe'
     : commandParts[0];
@@ -856,6 +862,20 @@ function runCommand(commandParts, job, onSuccess, onFailure) {
     ? ['/d', '/s', '/c', ...commandParts]
     : commandParts.slice(1);
   const childEnv = { ...process.env };
+
+  childEnv.HOME = homeDir;
+  childEnv.USERPROFILE = homeDir;
+
+  if (fs.existsSync(sshKeyPath) && fs.existsSync(knownHostsPath)) {
+    childEnv.GIT_SSH_COMMAND = [
+      'ssh',
+      `-i "${sshKeyPath}"`,
+      '-o IdentitiesOnly=yes',
+      '-o BatchMode=yes',
+      `-o UserKnownHostsFile="${knownHostsPath}"`,
+      '-o StrictHostKeyChecking=yes'
+    ].join(' ');
+  }
 
   if (isGitCommand) {
     childEnv.GIT_CONFIG_COUNT = '4';
@@ -867,7 +887,10 @@ function runCommand(commandParts, job, onSuccess, onFailure) {
     childEnv.GIT_CONFIG_VALUE_2 = 'openssl';
     childEnv.GIT_CONFIG_KEY_3 = 'http.version';
     childEnv.GIT_CONFIG_VALUE_3 = 'HTTP/1.1';
-    childEnv.GIT_SSH_COMMAND = 'ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new';
+  }
+
+  if (isNpmCommand) {
+    childEnv.npm_config_loglevel = childEnv.npm_config_loglevel || 'warn';
   }
 
   const child = spawn(executable, args, {
