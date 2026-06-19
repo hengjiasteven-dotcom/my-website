@@ -123,7 +123,8 @@
       pause: '<path d="M6 5h4v14H6zM14 5h4v14h-4z"></path>',
       prev: '<path d="M6 6h2v12H6zM9 12l9 6V6z"></path>',
       next: '<path d="M16 6h2v12h-2zM6 18l9-6-9-6z"></path>',
-      music: '<path d="M9 18V5l10-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="16" cy="16" r="3"></circle>'
+      music: '<path d="M9 18V5l10-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="16" cy="16" r="3"></circle>',
+      chevronDown: '<path d="M7.4 9.8 12 14.4l4.6-4.6 1.4 1.4-6 6-6-6z"></path>'
     };
     return '<svg viewBox="0 0 24 24" aria-hidden="true">' + paths[name] + '</svg>';
   }
@@ -1258,6 +1259,165 @@
         renderHomeTasksCard(card, tasks);
       });
     });
+  }
+
+  function getDailySignList() {
+    return Array.isArray(window.DREAM_DAILY_SIGNS) ? window.DREAM_DAILY_SIGNS : [];
+  }
+
+  function dailySignStorageKey(dateKey) {
+    return 'DreamDailySign:' + dateKey;
+  }
+
+  function hashDailySignKey(dateKey) {
+    var hash = 0;
+    for (var i = 0; i < dateKey.length; i += 1) {
+      hash = ((hash << 5) - hash) + dateKey.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash);
+  }
+
+  function getDailySignIndex(dateKey, total) {
+    if (!total) return 0;
+
+    var cacheKey = dailySignStorageKey(dateKey);
+    try {
+      var cached = localStorage.getItem(cacheKey);
+      if (cached !== null && cached !== '') {
+        var cachedIndex = Number(cached);
+        if (Number.isFinite(cachedIndex)) return normalizeIndex(cachedIndex, total);
+      }
+    } catch (err) {}
+
+    var overrides = {};
+    var overrideIndex = Object.prototype.hasOwnProperty.call(overrides, dateKey) ? Number(overrides[dateKey]) : null;
+    var index = Number.isFinite(overrideIndex) ? normalizeIndex(overrideIndex, total) : (hashDailySignKey(dateKey) % total);
+
+    try {
+      localStorage.setItem(cacheKey, String(index));
+    } catch (err) {}
+
+    return index;
+  }
+
+  function getDailySignLabel(sign) {
+    if (!sign) return '';
+    return [sign.name, sign.level].filter(Boolean).join(' · ');
+  }
+
+  function pickDailySignPreviewIndex(baseIndex, total) {
+    if (total <= 1) return baseIndex;
+
+    var nextIndex = baseIndex;
+    for (var attempt = 0; attempt < 6 && nextIndex === baseIndex; attempt += 1) {
+      nextIndex = Math.floor(Math.random() * total);
+    }
+
+    return nextIndex === baseIndex ? normalizeIndex(baseIndex + 1, total) : nextIndex;
+  }
+
+  function renderHomeDailySignCard(card) {
+    if (!card) return;
+
+    var signs = getDailySignList();
+    if (!signs.length) {
+      card.innerHTML = '<div class="dream-sign-empty">每日一签正在加载</div>';
+      return;
+    }
+
+    var todayKey = localDateKey(new Date());
+    var state = card._dailySignState || { stage: 0, previewIndex: null, dateKey: todayKey };
+    if (state.dateKey !== todayKey) {
+      state.stage = 0;
+      state.previewIndex = null;
+      state.dateKey = todayKey;
+    }
+
+    state.baseIndex = getDailySignIndex(todayKey, signs.length);
+    card._dailySignState = state;
+    card.dataset.stage = String(state.stage);
+
+    var activeIndex = Number.isFinite(state.previewIndex) ? normalizeIndex(state.previewIndex, signs.length) : state.baseIndex;
+    var sign = signs[activeIndex] || signs[state.baseIndex];
+    var signatureLabel = getDailySignLabel(sign);
+
+    card.innerHTML = [
+      '<div class="dream-sign-head">',
+      '<div class="dream-sign-heading">',
+      '<span class="dream-sign-eyebrow">每日一签</span>',
+      '<div class="dream-sign-number">' + escapeHtml(signatureLabel) + '</div>',
+      '</div>',
+      '<div class="dream-sign-arrow" aria-hidden="true">▾</div>',
+      '</div>',
+      '<div class="dream-sign-poem">' + escapeHtml(sign.poem || '') + '</div>',
+      '<div class="dream-sign-expand">',
+      '<div class="dream-sign-divider"></div>',
+      '<div class="dream-sign-explain">' + escapeHtml(sign.explain || '') + '</div>',
+      '</div>',
+      '<div class="dream-sign-deep">',
+      '<div class="dream-sign-suggest"><span class="dream-sign-yi">宜</span><span>' + escapeHtml(sign.suggest || '') + '</span></div>',
+      '<button class="dream-sign-reroll" type="button">重求一签</button>',
+      '</div>'
+    ].join('');
+
+    var reroll = card.querySelector('.dream-sign-reroll');
+    if (reroll) {
+      reroll.addEventListener('click', function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        state.previewIndex = pickDailySignPreviewIndex(state.baseIndex, signs.length);
+        state.stage = 2;
+        renderHomeDailySignCard(card);
+      });
+    }
+  }
+
+  function createHomeDailySignCard() {
+    if (!document.body.classList.contains('home')) return;
+
+    var profileCard = document.querySelector('.dream-profile-stack') || document.querySelector('.dream-profile-card');
+    if (!profileCard || profileCard.querySelector('.dream-daily-sign-card')) return;
+
+    var card = document.createElement('section');
+    card.className = 'dream-daily-sign-card';
+    card.setAttribute('aria-label', '每日一签');
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card._dailySignState = {
+      stage: 0,
+      previewIndex: null,
+      dateKey: localDateKey(new Date())
+    };
+
+    card.addEventListener('click', function(event) {
+      var rerollButton = event.target && event.target.closest ? event.target.closest('.dream-sign-reroll') : null;
+      if (rerollButton) return;
+
+      var state = card._dailySignState || { stage: 0, previewIndex: null, dateKey: localDateKey(new Date()) };
+      state.stage = state.stage >= 2 ? 0 : state.stage + 1;
+      if (state.stage === 0) state.previewIndex = null;
+      card._dailySignState = state;
+      renderHomeDailySignCard(card);
+    });
+
+    card.addEventListener('keydown', function(event) {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      card.click();
+    });
+
+    var taskCard = profileCard.querySelector('.dream-task-card');
+    var worldEntry = profileCard.querySelector('.dream-world-entry');
+    if (taskCard) {
+      profileCard.insertBefore(card, taskCard.nextSibling);
+    } else if (worldEntry) {
+      profileCard.insertBefore(card, worldEntry.nextSibling);
+    } else {
+      profileCard.appendChild(card);
+    }
+
+    renderHomeDailySignCard(card);
   }
 
   function friendLinkBranchApiUrl() {
@@ -2903,7 +3063,26 @@
         '<button class="dream-player-disc" type="button" aria-label="播放或暂停音乐"></button>' +
         '<div class="dream-player-main">' +
           '<div class="dream-player-title"></div>' +
-          '<select class="dream-track-select" aria-label="Music library"></select>' +
+          '<div class="dream-library">' +
+            '<button class="dream-library-toggle" type="button" aria-expanded="false" aria-label="\u6253\u5f00\u66f2\u76ee\u76ee\u5f55">' +
+              '<span class="dream-library-toggle-copy">' +
+                '<span class="dream-library-label">\u66f2\u76ee\u76ee\u5f55</span>' +
+                '<span class="dream-library-current"></span>' +
+              '</span>' +
+              '<span class="dream-library-toggle-meta">' +
+                '<span class="dream-library-count" data-library-count></span>' +
+                '<span class="dream-library-caret">' + icon('chevronDown') + '</span>' +
+              '</span>' +
+            '</button>' +
+            '<div class="dream-library-panel" hidden>' +
+              '<div class="dream-library-panel-head">' +
+                '<strong class="dream-library-panel-title">\u97f3\u4e50\u76ee\u5f55</strong>' +
+                '<span class="dream-library-count" data-library-count></span>' +
+              '</div>' +
+              '<div class="dream-library-list" role="listbox" aria-label="\u97f3\u4e50\u76ee\u5f55"></div>' +
+            '</div>' +
+            '<select class="dream-track-select" aria-label="Music library" hidden></select>' +
+          '</div>' +
           '<div class="dream-player-progress">' +
             '<input class="dream-progress" aria-label="Playback progress" type="range" min="0" max="0" step="0.1" value="0">' +
             '<span class="dream-time">0:00 / 0:00</span>' +
@@ -2937,6 +3116,11 @@
     var toggle = player.querySelector('.dream-toggle');
     var prev = player.querySelector('.dream-prev');
     var next = player.querySelector('.dream-next');
+    var libraryToggle = player.querySelector('.dream-library-toggle');
+    var libraryPanel = player.querySelector('.dream-library-panel');
+    var libraryCurrent = player.querySelector('.dream-library-current');
+    var libraryList = player.querySelector('.dream-library-list');
+    var libraryCount = Array.prototype.slice.call(player.querySelectorAll('[data-library-count]'));
     var trackSelect = player.querySelector('.dream-track-select');
     var progress = player.querySelector('.dream-progress');
     var time = player.querySelector('.dream-time');
@@ -2964,6 +3148,88 @@
       option.textContent = track.title || track.name || ('Track ' + (index + 1));
       trackSelect.appendChild(option);
     });
+
+    function trackLabel(track, index) {
+      return (track && (track.title || track.name)) || ('Track ' + (index + 1));
+    }
+
+    function trackCatalogMeta(track, index) {
+      if (!track) return '';
+
+      var fileName = String(track.name || '').replace(/\.[^.]+$/, '');
+      var label = trackLabel(track, index);
+      if (!fileName || !label) return '';
+      if (fileName.indexOf(label + ' - ') === 0) return fileName.slice(label.length + 3);
+      return fileName !== label ? fileName : '';
+    }
+
+    function trackCatalogIndex(index) {
+      return String(index + 1).padStart(2, '0');
+    }
+
+    function trackCatalogCount(total) {
+      return total + ' \u9996';
+    }
+
+    function setLibraryOpen(open) {
+      if (!libraryToggle || !libraryPanel) return;
+
+      var nextOpen = Boolean(open);
+      player.classList.toggle('is-library-open', nextOpen);
+      libraryToggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+      libraryPanel.hidden = !nextOpen;
+      if (nextOpen) {
+        renderTrackCatalog();
+      }
+    }
+
+    function scrollActiveLibraryItem() {
+      if (!libraryList || !libraryPanel || libraryPanel.hidden) return;
+
+      var activeItem = libraryList.querySelector('.dream-library-item.is-active');
+      if (activeItem && activeItem.scrollIntoView) {
+        activeItem.scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    function renderTrackCatalog() {
+      if (!libraryList || !libraryCurrent) return;
+
+      var track = currentTrack();
+      libraryCurrent.textContent = trackLabel(track, state.index);
+      libraryCount.forEach(function(node) {
+        node.textContent = trackCatalogCount(assets.music.length);
+      });
+
+      libraryList.innerHTML = assets.music.map(function(item, index) {
+        var active = index === state.index;
+        var meta = trackCatalogMeta(item, index);
+        return [
+          '<button class="dream-library-item' + (active ? ' is-active' : '') + '" type="button" data-track-index="' + index + '" role="option" aria-selected="' + (active ? 'true' : 'false') + '">',
+          '<span class="dream-library-index">' + trackCatalogIndex(index) + '</span>',
+          '<span class="dream-library-item-copy">',
+          '<strong>' + escapeHtml(trackLabel(item, index)) + '</strong>',
+          meta ? '<small>' + escapeHtml(meta) + '</small>' : '',
+          '</span>',
+          active ? '<span class="dream-library-mark">\u5728\u64ad</span>' : '',
+          '</button>'
+        ].join('');
+      }).join('');
+
+      Array.prototype.slice.call(libraryList.querySelectorAll('[data-track-index]')).forEach(function(button) {
+        button.addEventListener('click', function() {
+          var index = normalizeIndex(Number(button.getAttribute('data-track-index') || 0), assets.music.length);
+          if (trackSelect.value !== String(index)) {
+            trackSelect.value = String(index);
+            trackSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          } else {
+            setLibraryOpen(false);
+          }
+        });
+      });
+
+      scrollActiveLibraryItem();
+    }
 
     function normalizePlayerPosition(position) {
       if (!position || typeof position !== 'object') return null;
@@ -3123,8 +3389,9 @@
       var track = currentTrack();
       if (!track) return;
 
-      title.textContent = track.title || track.name || ('Track ' + (state.index + 1));
+      title.textContent = trackLabel(track, state.index);
       trackSelect.value = String(state.index);
+      renderTrackCatalog();
 
       if (!options.keepNote) {
         note.textContent = shouldShowResumeHint || state.currentTime > 0 ? '点击继续播放音乐' : '点击唱片打开音乐';
@@ -3364,6 +3631,7 @@
     function beginDrag(event) {
       if (!canDragPlayer()) return;
       if (event.button !== undefined && event.button !== 0) return;
+      setLibraryOpen(false);
 
       var target = event.target;
       var fromHandle = target && target.closest ? target.closest('.dream-player-drag') : null;
@@ -3460,8 +3728,15 @@
 
     disc.addEventListener('click', togglePlay);
     toggle.addEventListener('click', togglePlay);
+    if (libraryToggle) {
+      libraryToggle.addEventListener('click', function(event) {
+        event.preventDefault();
+        setLibraryOpen(libraryPanel.hidden);
+      });
+    }
     trackSelect.addEventListener('change', function() {
       var shouldPlay = state.started && !audio.paused;
+      setLibraryOpen(false);
       state.index = normalizeIndex(Number(trackSelect.value || 0), assets.music.length);
       state.currentTime = 0;
       persist({ currentTime: 0, playing: shouldPlay });
@@ -3495,6 +3770,14 @@
         event.stopPropagation();
       }
     }, true);
+    document.addEventListener('click', function(event) {
+      if (!libraryPanel || libraryPanel.hidden) return;
+      if (player.contains(event.target)) return;
+      setLibraryOpen(false);
+    });
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') setLibraryOpen(false);
+    });
     if (dragHandle) {
       dragHandle.addEventListener('click', function(event) {
         event.preventDefault();
@@ -3994,6 +4277,7 @@
     initLinksPage();
     createHomeWorldPortal();
     createHomeTasksCard();
+    createHomeDailySignCard();
     startDeferredHomeFeatures();
   }
 
