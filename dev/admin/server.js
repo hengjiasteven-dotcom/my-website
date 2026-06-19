@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 
 const dotenv = require('dotenv');
 const express = require('express');
@@ -852,6 +852,59 @@ function createJob(label, command) {
   };
 }
 
+function parseProxyUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  return /^[a-z]+:\/\//i.test(raw) ? raw : `http://${raw}`;
+}
+
+function readWindowsProxySettings() {
+  if (process.platform !== 'win32') return null;
+
+  const result = spawnSync('reg', [
+    'query',
+    'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings',
+    '/v',
+    'ProxyEnable',
+    '/v',
+    'ProxyServer'
+  ], {
+    encoding: 'utf8',
+    windowsHide: true
+  });
+
+  if (result.status !== 0 || !result.stdout) return null;
+
+  const enableMatch = result.stdout.match(/ProxyEnable\s+REG_\w+\s+(0x1|1)\b/i);
+  if (!enableMatch) return null;
+
+  const serverMatch = result.stdout.match(/ProxyServer\s+REG_\w+\s+([^\r\n]+)/i);
+  if (!serverMatch) return null;
+
+  const rawServer = serverMatch[1].trim();
+  if (!rawServer) return null;
+
+  const entries = rawServer.split(';').map((entry) => entry.trim()).filter(Boolean);
+  const mapped = {};
+
+  entries.forEach((entry) => {
+    const pair = entry.split('=');
+    if (pair.length === 2) {
+      mapped[pair[0].trim().toLowerCase()] = parseProxyUrl(pair[1]);
+    }
+  });
+
+  if (Object.keys(mapped).length > 0) {
+    return {
+      http: mapped.http || mapped.https || '',
+      https: mapped.https || mapped.http || ''
+    };
+  }
+
+  const fallback = parseProxyUrl(rawServer);
+  return fallback ? { http: fallback, https: fallback } : null;
+}
+
 function runCommand(commandParts, job, onSuccess, onFailure) {
   const isGitCommand = commandParts[0] === 'git';
   const isNpmCommand = commandParts[0] === 'npm';
@@ -879,15 +932,29 @@ function runCommand(commandParts, job, onSuccess, onFailure) {
   }
 
   if (isGitCommand) {
-    childEnv.GIT_CONFIG_COUNT = '4';
-    childEnv.GIT_CONFIG_KEY_0 = 'credential.helper';
-    childEnv.GIT_CONFIG_VALUE_0 = '';
-    childEnv.GIT_CONFIG_KEY_1 = 'credential.helper';
-    childEnv.GIT_CONFIG_VALUE_1 = 'store';
-    childEnv.GIT_CONFIG_KEY_2 = 'http.sslBackend';
-    childEnv.GIT_CONFIG_VALUE_2 = 'openssl';
-    childEnv.GIT_CONFIG_KEY_3 = 'http.version';
-    childEnv.GIT_CONFIG_VALUE_3 = 'HTTP/1.1';
+    const gitConfigs = [
+      ['credential.helper', ''],
+      ['credential.helper', 'store'],
+      ['http.sslBackend', 'openssl'],
+      ['http.version', 'HTTP/1.1']
+    ];
+    const proxy = readWindowsProxySettings();
+
+    if (proxy?.http) {
+      gitConfigs.push(['http.proxy', proxy.http]);
+      childEnv.HTTP_PROXY = proxy.http;
+    }
+
+    if (proxy?.https) {
+      gitConfigs.push(['https.proxy', proxy.https]);
+      childEnv.HTTPS_PROXY = proxy.https;
+    }
+
+    childEnv.GIT_CONFIG_COUNT = String(gitConfigs.length);
+    gitConfigs.forEach((entry, index) => {
+      childEnv[`GIT_CONFIG_KEY_${index}`] = entry[0];
+      childEnv[`GIT_CONFIG_VALUE_${index}`] = entry[1];
+    });
   }
 
   if (isNpmCommand) {
