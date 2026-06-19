@@ -2710,8 +2710,12 @@ html[data-user-color-scheme="dark"] .dream-pet-input {
   font-size: 0.9rem;
   font-weight: 720;
   line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .dream-library {
@@ -2761,8 +2765,12 @@ html[data-user-color-scheme="dark"] .dream-pet-input {
   font-size: 0.86rem;
   font-weight: 720;
   line-height: 1.34;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .dream-library-toggle-meta {
@@ -4140,7 +4148,8 @@ body:not(.home) #board-ctn #board {
   right: auto;
   bottom: auto;
   z-index: 1;
-  width: 100%;
+  width: min(100%, 34rem);
+  max-width: 100%;
   color: var(--text-color);
   text-align: left;
 }
@@ -4148,7 +4157,7 @@ body:not(.home) #board-ctn #board {
 .dream-player.dream-player-in-profile .dream-player-inner {
   grid-template-columns: 54px minmax(0, 1fr);
   gap: 0.9rem;
-  padding: 1rem;
+  padding: 1rem 1.12rem;
 }
 
 .dream-player.dream-player-in-profile .dream-player-disc {

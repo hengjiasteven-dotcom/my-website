@@ -21,6 +21,7 @@ const musicDir = path.join(rootDir, 'music');
 const videoDir = path.join(rootDir, 'video');
 const publicDir = path.join(__dirname, 'public');
 const uploadTempDir = path.join(rootDir, '.admin-uploads');
+const pendingPublishPath = path.join(uploadTempDir, 'pending-publish.json');
 const edgeoneBranch = process.env.ADMIN_EDGEONE_BRANCH || 'source';
 
 const host = process.env.ADMIN_HOST || '127.0.0.1';
@@ -53,6 +54,10 @@ fs.mkdirSync(videoDir, { recursive: true });
 
 if (!fs.existsSync(tasksPath)) {
   fs.writeFileSync(tasksPath, '[]\n', 'utf8');
+}
+
+if (!fs.existsSync(pendingPublishPath)) {
+  fs.writeFileSync(pendingPublishPath, '[]\n', 'utf8');
 }
 
 const app = express();
@@ -253,9 +258,10 @@ app.post('/admin/api/posts', requireAuth, upload.single('markdown'), (req, res) 
       url: postMusicPath
     }, postMusicPlacement);
 
-    const targetName = uniqueName(postsDir, `${slugify(filenameTitle(title))}.md`);
+    const targetName = resolvePostTargetName(title);
     const targetPath = safeJoin(postsDir, targetName);
     fs.writeFileSync(targetPath, content, 'utf8');
+    rememberPendingPublishFiles([path.relative(rootDir, targetPath)]);
     removeTemp(req.file.path);
 
     const result = {
@@ -294,6 +300,7 @@ app.post('/admin/api/media', requireAuth, upload.array('files', 20), (req, res) 
       const targetName = uniqueName(kindConfig.dir, sanitizeFileName(file.originalname));
       const targetPath = safeJoin(kindConfig.dir, targetName);
       fs.renameSync(file.path, targetPath);
+      rememberPendingPublishFiles([path.relative(rootDir, targetPath)]);
       saved.push({
         name: targetName,
         kind: targetKind,
@@ -304,6 +311,7 @@ app.post('/admin/api/media', requireAuth, upload.array('files', 20), (req, res) 
 
     if (targetKind === 'music' && addToPlaylist) {
       addTracksToPlaylist(saved.map((file) => file.name));
+      rememberPendingPublishFiles([path.relative(rootDir, path.join(musicDir, 'playlist.json'))]);
     }
 
     res.json({ ok: true, files: saved, playlist: readPlaylist() });
@@ -326,6 +334,7 @@ app.post('/admin/api/playlist', requireAuth, (req, res) => {
       : playlist.includes(name) ? playlist : playlist.concat(name);
 
     writePlaylist(next);
+    rememberPendingPublishFiles([path.relative(rootDir, path.join(musicDir, 'playlist.json'))]);
     res.json({ ok: true, playlist: next });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -438,6 +447,45 @@ function uniqueName(dir, name) {
   }
 
   return candidate;
+}
+
+function resolvePostTargetName(title) {
+  const slug = slugify(filenameTitle(title));
+  const preferredName = `${slug}.md`;
+  const preferredPath = safeJoin(postsDir, preferredName);
+  return fs.existsSync(preferredPath) ? preferredName : uniqueName(postsDir, preferredName);
+}
+
+function readPendingPublishFiles() {
+  try {
+    const value = JSON.parse(fs.readFileSync(pendingPublishPath, 'utf8'));
+    return Array.isArray(value) ? value.filter((item) => typeof item === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizePendingPublishPath(value) {
+  const relative = path.isAbsolute(value) ? path.relative(rootDir, value) : String(value || '');
+  const normalized = relative.replace(/\\/g, '/').replace(/^\.\/+/, '').trim();
+  if (!normalized || normalized.startsWith('..')) return null;
+  return normalized;
+}
+
+function writePendingPublishFiles(paths) {
+  const unique = Array.from(new Set(paths
+    .map((item) => normalizePendingPublishPath(item))
+    .filter(Boolean)));
+  fs.writeFileSync(pendingPublishPath, `${JSON.stringify(unique, null, 2)}\n`, 'utf8');
+}
+
+function rememberPendingPublishFiles(paths) {
+  const current = readPendingPublishFiles();
+  writePendingPublishFiles(current.concat(paths));
+}
+
+function clearPendingPublishFiles() {
+  writePendingPublishFiles([]);
 }
 
 function safeJoin(baseDir, fileName) {
@@ -722,10 +770,29 @@ function buildDeployCommands() {
   ];
 }
 
+function buildPublishSourceAddCommand() {
+  const trackedTargets = [
+    '.gitignore',
+    '.env.example',
+    '_config.yml',
+    '_config.fluid.yml',
+    'edgeone.json',
+    'package.json',
+    'package-lock.json',
+    'yarn.lock',
+    'source',
+    'scripts',
+    'dev/admin'
+  ];
+
+  const pendingTargets = readPendingPublishFiles();
+  return ['git', 'add', '--ignore-removal', ...trackedTargets, ...pendingTargets];
+}
+
 function runDeploySource(job, onSuccess = () => finishJob(job, 0), onFailure = (code) => finishJob(job, code)) {
   const commitMessage = `Publish blog update ${formatDateForCommit(new Date())}`;
   const commands = [
-    ['git', 'add', '--ignore-removal', '.gitignore', '.env.example', 'edgeone.json', 'package.json', 'package-lock.json', 'yarn.lock', 'source', 'picture', 'music', 'video', 'scripts', 'dev/admin'],
+    buildPublishSourceAddCommand(),
     ['git', 'diff', '--cached', '--quiet'],
     ['git', 'commit', '-m', commitMessage],
     ['git', 'push', 'origin', `HEAD:${edgeoneBranch}`]
@@ -733,6 +800,7 @@ function runDeploySource(job, onSuccess = () => finishJob(job, 0), onFailure = (
 
   const runNext = (index) => {
     if (index >= commands.length) {
+      clearPendingPublishFiles();
       onSuccess();
       return;
     }
@@ -747,6 +815,7 @@ function runDeploySource(job, onSuccess = () => finishJob(job, 0), onFailure = (
 
       if (command[0] === 'git' && command[1] === 'diff' && code === 0) {
         appendJobOutput(job, '\nNo source changes to publish. EdgeOne will not rebuild until GitHub receives a new commit.\n');
+        clearPendingPublishFiles();
         onSuccess();
         return;
       }
@@ -782,13 +851,16 @@ function runCommand(commandParts, job, onSuccess, onFailure) {
   const childEnv = { ...process.env };
 
   if (isGitCommand) {
-    childEnv.GIT_CONFIG_COUNT = '3';
+    childEnv.GIT_CONFIG_COUNT = '4';
     childEnv.GIT_CONFIG_KEY_0 = 'credential.helper';
     childEnv.GIT_CONFIG_VALUE_0 = '';
     childEnv.GIT_CONFIG_KEY_1 = 'credential.helper';
     childEnv.GIT_CONFIG_VALUE_1 = 'store';
     childEnv.GIT_CONFIG_KEY_2 = 'http.sslBackend';
     childEnv.GIT_CONFIG_VALUE_2 = 'openssl';
+    childEnv.GIT_CONFIG_KEY_3 = 'http.version';
+    childEnv.GIT_CONFIG_VALUE_3 = 'HTTP/1.1';
+    childEnv.GIT_SSH_COMMAND = 'ssh -o BatchMode=yes';
   }
 
   const child = spawn(executable, args, {
