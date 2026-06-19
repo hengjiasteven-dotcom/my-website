@@ -90,5 +90,5 @@ theme: fluid
 # Deployment
 deploy:
   type: git
-  repo: https://github.com/hengjiasteven-dotcom/my-website.git
+  repo: git@github.com:hengjiasteven-dotcom/my-website.git
   branch: main
