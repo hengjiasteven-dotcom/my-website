@@ -5161,7 +5161,9 @@ body.home .dream-library-caret {
 }
 
 body.home .dream-player.dream-player-in-profile .dream-library-panel .dream-library-panel-title,
+body.home .dream-player.dream-player-in-profile .dream-library-panel .dream-library-label,
 body.home .dream-player.dream-player-in-profile .dream-library-panel .dream-library-item-copy strong,
+body.home .dream-player.dream-player-in-profile .dream-library-panel .dream-library-item,
 body.home .dream-player.dream-player-in-profile .dream-library-panel .dream-library-mark {
   color: #111111 !important;
   text-shadow: none !important;
