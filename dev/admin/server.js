@@ -860,7 +860,7 @@ function runCommand(commandParts, job, onSuccess, onFailure) {
     childEnv.GIT_CONFIG_VALUE_2 = 'openssl';
     childEnv.GIT_CONFIG_KEY_3 = 'http.version';
     childEnv.GIT_CONFIG_VALUE_3 = 'HTTP/1.1';
-    childEnv.GIT_SSH_COMMAND = 'ssh -o BatchMode=yes';
+    childEnv.GIT_SSH_COMMAND = 'ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new';
   }
 
   const child = spawn(executable, args, {
