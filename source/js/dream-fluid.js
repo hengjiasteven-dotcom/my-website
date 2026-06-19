@@ -3631,12 +3631,12 @@
     function beginDrag(event) {
       if (!canDragPlayer()) return;
       if (event.button !== undefined && event.button !== 0) return;
-      setLibraryOpen(false);
 
       var target = event.target;
       var fromHandle = target && target.closest ? target.closest('.dream-player-drag') : null;
       var interactive = target && target.closest ? target.closest('button, input, select, a, label') : null;
       if (!fromHandle && interactive) return;
+      setLibraryOpen(false);
 
       var rect = detachPlayerFromProfile();
       applyPlayerPosition({ x: rect.left, y: rect.top }, { save: false });
