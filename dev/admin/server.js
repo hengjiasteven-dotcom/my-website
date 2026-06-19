@@ -820,6 +820,13 @@ function runDeploySource(job, onSuccess = () => finishJob(job, 0), onFailure = (
         return;
       }
 
+      if (command[0] === 'git' && command[1] === 'commit' && hasNoCommitChanges(job)) {
+        appendJobOutput(job, '\nNo tracked source changes were staged. Skipping source publish for this run.\n');
+        clearPendingPublishFiles();
+        onSuccess();
+        return;
+      }
+
       onFailure(code);
     });
   };
@@ -897,6 +904,13 @@ function appendJobOutput(job, chunk) {
   if (job.output.length > 50000) {
     job.output = job.output.slice(-50000);
   }
+}
+
+function hasNoCommitChanges(job) {
+  const output = String(job.output || '');
+  return /nothing added to commit/i.test(output)
+    || /no changes added to commit/i.test(output)
+    || /nothing to commit/i.test(output);
 }
 
 function publicJob(job) {
