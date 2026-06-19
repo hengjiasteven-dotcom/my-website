@@ -856,7 +856,7 @@ function runCommand(commandParts, job, onSuccess, onFailure) {
   const isGitCommand = commandParts[0] === 'git';
   const isNpmCommand = commandParts[0] === 'npm';
   const executable = process.platform === 'win32' && commandParts[0] === 'npm'
-    ? 'cmd.exe'
+    ? (process.env.ComSpec || 'C:\\Windows\\System32\\cmd.exe')
     : commandParts[0];
   const args = process.platform === 'win32' && commandParts[0] === 'npm'
     ? ['/d', '/s', '/c', ...commandParts]
@@ -872,6 +872,7 @@ function runCommand(commandParts, job, onSuccess, onFailure) {
       `-i "${sshKeyPath}"`,
       '-o IdentitiesOnly=yes',
       '-o BatchMode=yes',
+      '-p 443',
       `-o UserKnownHostsFile="${knownHostsPath}"`,
       '-o StrictHostKeyChecking=yes'
     ].join(' ');
