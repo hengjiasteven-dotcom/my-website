@@ -905,6 +905,34 @@ function readWindowsProxySettings() {
   return fallback ? { http: fallback, https: fallback } : null;
 }
 
+function readStoredGitHubCredential() {
+  const credentialPath = path.join(homeDir, '.git-credentials');
+  if (!fs.existsSync(credentialPath)) return null;
+
+  const line = fs.readFileSync(credentialPath, 'utf8')
+    .split(/\r?\n/)
+    .map((entry) => entry.trim())
+    .find((entry) => /^https:\/\/[^:]+:[^@]+@github\.com\/?$/i.test(entry));
+
+  if (!line) return null;
+
+  const match = line.match(/^https:\/\/([^:]+):([^@]+)@github\.com\/?$/i);
+  if (!match) return null;
+
+  return {
+    username: match[1],
+    token: match[2]
+  };
+}
+
+function readGitHubAuthHeader() {
+  const credential = readStoredGitHubCredential();
+  if (!credential) return '';
+
+  const pair = `${credential.username}:${credential.token}`;
+  return `AUTHORIZATION: basic ${Buffer.from(pair, 'utf8').toString('base64')}`;
+}
+
 function runCommand(commandParts, job, onSuccess, onFailure) {
   const isGitCommand = commandParts[0] === 'git';
   const isNpmCommand = commandParts[0] === 'npm';
@@ -918,6 +946,8 @@ function runCommand(commandParts, job, onSuccess, onFailure) {
 
   childEnv.HOME = homeDir;
   childEnv.USERPROFILE = homeDir;
+  childEnv.GIT_TERMINAL_PROMPT = '0';
+  childEnv.GCM_INTERACTIVE = 'Never';
 
   if (fs.existsSync(sshKeyPath) && fs.existsSync(knownHostsPath)) {
     childEnv.GIT_SSH_COMMAND = [
@@ -932,13 +962,14 @@ function runCommand(commandParts, job, onSuccess, onFailure) {
   }
 
   if (isGitCommand) {
+    const githubAuthHeader = readGitHubAuthHeader();
+    const proxy = readWindowsProxySettings();
     const gitConfigs = [
-      ['credential.helper', ''],
-      ['credential.helper', 'store'],
-      ['http.sslBackend', 'openssl'],
+      ['http.sslBackend', proxy ? 'schannel' : 'openssl'],
       ['http.version', 'HTTP/1.1']
     ];
-    const proxy = readWindowsProxySettings();
+
+    childEnv.GIT_CONFIG_NOSYSTEM = '1';
 
     if (proxy?.http) {
       gitConfigs.push(['http.proxy', proxy.http]);
@@ -948,6 +979,10 @@ function runCommand(commandParts, job, onSuccess, onFailure) {
     if (proxy?.https) {
       gitConfigs.push(['https.proxy', proxy.https]);
       childEnv.HTTPS_PROXY = proxy.https;
+    }
+
+    if (githubAuthHeader) {
+      gitConfigs.push(['http.extraHeader', githubAuthHeader]);
     }
 
     childEnv.GIT_CONFIG_COUNT = String(gitConfigs.length);
