@@ -863,11 +863,7 @@ function readWindowsProxySettings() {
 
   const result = spawnSync('reg', [
     'query',
-    'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings',
-    '/v',
-    'ProxyEnable',
-    '/v',
-    'ProxyServer'
+    'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings'
   ], {
     encoding: 'utf8',
     windowsHide: true
