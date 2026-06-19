@@ -772,15 +772,28 @@ function createJob(label, command) {
 }
 
 function runCommand(commandParts, job, onSuccess, onFailure) {
+  const isGitCommand = commandParts[0] === 'git';
   const executable = process.platform === 'win32' && commandParts[0] === 'npm'
     ? 'cmd.exe'
     : commandParts[0];
   const args = process.platform === 'win32' && commandParts[0] === 'npm'
     ? ['/d', '/s', '/c', ...commandParts]
     : commandParts.slice(1);
+  const childEnv = { ...process.env };
+
+  if (isGitCommand) {
+    childEnv.GIT_CONFIG_COUNT = '3';
+    childEnv.GIT_CONFIG_KEY_0 = 'credential.helper';
+    childEnv.GIT_CONFIG_VALUE_0 = '';
+    childEnv.GIT_CONFIG_KEY_1 = 'credential.helper';
+    childEnv.GIT_CONFIG_VALUE_1 = 'store';
+    childEnv.GIT_CONFIG_KEY_2 = 'http.sslBackend';
+    childEnv.GIT_CONFIG_VALUE_2 = 'openssl';
+  }
 
   const child = spawn(executable, args, {
     cwd: rootDir,
+    env: childEnv,
     shell: false,
     windowsHide: true
   });
