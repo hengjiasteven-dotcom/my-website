@@ -6,9 +6,9 @@ import * as THREE from '../js/vendor/three/build/three.module.js';
     window.__worldBootState.started = true;
 
     const ASSETS = {
-      character: '/world/models/犬夜叉.glb?v=20260613-1315',
+      character: '/world/models/%E7%8A%AC%E5%A4%9C%E5%8F%89.glb?v=20260613-1315',
       environment: {
-        url: '/world/models/环境-树.glb?v=20260613-full-local',
+        url: '/world/models/environment-trees.glb?v=20260613-full-local',
         manifest: '/world/models/environment-trees.manifest.json?v=20260613-edgeone25'
       }
     };
@@ -869,7 +869,7 @@ import * as THREE from '../js/vendor/three/build/three.module.js';
 
     function closeChatPanel() {
       chat.hidden = true;
-      chatState.textContent = '待机';
+      chatState.textContent = '待命';
       setStatus('拖动角色，点击角色对话');
     }
 

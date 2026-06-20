@@ -21,6 +21,26 @@ function isHttpUrl(value) {
   }
 }
 
+function validateFriendShape(friend, fileName = 'friend.json') {
+  for (const field of REQUIRED_FIELDS) {
+    if (!friend[field] || typeof friend[field] !== 'string') {
+      throw new Error(`${fileName} is missing required field "${field}".`);
+    }
+  }
+
+  if (!isHttpUrl(friend.url)) {
+    throw new Error(`${fileName} has an invalid url.`);
+  }
+
+  if (!isHttpUrl(friend.avatar)) {
+    throw new Error(`${fileName} has an invalid avatar url.`);
+  }
+
+  if (!isHttpUrl(friend.backlink)) {
+    throw new Error(`${fileName} has an invalid backlink url.`);
+  }
+}
+
 async function fetchText(url) {
   const response = await fetch(url, {
     headers: {
@@ -58,22 +78,11 @@ async function main() {
       continue;
     }
 
-    for (const field of REQUIRED_FIELDS) {
-      if (!friend[field] || typeof friend[field] !== 'string') {
-        fail(`${fileName} is missing required field "${field}".`);
-      }
-    }
-
-    if (!isHttpUrl(friend.url)) {
-      fail(`${fileName} has an invalid url.`);
-    }
-
-    if (!isHttpUrl(friend.avatar)) {
-      fail(`${fileName} has an invalid avatar url.`);
-    }
-
-    if (!isHttpUrl(friend.backlink)) {
-      fail(`${fileName} has an invalid backlink url.`);
+    try {
+      validateFriendShape(friend, fileName);
+    } catch (error) {
+      fail(error.message);
+      continue;
     }
 
     if (seenUrls.has(friend.url)) {
@@ -109,6 +118,17 @@ async function main() {
 
   console.log(`[Friend Links] Checked ${files.length} friend file(s).`);
 }
+
+module.exports = {
+  FRIENDS_DIR,
+  SITE_URL,
+  REQUIRED_FIELDS,
+  fail,
+  isHttpUrl,
+  validateFriendShape,
+  fetchText,
+  main
+};
 
 if (require.main === module) {
   main().catch((error) => {

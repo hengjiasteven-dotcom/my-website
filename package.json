@@ -2,10 +2,13 @@
   "name": "hexo-site",
   "version": "0.0.0",
   "private": true,
+  "packageManager": "npm@10.8.2",
   "scripts": {
     "build": "npm run vendor:sync && npm run world:build && hexo generate",
     "vendor:sync": "node scripts/sync-vendor-assets.js",
     "world:build": "node scripts/build-world-app.js",
+    "validate:scripts": "node scripts/validate-scripts.js",
+    "validate": "npm run validate:scripts",
     "optimize:public": "node scripts/postbuild-optimize.js",
     "clean": "hexo clean",
     "deploy": "hexo deploy",

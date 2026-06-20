@@ -27474,9 +27474,9 @@ void main() {
       init_Reflector();
       window.__worldBootState.started = true;
       var ASSETS = {
-        character: "/world/models/\u72AC\u591C\u53C9.glb?v=20260613-1315",
+        character: "/world/models/%E7%8A%AC%E5%A4%9C%E5%8F%89.glb?v=20260613-1315",
         environment: {
-          url: "/world/models/\u73AF\u5883-\u6811.glb?v=20260613-full-local",
+          url: "/world/models/environment-trees.glb?v=20260613-full-local",
           manifest: "/world/models/environment-trees.manifest.json?v=20260613-edgeone25"
         }
       };
@@ -28255,7 +28255,7 @@ void main() {
       }
       function closeChatPanel() {
         chat.hidden = true;
-        chatState.textContent = "\u5F85\u673A";
+        chatState.textContent = "\u5F85\u547D";
         setStatus("\u62D6\u52A8\u89D2\u8272\uFF0C\u70B9\u51FB\u89D2\u8272\u5BF9\u8BDD");
       }
       async function sendToAI(message) {

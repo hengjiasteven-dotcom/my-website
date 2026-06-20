@@ -7,12 +7,12 @@ const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
 const AUDIO_EXTS = new Set(['.mp3', '.ogg', '.wav', '.m4a', '.flac']);
 const VIDEO_EXTS = new Set(['.mp4', '.webm', '.mov', '.m4v', '.ogv']);
 const BACKGROUND_IMAGE_NAMES = new Set([
-  '小王子5.jpg',
-  '小王子4.jpg',
-  '小王子6.jpg',
-  '小王子3.jpg',
   '小王子1.jpg',
-  '小王子2.jpg'
+  '小王子2.jpg',
+  '小王子3.jpg',
+  '小王子4.jpg',
+  '小王子5.jpg',
+  '小王子6.jpg'
 ]);
 
 function ensureDir(dir) {
@@ -130,11 +130,7 @@ function collect(hexo) {
   hexo.log.info(`[DreamTheme] Synced ${pictures.length} picture asset(s), ${backgroundPictures.length} background image(s), ${tracks.length} audio asset(s), ${playerTracks.length} player track(s), and ${videos.length} video file(s).`);
 }
 
-hexo.on('generateBefore', () => {
-  collect(hexo);
-});
-
-hexo.extend.generator.register('dream_theme_assets', function() {
+function generateRoutes(hexo) {
   if (!cachedManifest || !cachedFiles) {
     collect(hexo);
   }
@@ -166,4 +162,34 @@ hexo.extend.generator.register('dream_theme_assets', function() {
   });
 
   return routes;
-});
+}
+
+function register(hexo) {
+  hexo.on('generateBefore', () => {
+    collect(hexo);
+  });
+
+  hexo.extend.generator.register('dream_theme_assets', function() {
+    return generateRoutes(hexo);
+  });
+}
+
+module.exports = {
+  IMAGE_EXTS,
+  AUDIO_EXTS,
+  VIDEO_EXTS,
+  BACKGROUND_IMAGE_NAMES,
+  ensureDir,
+  listFiles,
+  rootUrl,
+  musicUrl,
+  musicTitle,
+  loadMusicPlaylist,
+  collect,
+  generateRoutes,
+  register
+};
+
+if (typeof hexo !== 'undefined') {
+  register(hexo);
+}

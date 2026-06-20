@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>3D世界 - 青禾札记</title>
-  <meta name="description" content="个人3D世界入口">
+  <meta name="description" content="个人 3D 世界入口">
   <link rel="icon" href="data:,">
   <style>
     :root {
@@ -20,12 +20,9 @@
       font-family: Inter, "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    html,
-    body {
+    html, body {
       width: 100%;
       height: 100%;
       margin: 0;
@@ -34,10 +31,7 @@
       background: #0d1822;
     }
 
-    button,
-    input {
-      font: inherit;
-    }
+    button, input { font: inherit; }
 
     .world-shell {
       position: fixed;
@@ -66,13 +60,8 @@
       touch-action: none;
     }
 
-    #world-canvas.is-character-hover {
-      cursor: pointer;
-    }
-
-    #world-canvas.is-dragging {
-      cursor: grabbing;
-    }
+    #world-canvas.is-character-hover { cursor: pointer; }
+    #world-canvas.is-dragging { cursor: grabbing; }
 
     .topbar {
       position: absolute;
@@ -87,19 +76,12 @@
       pointer-events: none;
     }
 
-    .brand,
-    .actions,
-    .status,
-    .loader,
-    .chat {
+    .brand, .actions, .status, .loader, .chat {
       backdrop-filter: blur(18px) saturate(1.12);
       -webkit-backdrop-filter: blur(18px) saturate(1.12);
     }
 
-    .brand,
-    .actions {
-      pointer-events: auto;
-    }
+    .brand, .actions { pointer-events: auto; }
 
     .brand {
       display: grid;
@@ -169,9 +151,7 @@
       gap: 0.55rem;
     }
 
-    .btn,
-    .icon-btn,
-    .send {
+    .btn, .icon-btn, .send {
       border: 0;
       cursor: pointer;
     }
@@ -189,13 +169,6 @@
       background: var(--panel);
       box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
       text-decoration: none;
-    }
-
-    .btn:hover,
-    .btn:focus {
-      border-color: rgba(117, 210, 218, 0.55);
-      background: rgba(82, 174, 187, 0.32);
-      outline: none;
     }
 
     .status {
@@ -239,22 +212,9 @@
       background: var(--panel-strong);
       box-shadow: var(--shadow);
       transform: translate(-50%, -50%);
-      transition: opacity 180ms ease, visibility 180ms ease;
     }
 
-    .loader[hidden] {
-      display: none;
-    }
-
-    .loader-title {
-      font-size: 0.98rem;
-      font-weight: 850;
-    }
-
-    .loader-detail {
-      font-size: 0.82rem;
-      line-height: 1.55;
-    }
+    .loader[hidden], .chat[hidden], .model-editor[hidden] { display: none; }
 
     .chat {
       position: absolute;
@@ -272,40 +232,26 @@
       box-shadow: var(--shadow);
     }
 
-    .chat[hidden] {
-      display: none;
-    }
-
-    .chat-head {
+    .chat-head,
+    .chat-form,
+    .camera-panel-head,
+    .drop-card-head,
+    .model-editor-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.8rem;
+      gap: 0.6rem;
+    }
+
+    .chat-head {
       padding: 0.85rem 0.9rem;
       border-bottom: 1px solid var(--line);
     }
 
-    .chat-title {
-      display: grid;
-      gap: 0.12rem;
-      min-width: 0;
-    }
-
-    .chat-title strong {
-      font-size: 0.98rem;
-      font-weight: 850;
-      line-height: 1.2;
-    }
-
-    .chat-title small {
-      font-size: 0.75rem;
-      font-weight: 700;
-    }
-
+    .chat-title { display: grid; gap: 0.12rem; min-width: 0; }
     .icon-btn {
       display: grid;
       place-items: center;
-      flex: 0 0 auto;
       width: 2.1rem;
       height: 2.1rem;
       border: 1px solid var(--line);
@@ -348,10 +294,10 @@
       border-top: 1px solid var(--line);
     }
 
-    .chat-form input {
+    .chat-form input,
+    .model-axis input[type="number"] {
       width: 100%;
       min-width: 0;
-      height: 2.38rem;
       padding: 0 0.75rem;
       border: 1px solid var(--line);
       border-radius: 12px;
@@ -360,9 +306,7 @@
       outline: none;
     }
 
-    .chat-form input::placeholder {
-      color: rgba(226, 239, 245, 0.48);
-    }
+    .chat-form input { height: 2.38rem; }
 
     .send {
       display: grid;
@@ -386,74 +330,42 @@
         linear-gradient(180deg, rgba(10, 16, 24, 0.98), rgba(13, 22, 33, 0.98));
     }
 
-    .aside-head {
+    .aside-head,
+    .camera-panel,
+    .dropzone {
       padding: 1rem;
-      border-bottom: 1px solid rgba(214, 237, 244, 0.12);
     }
 
-    .aside h2 {
-      margin: 0;
-      font-size: 1.02rem;
-      line-height: 1.2;
-    }
-
-    .aside p {
-      margin: 0.4rem 0 0;
-      font-size: 0.82rem;
-      line-height: 1.55;
+    .dropzone,
+    .settings-scroll {
+      overflow: auto;
     }
 
     .dropzone {
       display: grid;
-      align-content: start;
       gap: 0.75rem;
       margin: 1rem;
-      padding: 0.9rem;
-      min-height: 0;
-      overflow: auto;
       border: 1px dashed rgba(117, 210, 218, 0.34);
       border-radius: var(--radius);
       background: rgba(117, 210, 218, 0.06);
     }
 
-    .settings-scroll {
-      min-height: 0;
-      overflow: auto;
-      padding-bottom: 1rem;
-    }
-
+    .drop-card,
     .camera-panel {
       display: grid;
-      gap: 0.8rem;
-      margin: 0 1rem 1rem;
-      padding: 0.9rem;
+      gap: 0.5rem;
       border: 1px solid rgba(214, 237, 244, 0.14);
-      border-radius: var(--radius);
-      background: rgba(255, 255, 255, 0.055);
+      border-radius: 14px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.06);
     }
 
-    .camera-panel-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-    }
-
-    .camera-panel h3 {
-      margin: 0;
-      font-size: 0.92rem;
-      line-height: 1.2;
-    }
-
-    .camera-panel p {
-      margin: 0.25rem 0 0;
-      color: var(--muted);
-      font-size: 0.76rem;
-      line-height: 1.45;
+    .drop-card {
+      padding: 0.86rem 0.9rem;
+      cursor: grab;
     }
 
     .mini-btn {
-      flex: 0 0 auto;
       min-height: 1.9rem;
       padding: 0 0.62rem;
       border: 1px solid var(--line);
@@ -463,36 +375,29 @@
       cursor: pointer;
     }
 
-    .mini-btn:hover,
-    .mini-btn:focus {
-      border-color: rgba(117, 210, 218, 0.55);
-      outline: none;
-    }
-
-    .camera-control {
+    .model-editor,
+    .model-axis,
+    .camera-control,
+    .settings-scroll {
       display: grid;
       gap: 0.35rem;
     }
 
-    .camera-control label {
+    .camera-control label,
+    .model-axis label {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.6rem;
+      gap: 0.55rem;
       color: var(--muted);
       font-size: 0.78rem;
       font-weight: 760;
     }
 
-    .camera-control output {
-      color: var(--ink);
-      font-variant-numeric: tabular-nums;
-    }
-
-    .camera-control input[type="range"] {
+    .camera-control input[type="range"],
+    .model-axis input[type="range"] {
       width: 100%;
       accent-color: var(--accent);
-      cursor: pointer;
     }
 
     .camera-control input[type="color"] {
@@ -503,119 +408,6 @@
       border-radius: 10px;
       background: rgba(255, 255, 255, 0.06);
       cursor: pointer;
-    }
-
-    .dropzone.dragover {
-      border-color: rgba(117, 210, 218, 0.75);
-      background: rgba(117, 210, 218, 0.13);
-    }
-
-    .drop-card {
-      display: grid;
-      gap: 0.32rem;
-      padding: 0.86rem 0.9rem;
-      border: 1px solid rgba(214, 237, 244, 0.14);
-      border-radius: 14px;
-      color: var(--ink);
-      background: rgba(255, 255, 255, 0.06);
-      cursor: grab;
-    }
-
-    .drop-card-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.6rem;
-      min-width: 0;
-    }
-
-    .drop-card.is-active {
-      border-color: rgba(117, 210, 218, 0.52);
-      background: rgba(117, 210, 218, 0.1);
-    }
-
-    .drop-card:not(.is-active) [data-clear-model] {
-      display: none;
-    }
-
-    .drop-card:active {
-      cursor: grabbing;
-    }
-
-    .drop-card strong {
-      min-width: 0;
-      overflow: hidden;
-      font-size: 0.9rem;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .drop-card small {
-      font-size: 0.76rem;
-      line-height: 1.45;
-    }
-
-    .model-editor {
-      display: grid;
-      gap: 0.5rem;
-      margin-top: 0.42rem;
-      padding-top: 0.58rem;
-      border-top: 1px solid rgba(214, 237, 244, 0.13);
-      cursor: default;
-    }
-
-    .model-editor[hidden] {
-      display: none;
-    }
-
-    .model-editor-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.6rem;
-      color: var(--muted);
-      font-size: 0.76rem;
-      font-weight: 760;
-    }
-
-    .model-axis {
-      display: grid;
-      gap: 0.2rem;
-    }
-
-    .model-axis label {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.55rem;
-      color: var(--muted);
-      font-size: 0.74rem;
-      font-weight: 760;
-    }
-
-    .model-axis output {
-      color: var(--ink);
-      font-variant-numeric: tabular-nums;
-    }
-
-    .model-axis input[type="range"] {
-      width: 100%;
-      accent-color: var(--accent);
-    }
-
-    .model-axis input[type="number"] {
-      width: 100%;
-      height: 1.9rem;
-      padding: 0 0.5rem;
-      border: 1px solid rgba(214, 237, 244, 0.16);
-      border-radius: 10px;
-      color: var(--ink);
-      background: rgba(255, 255, 255, 0.075);
-      outline: none;
-    }
-
-    .model-axis input[type="number"]:focus {
-      border-color: rgba(117, 210, 218, 0.58);
     }
 
     .aside-foot {
@@ -698,7 +490,7 @@
         <div class="chat-head">
           <span class="chat-title">
             <strong data-chat-name>犬夜叉</strong>
-            <small data-chat-state>待机</small>
+            <small data-chat-state>待命</small>
           </span>
           <button class="icon-btn" type="button" data-close-chat title="关闭对话">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -720,7 +512,7 @@
 
       <div class="loader" data-loader>
         <strong class="loader-title" data-loader-title>正在启动 3D 世界</strong>
-        <span class="loader-detail" data-loader-detail>如果浏览器 WebGL、模块导入或脚本执行失败，这里会直接显示原因。</span>
+        <span class="loader-detail" data-loader-detail>如果浏览器的 WebGL、模块导入或脚本执行失败，这里会直接显示原因。</span>
       </div>
 
       <div class="status" aria-live="polite">
@@ -734,6 +526,7 @@
         <h2>模型投放区</h2>
         <p>这里预留 20% 空间。以后访客可以从这里把模型拖进左侧 3D 世界。</p>
       </div>
+
       <div class="dropzone" id="dropzone">
         <div class="drop-card" draggable="true" data-model-key="little-prince" data-model-manifest="/world/models/little-prince.manifest.json?v=20260613-edgeone25" data-model-name="小王子">
           <div class="drop-card-head">
@@ -760,6 +553,7 @@
             </div>
           </div>
         </div>
+
         <div class="drop-card" draggable="true" data-model-key="well" data-model-manifest="/world/models/well.manifest.json?v=20260613-edgeone25" data-model-name="水井">
           <div class="drop-card-head">
             <strong>水井</strong>
@@ -785,7 +579,8 @@
             </div>
           </div>
         </div>
-        <div class="drop-card" draggable="true" data-model-key="cabin" data-model-url="/world/models/小木屋.glb?v=20260613-1641" data-model-name="小木屋">
+
+        <div class="drop-card" draggable="true" data-model-key="cabin" data-model-url="/world/models/%E5%B0%8F%E6%9C%A8%E5%B1%8B.glb?v=20260613-1641" data-model-name="小木屋">
           <div class="drop-card-head">
             <strong>小木屋</strong>
             <button class="mini-btn" type="button" data-clear-model>取消</button>
@@ -811,6 +606,7 @@
           </div>
         </div>
       </div>
+
       <div class="settings-scroll" aria-label="场景设置区">
         <section class="camera-panel" aria-label="摄像机调整">
           <div class="camera-panel-head">
@@ -833,6 +629,7 @@
             <input id="camera-z" type="range" min="-48" max="48" step="0.1" value="14" data-camera-z>
           </div>
         </section>
+
         <section class="camera-panel" aria-label="灯光背景调整">
           <div class="camera-panel-head">
             <div>
@@ -863,6 +660,7 @@
           </div>
         </section>
       </div>
+
       <div class="aside-foot">当前固定加载：环境树和犬夜叉。只有角色能拖动，环境不会被拖动。</div>
     </aside>
   </main>
@@ -884,4 +682,3 @@
   <script src="/world/world-app.js?v=20260614-manifest-drag"></script>
 </body>
 </html>
-

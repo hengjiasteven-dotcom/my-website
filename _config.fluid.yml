@@ -127,10 +127,10 @@ index:
     tag: true
 
 post:
-  banner_img: /assets/picture/小王子3.jpg
+  banner_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
   banner_img_height: 58
   banner_mask_alpha: 0
-  default_index_img: /assets/picture/小王子4.jpg
+  default_index_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
   meta:
     author:
       enable: true
@@ -168,24 +168,24 @@ post:
     enable: false
 
 archive:
-  banner_img: /assets/picture/小王子6.jpg
+  banner_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
   banner_img_height: 48
   banner_mask_alpha: 0
 
 category:
-  banner_img: /assets/picture/小王子2.jpg
+  banner_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
   banner_img_height: 48
   banner_mask_alpha: 0
 
 tag:
-  banner_img: /assets/picture/小王子1.jpg
+  banner_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
   banner_img_height: 48
   banner_mask_alpha: 0
 
 about:
   name: "小呆呆"
-  intro: "如果神明肯听一听我的愿望，那么我想你晚安，愿你的梦里总有星星。-余光中"
-  banner_img: /assets/picture/小王子3.jpg
+  intro: "如果神明肯听一听我的愿望，那么我想祝你晚安，愿你的梦里总有星星。"
+  banner_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
   banner_img_height: 48
   banner_mask_alpha: 0
   avatar: /img/about-avatar.webp
@@ -196,8 +196,8 @@ about:
 links:
   enable: true
   title: 友情链接
-  subtitle: 这里是我的朋友们，欢迎互相访问交流
-  banner_img: /assets/picture/小王子2.jpg
+  subtitle: 这里是我的朋友们，欢迎互相访问交流。
+  banner_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
   banner_img_height: 48
   banner_mask_alpha: 0
   onerror_avatar: /img/avatar.png
@@ -220,10 +220,10 @@ links:
           <div>
             <h3>申请方式</h3>
             <ol>
-              <li>先在你的友链页添加本站信息，并准备好回链页面地址。</li>
+              <li>先在你的友链页面添加本站信息，并准备好回链页面地址。</li>
               <li>Fork 本仓库，在 <code>friend-links</code> 目标分支的 <code>source/_data/friends/</code> 下新增一个 JSON 文件。</li>
               <li>文件里填写 <code>name</code>、<code>url</code>、<code>avatar</code>、<code>description</code>、<code>backlink</code>。</li>
-              <li>提交 Pull Request 时，请把目标分支设为 <code>friend-links</code>；GitHub Actions 会自动校验，通过后我会合并。</li>
+              <li>提交 Pull Request 时，请把目标分支设为 <code>friend-links</code>，GitHub Actions 会自动校验，通过后我会合并。</li>
             </ol>
           </div>
         </div>

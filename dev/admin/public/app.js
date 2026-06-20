@@ -62,9 +62,13 @@ async function init() {
   bindTabs();
   bindForms();
   syncRepeatFields();
+
   const session = await request('/admin/api/session', { quiet: true });
-  if (session && session.authenticated) showApp();
-  else showLogin();
+  if (session && session.authenticated) {
+    showApp();
+  } else {
+    showLogin();
+  }
 }
 
 function bindTabs() {
@@ -194,6 +198,7 @@ function bindForms() {
   taskBatchForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     setMessage(taskBatchMessage, '正在批量添加任务...');
+
     let tasks;
     try {
       tasks = parseBatchTasks(taskBatchText.value, taskBatchDate.value);
@@ -201,6 +206,7 @@ function bindForms() {
       setMessage(taskBatchMessage, error.message, 'error');
       return;
     }
+
     if (!tasks.length) {
       setMessage(taskBatchMessage, '请先输入要导入的任务', 'error');
       return;
@@ -251,7 +257,6 @@ function showLogin() {
 function showApp() {
   loginView.hidden = true;
   appView.hidden = false;
-  syncRepeatFields();
   activatePanel(document.querySelector('.nav-tab.is-active')?.dataset.panel || 'postPanel');
   refreshMedia();
   refreshTasks();
@@ -490,7 +495,7 @@ function mediaItem(file, kind, playlist) {
     ? `<button type="button" data-playlist="${inPlaylist ? 'remove' : 'add'}" data-name="${escapeAttr(file.name)}">${inPlaylist ? '移出播放器' : '加入播放器'}</button>`
     : '';
   const articleMusicButton = isTrack
-    ? `<button type="button" data-article-music data-url="${escapeAttr(file.url)}" data-name="${escapeAttr(file.name)}">加到文章</button>`
+    ? `<button type="button" data-article-music data-url="${escapeAttr(file.url)}" data-name="${escapeAttr(file.name)}">加入文章</button>`
     : '';
 
   return `
@@ -532,7 +537,7 @@ function parseBatchTasks(input, defaultDate) {
       value = value.slice(dateMatch[0].length).trim();
     }
 
-    const rangeMatch = value.match(/^(\d{1,2}:\d{2})\s*(?:-|~|–|—|至)\s*(\d{1,2}:\d{2})\s+/);
+    const rangeMatch = value.match(/^(\d{1,2}:\d{2})\s*(?:-|~|到|至)\s*(\d{1,2}:\d{2})\s+/);
     if (rangeMatch) {
       startTime = normalizeTime(rangeMatch[1]);
       endTime = normalizeTime(rangeMatch[2]);
@@ -545,7 +550,9 @@ function parseBatchTasks(input, defaultDate) {
       }
     }
 
-    if (!value) throw new Error(`这行任务缺少标题：${line}`);
+    if (!value) {
+      throw new Error(`这行任务缺少标题：${line}`);
+    }
 
     return {
       title: value,
@@ -564,11 +571,13 @@ function parseBatchTasks(input, defaultDate) {
 function normalizeTime(value) {
   const match = String(value).trim().match(/^(\d{1,2}):(\d{2})$/);
   if (!match) throw new Error(`时间格式不正确：${value}`);
+
   const hours = Number(match[1]);
   const minutes = Number(match[2]);
   if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
     throw new Error(`时间格式不正确：${value}`);
   }
+
   return `${String(hours).padStart(2, '0')}:${match[2]}`;
 }
 

@@ -37,6 +37,13 @@ function main() {
   ]);
 }
 
+module.exports = {
+  entryPath,
+  outputPath,
+  run,
+  main
+};
+
 if (require.main === module) {
   main();
 }

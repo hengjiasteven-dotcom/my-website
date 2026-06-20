@@ -1,4 +1,4 @@
-.env
+﻿.env
 .env.*
 !.env.example
 node_modules/
@@ -19,6 +19,7 @@ db.json
 .tef_dist/*
 
 # Full local oversized GLB files; EdgeOne uses complete split chunks instead.
-source/world/models/环境-树.glb
-source/world/models/小王子.glb
-source/world/models/水井.glb
+source/world/models/environment-trees.glb
+source/world/models/little-prince.glb
+source/world/models/well.glb
+

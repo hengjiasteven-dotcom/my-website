@@ -40,7 +40,7 @@ function daysSince(date, now) {
   return Math.max(0, Math.floor((end - start) / 86400000));
 }
 
-function readTasks() {
+function readTasks(hexo) {
   const filePath = path.join(hexo.source_dir, '_data', 'tasks.json');
   if (!fs.existsSync(filePath)) return [];
 
@@ -71,7 +71,7 @@ function readTasks() {
   }
 }
 
-hexo.extend.generator.register('dream_site_data', function(locals) {
+function generateSiteData(hexo, locals) {
   const now = new Date();
   const posts = (locals.posts && locals.posts.toArray ? locals.posts.toArray() : [])
     .filter((post) => !post.draft && asDate(post.date))
@@ -126,11 +126,33 @@ hexo.extend.generator.register('dream_site_data', function(locals) {
     },
     tags,
     calendar,
-    tasks: readTasks()
+    tasks: readTasks(hexo)
   };
 
   return {
     path: 'js/dream-site-data.js',
     data: `window.DREAM_SITE_DATA = ${JSON.stringify(data, null, 2)};\n`
   };
-});
+}
+
+function register(hexo) {
+  hexo.extend.generator.register('dream_site_data', function(locals) {
+    return generateSiteData(hexo, locals);
+  });
+}
+
+module.exports = {
+  asDate,
+  pad,
+  dateKey,
+  rootUrl,
+  stripHtml,
+  daysSince,
+  readTasks,
+  generateSiteData,
+  register
+};
+
+if (typeof hexo !== 'undefined') {
+  register(hexo);
+}
