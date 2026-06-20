@@ -41,6 +41,10 @@ function musicUrl(hexo, name) {
   return rootUrl(hexo.config.root, `assets/music/${name}`);
 }
 
+function shouldCopyMusicAssets(hexo) {
+  return hexo.config.url !== 'https://xiaodaidai.site';
+}
+
 function musicTitle(file) {
   return path.basename(file, path.extname(file))
     .replace(/\s+-\s+.+$/, '')
@@ -148,10 +152,12 @@ function generateRoutes(hexo) {
   });
 
   cachedFiles.tracks.forEach((file) => {
-    routes.push({
-      path: `assets/music/${file.name}`,
-      data: () => Promise.resolve(fs.readFileSync(file.source))
-    });
+    if (shouldCopyMusicAssets(hexo)) {
+      routes.push({
+        path: `assets/music/${file.name}`,
+        data: () => Promise.resolve(fs.readFileSync(file.source))
+      });
+    }
   });
 
   cachedFiles.videos.forEach((file) => {
@@ -183,6 +189,7 @@ module.exports = {
   listFiles,
   rootUrl,
   musicUrl,
+  shouldCopyMusicAssets,
   musicTitle,
   loadMusicPlaylist,
   collect,
