@@ -76,6 +76,49 @@ function loadMusicPlaylist(musicDir, availableTracks, hexo) {
   }
 }
 
+function normalizeAssetMusicName(raw) {
+  const value = String(raw || '').trim();
+  if (!value) return '';
+
+  const normalized = value.replace(/\\/g, '/');
+  const marker = '/assets/music/';
+  const index = normalized.toLowerCase().lastIndexOf(marker);
+  const target = index >= 0 ? normalized.slice(index + marker.length) : normalized;
+
+  try {
+    return decodeURIComponent(target);
+  } catch {
+    return target;
+  }
+}
+
+function collectReferencedMusicFiles(postsDir, availableTracks) {
+  if (!fs.existsSync(postsDir)) return [];
+
+  const available = new Set(availableTracks);
+  const referenced = new Set();
+  const postFiles = fs.readdirSync(postsDir).filter((name) => /\.md$/i.test(name));
+  const patterns = [
+    /<audio[^>]+src=["']([^"']+)["']/gi,
+    /new Audio\(\s*["']([^"']+)["']\s*\)/gi
+  ];
+
+  postFiles.forEach((fileName) => {
+    const content = fs.readFileSync(path.join(postsDir, fileName), 'utf8');
+    patterns.forEach((pattern) => {
+      let match = pattern.exec(content);
+      while (match) {
+        const trackName = normalizeAssetMusicName(match[1]);
+        if (available.has(trackName)) referenced.add(trackName);
+        match = pattern.exec(content);
+      }
+      pattern.lastIndex = 0;
+    });
+  });
+
+  return Array.from(referenced).sort((a, b) => a.localeCompare(b, 'zh-CN'));
+}
+
 let cachedManifest = null;
 let cachedFiles = null;
 
@@ -85,11 +128,15 @@ function collect(hexo) {
   const pictureDir = path.join(baseDir, 'picture');
   const musicDir = path.join(baseDir, 'music');
   const videoDir = path.join(baseDir, 'video');
+  const postsDir = path.join(baseDir, 'source', '_posts');
 
   const pictures = listFiles(pictureDir, IMAGE_EXTS);
   const backgroundPictures = pictures.filter((name) => BACKGROUND_IMAGE_NAMES.has(name));
   const tracks = listFiles(musicDir, AUDIO_EXTS);
   const playerTracks = loadMusicPlaylist(musicDir, tracks, hexo);
+  const referencedTracks = collectReferencedMusicFiles(postsDir, tracks);
+  const copiedTracks = Array.from(new Set(playerTracks.concat(referencedTracks)))
+    .sort((a, b) => a.localeCompare(b, 'zh-CN'));
   const videos = listFiles(videoDir, VIDEO_EXTS);
 
   const manifest = {
@@ -117,7 +164,7 @@ function collect(hexo) {
       name,
       source: path.join(pictureDir, name)
     })),
-    tracks: tracks.map((name) => ({
+    tracks: copiedTracks.map((name) => ({
       name,
       source: path.join(musicDir, name)
     })),
@@ -127,7 +174,7 @@ function collect(hexo) {
     }))
   };
 
-  hexo.log.info(`[DreamTheme] Synced ${pictures.length} picture asset(s), ${backgroundPictures.length} background image(s), ${tracks.length} audio asset(s), ${playerTracks.length} player track(s), and ${videos.length} video file(s).`);
+  hexo.log.info(`[DreamTheme] Synced ${pictures.length} picture asset(s), ${backgroundPictures.length} background image(s), ${tracks.length} audio asset(s), ${playerTracks.length} player track(s), ${referencedTracks.length} referenced post track(s), ${copiedTracks.length} copied audio asset(s), and ${videos.length} video file(s).`);
 }
 
 function generateRoutes(hexo) {
@@ -188,6 +235,7 @@ module.exports = {
   shouldCopyMusicAssets,
   musicTitle,
   loadMusicPlaylist,
+  collectReferencedMusicFiles,
   collect,
   generateRoutes,
   register
