@@ -1,5 +1,5 @@
 ---
-title: code
+title: 父亲的语法：沉默是另一种方言
 date: "2026-06-21 12:37:16"
 index_img: "/assets/picture/fathers-day-cover.png"
 banner_img: "/assets/picture/fathers-day-cover.png"

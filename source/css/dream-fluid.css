@@ -262,14 +262,18 @@ html[data-user-color-scheme="dark"] .mobile-grid-item {
 
 #banner::before {
   background:
-    linear-gradient(180deg, rgba(26, 42, 58, 0.32), rgba(26, 42, 58, 0.08) 42%, rgba(247, 251, 251, 0.88) 100%),
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.32), transparent 24%);
+    linear-gradient(180deg, rgba(26, 42, 58, 0.24), rgba(26, 42, 58, 0.06) 38%, rgba(247, 251, 251, 0.76) 72%, rgba(247, 251, 251, 0.96) 100%),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.28), transparent 24%),
+    radial-gradient(ellipse at 50% 100%, rgba(255, 248, 240, 0.68), rgba(255, 248, 240, 0.18) 48%, transparent 76%);
 }
 
 #banner::after {
   inset: auto 0 0;
-  height: 38%;
-  background: linear-gradient(to bottom, rgba(247, 251, 251, 0), var(--body-bg-color));
+  height: 46%;
+  background:
+    linear-gradient(to bottom, rgba(247, 251, 251, 0), rgba(247, 251, 251, 0.84) 68%, var(--body-bg-color)),
+    radial-gradient(ellipse at 50% 100%, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.12) 46%, transparent 74%);
+  filter: blur(4px);
 }
 
 html[data-user-color-scheme="dark"] #banner::before {
@@ -4071,13 +4075,18 @@ body:not(.home) #board-ctn #board {
 
 @media (min-width: 992px) {
   .dream-home-posts {
-    padding-right: 0.2rem;
-    padding-left: 1.2rem;
+    padding-right: 0;
+    padding-left: 2rem;
   }
 
   .dream-profile-col {
-    padding-right: 1.2rem;
-    padding-left: 0.2rem;
+    padding-right: 1.4rem;
+    padding-left: 0;
+  }
+
+  .dream-home-gap {
+    min-height: 1px;
+    padding: 0;
   }
 }
 
@@ -5025,6 +5034,38 @@ body.home main::before {
   transform: translateX(-50%);
   pointer-events: none;
   background: var(--dream-lower-bg-image) center top / 100vw auto no-repeat;
+  filter: saturate(0.94) brightness(1.02);
+}
+
+body.home main::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: clamp(11rem, 20vw, 18rem);
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(180deg, rgba(247, 251, 251, 0.95) 0%, rgba(247, 251, 251, 0.72) 28%, rgba(247, 251, 251, 0.18) 68%, rgba(247, 251, 251, 0) 100%),
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.12) 52%, transparent 78%);
+  filter: blur(12px);
+}
+
+body.home .dream-home-layout::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: clamp(-10rem, -14vw, -6rem);
+  width: min(96vw, 112rem);
+  height: clamp(16rem, 24vw, 25rem);
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(255, 248, 239, 0.72) 0%, rgba(255, 248, 239, 0.26) 38%, rgba(255, 248, 239, 0.08) 58%, transparent 76%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.22) 52%, transparent 100%);
+  filter: blur(18px);
 }
 
 body.home main > .container.nopadding-x-md {
@@ -5244,6 +5285,14 @@ body.home .dream-player.dream-player-in-profile .dream-player-wave span {
     padding: 0;
   }
 
+  body.home .dream-home-posts .index-card {
+    display: block;
+  }
+
+  body.home .dream-home-posts .index-card > .index-info {
+    padding: 1rem 1rem 1.1rem;
+  }
+
 }
 
 body.home .dream-home-posts .index-card {
@@ -5252,6 +5301,10 @@ body.home .dream-home-posts .index-card {
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+  display: grid;
+  grid-template-columns: minmax(200px, 28%) minmax(0, 1fr);
+  align-items: stretch;
+  overflow: hidden;
 }
 
 body.home .dream-home-posts .index-card:hover,
@@ -5316,6 +5369,34 @@ html[data-user-color-scheme="dark"] body.home .dream-home-posts .category-chain-
 body.home .dream-home-posts .index-header {
   font-size: 1.26rem;
   opacity: 0.88;
+}
+
+body.home .dream-home-posts .index-card > .index-img,
+body.home .dream-home-posts .index-card > .index-info {
+  min-width: 0;
+}
+
+body.home .dream-home-posts .index-card > .index-img {
+  margin: 0;
+}
+
+body.home .dream-home-posts .index-card > .index-img img {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  object-fit: cover;
+}
+
+body.home .dream-home-posts .index-card > .index-info {
+  display: grid;
+  align-content: center;
+  padding: 1.35rem 1.5rem 1.2rem;
+}
+
+body.home .dream-home-posts .index-card .index-excerpt,
+body.home .dream-home-posts .index-card .post-content,
+body.home .dream-home-posts .index-card .index-text {
+  max-width: none;
 }
 
 body.home .dream-home-posts .index-header a {
