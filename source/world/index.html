@@ -665,6 +665,26 @@
     </aside>
   </main>
 
+  <script src="/js/dream-asset-config.js"></script>
+  <script>
+    (function() {
+      var base = (window.DREAM_WORLD_ASSET_BASE || '').trim().replace(/\/+$/, '');
+      if (!base) return;
+      document.querySelectorAll('[data-model-url]').forEach(function(node) {
+        var value = node.getAttribute('data-model-url');
+        if (value && value.charAt(0) === '/') {
+          node.setAttribute('data-model-url', base + value);
+        }
+      });
+      document.querySelectorAll('[data-model-manifest]').forEach(function(node) {
+        var value = node.getAttribute('data-model-manifest');
+        if (value && value.charAt(0) === '/') {
+          node.setAttribute('data-model-manifest', base + value);
+        }
+      });
+    })();
+
+  </script>
   <script>
     window.__worldBootState = { started: false, firstFrame: false, error: '' };
     window.addEventListener('DOMContentLoaded', () => {

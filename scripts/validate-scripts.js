@@ -29,6 +29,7 @@ function syntaxCheck(relativePath) {
 function createHexoMock() {
   const events = [];
   const generators = [];
+  const filters = [];
 
   return {
     mock: {
@@ -46,6 +47,11 @@ function createHexoMock() {
         events.push({ event, handler });
       },
       extend: {
+        filter: {
+          register(name, handler) {
+            filters.push({ name, handler });
+          }
+        },
         generator: {
           register(name, handler) {
             generators.push({ name, handler });
@@ -54,12 +60,13 @@ function createHexoMock() {
       }
     },
     events,
-    generators
+    generators,
+    filters
   };
 }
 
 function validateDreamThemeAssets() {
-  const { mock, events, generators } = createHexoMock();
+  const { mock, events, generators, filters } = createHexoMock();
   global.hexo = mock;
   const mod = freshRequire(path.join(rootDir, 'scripts', 'dream-theme-assets.js'));
   delete global.hexo;
@@ -67,6 +74,7 @@ function validateDreamThemeAssets() {
   assert.strictEqual(typeof mod.collect, 'function', 'dream-theme-assets.js should export collect().');
   assert.strictEqual(typeof mod.generateRoutes, 'function', 'dream-theme-assets.js should export generateRoutes().');
   assert.ok(events.some((item) => item.event === 'generateBefore'), 'dream-theme-assets.js should register generateBefore hook.');
+  assert.ok(filters.some((item) => item.name === 'after_render:html'), 'dream-theme-assets.js should register after_render:html hook.');
   assert.ok(generators.some((item) => item.name === 'dream_theme_assets'), 'dream-theme-assets.js should register dream_theme_assets generator.');
 
   mod.BACKGROUND_IMAGE_NAMES.forEach((name) => {

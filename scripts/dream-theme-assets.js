@@ -2,6 +2,9 @@
 
 const fs = require('fs');
 const path = require('path');
+const dotenv = require('dotenv');
+
+dotenv.config({ path: path.resolve(__dirname, '..', '.env'), quiet: true });
 
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
 const AUDIO_EXTS = new Set(['.mp3', '.ogg', '.wav', '.m4a', '.flac']);
@@ -33,12 +36,31 @@ function rootUrl(root, assetPath) {
     .join('/')}`;
 }
 
+function normalizeBaseUrl(url) {
+  return String(url || '').trim().replace(/\/+$/, '');
+}
+
+function remoteAssetBase(hexo) {
+  return normalizeBaseUrl(process.env.ASSET_CDN_BASE || hexo?.config?.asset_cdn_base);
+}
+
+function assetUrl(hexo, assetPath) {
+  const base = remoteAssetBase(hexo);
+  if (base) {
+    return `${base}/${assetPath
+      .split('/')
+      .map((part) => encodeURIComponent(part))
+      .join('/')}`;
+  }
+  return rootUrl(hexo.config.root, assetPath);
+}
+
 function musicUrl(hexo, name) {
-  return rootUrl(hexo.config.root, `assets/music/${name}`);
+  return assetUrl(hexo, `assets/music/${name}`);
 }
 
 function shouldCopyMusicAssets(hexo) {
-  return true;
+  return !remoteAssetBase(hexo);
 }
 
 function musicTitle(file) {
@@ -211,6 +233,9 @@ function generateRoutes(hexo) {
   const routes = [{
     path: 'js/dream-theme-manifest.js',
     data: cachedManifest
+  }, {
+    path: 'js/dream-asset-config.js',
+    data: `window.DREAM_WORLD_ASSET_BASE = ${JSON.stringify(remoteAssetBase(hexo) || '')};\n`
   }];
 
   cachedFiles.pictures.forEach((file) => {
@@ -242,6 +267,16 @@ function generateRoutes(hexo) {
 function register(hexo) {
   hexo.on('generateBefore', () => {
     collect(hexo);
+  });
+
+  hexo.extend.filter.register('after_render:html', function(content) {
+    const base = remoteAssetBase(hexo);
+    if (!base) return content;
+
+    const normalizedBase = normalizeBaseUrl(base);
+    return String(content || '').replace(/(["'(])\/assets\/music\/([^"'()<>\\\s]+)/g, (match, prefix, assetPath) => {
+      return `${prefix}${normalizedBase}/assets/music/${assetPath}`;
+    });
   });
 
   hexo.extend.generator.register('dream_theme_assets', function() {

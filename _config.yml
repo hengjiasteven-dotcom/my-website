@@ -13,6 +13,7 @@ timezone: Asia/Shanghai
 # URL
 url: https://xiaodaidai.site
 root: /
+asset_cdn_base:
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:
