@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const crypto = require('crypto');
 const fs = require('fs');
@@ -96,10 +96,16 @@ app.use(session({
 }));
 
 app.get('/', (req, res) => res.redirect('/admin'));
-app.get('/admin', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
+app.get('/admin', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.join(publicDir, 'index.html'));
+});
 app.use('/admin/assets', express.static(publicDir, {
   etag: true,
-  maxAge: '1h'
+  maxAge: 0,
+  setHeaders(res) {
+    res.setHeader('Cache-Control', 'no-store');
+  }
 }));
 
 app.get('/admin/api/session', (req, res) => {
@@ -234,12 +240,23 @@ app.post('/admin/api/posts', requireAuth, upload.single('markdown'), (req, res) 
     if (!req.file) return res.status(400).json({ error: '请选择 Markdown 文件' });
     ensureUploadExt(req.file.originalname, new Set(['.md', '.markdown']));
 
-    const title = String(req.body.title || '').trim() || filenameTitle(req.file.originalname);
-    const categories = splitTags(req.body.categories);
-    const tags = splitTags(req.body.tags);
-    const coverPath = normalizeMediaReferencePath(String(req.body.coverPath || '').trim(), 'picture');
-    const postMusicPath = normalizeMediaReferencePath(String(req.body.postMusicPath || '').trim(), 'music');
-    const postMusicName = String(req.body.postMusicName || '').trim();
+    const originalContent = fs.readFileSync(req.file.path, 'utf8');
+    const markdownMeta = extractMarkdownPostMeta(originalContent);
+    const title = String(req.body.title || '').trim()
+      || markdownMeta.title
+      || filenameTitle(req.file.originalname);
+    const categories = splitTags(req.body.categories).length
+      ? splitTags(req.body.categories)
+      : markdownMeta.categories;
+    const tags = splitTags(req.body.tags).length
+      ? splitTags(req.body.tags)
+      : markdownMeta.tags;
+    const coverPath = normalizeMediaReferencePath(String(req.body.coverPath || '').trim(), 'picture')
+      || markdownMeta.coverPath;
+    const postMusicPath = normalizeMediaReferencePath(String(req.body.postMusicPath || '').trim(), 'music')
+      || markdownMeta.postMusicPath;
+    const postMusicName = String(req.body.postMusicName || '').trim()
+      || markdownMeta.postMusicName;
     const postMusicPlacement = String(req.body.postMusicPlacement || 'after-front-matter');
     const publishNow = req.body.publishNow === 'true';
 
@@ -251,9 +268,9 @@ app.post('/admin/api/posts', requireAuth, upload.single('markdown'), (req, res) 
       });
     }
 
-    const originalContent = fs.readFileSync(req.file.path, 'utf8');
     let content = ensurePostFrontMatter(originalContent, {
       title,
+      date: markdownMeta.date,
       categories,
       tags,
       coverPath
@@ -371,7 +388,7 @@ app.post('/admin/api/playlist/sync', requireAuth, (req, res) => {
 
 app.post('/admin/api/build', requireAuth, (req, res) => {
   try {
-    const job = startCommandJob(['npm', 'run', 'build'], '构建网站');
+    const job = startCommandJob(['npm', 'run', 'build'], '构建站点');
     res.json({ ok: true, job: publicJob(job) });
   } catch (error) {
     res.status(409).json({ error: error.message, job: activeJob ? publicJob(activeJob) : null });
@@ -432,7 +449,7 @@ function sanitizeFileName(name) {
 
 function decodePossiblyMojibakeName(name) {
   const value = String(name || '');
-  if (!/[ÃÂ]|[\u00C0-\u00FF]/.test(value)) return value;
+  if (!/[脙脗]|[\u00C0-\u00FF]/.test(value)) return value;
 
   try {
     return Buffer.from(value, 'latin1').toString('utf8');
@@ -458,7 +475,7 @@ function filenameTitle(name) {
 
 function splitTags(value) {
   return String(value || '')
-    .split(/[,，\n]/)
+    .split(/[\n,，]/)
     .map((item) => item.trim())
     .filter(Boolean);
 }
@@ -481,7 +498,7 @@ function resolvePostTargetName(title) {
   const slug = slugify(filenameTitle(title));
   const preferredName = `${slug}.md`;
   const preferredPath = safeJoin(postsDir, preferredName);
-  return fs.existsSync(preferredPath) ? preferredName : uniqueName(postsDir, preferredName);
+  return fs.existsSync(preferredPath) ? uniqueName(postsDir, preferredName) : preferredName;
 }
 
 function readPendingPublishFiles() {
@@ -537,7 +554,7 @@ function ensurePostFrontMatter(content, meta) {
   const source = content.replace(/^\uFEFF/, '');
   const frontMatter = {
     title: meta.title,
-    date: now
+    date: meta.date || now
   };
 
   if (meta.categories.length) frontMatter.categories = meta.categories;
@@ -555,6 +572,114 @@ function ensurePostFrontMatter(content, meta) {
   }
 
   return `---\n${frontMatterText(frontMatter)}---\n\n${source}`;
+}
+
+function extractMarkdownPostMeta(content) {
+  const source = String(content || '').replace(/^\uFEFF/, '');
+  const frontMatterMatch = source.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+  const frontMatter = frontMatterMatch ? parseFrontMatterBlock(frontMatterMatch[1]) : {};
+  const body = frontMatterMatch ? source.slice(frontMatterMatch[0].length) : source;
+
+  const title = firstNonEmptyValue([
+    frontMatter.title,
+    frontMatter.Title
+  ]);
+  const date = firstNonEmptyValue([
+    frontMatter.date
+  ]);
+  const categories = normalizeFrontMatterList(frontMatter.categories || frontMatter.category);
+  const tags = normalizeFrontMatterList(frontMatter.tags || frontMatter.tag);
+  const coverPath = normalizeMediaReferencePath(firstNonEmptyValue([
+    frontMatter.index_img,
+    frontMatter.banner_img,
+    frontMatter.cover,
+    frontMatter.image
+  ]), 'picture');
+  const postMusicPath = normalizeMediaReferencePath(firstNonEmptyValue([
+    frontMatter.music,
+    frontMatter.audio,
+    frontMatter.song
+  ]) || findAudioSourceInContent(body), 'music');
+
+  return {
+    title: title ? String(title).trim() : '',
+    date: date ? String(date).trim() : '',
+    categories,
+    tags,
+    coverPath,
+    postMusicPath,
+    postMusicName: postMusicPath ? decodeRepeatedly(path.basename(postMusicPath)) : ''
+  };
+}
+
+function parseFrontMatterBlock(input) {
+  const lines = String(input || '').split(/\r?\n/);
+  const result = {};
+  let currentKey = '';
+
+  lines.forEach((line) => {
+    const listMatch = line.match(/^\s*-\s+(.*)$/);
+    if (listMatch && currentKey) {
+      if (!Array.isArray(result[currentKey])) result[currentKey] = [];
+      result[currentKey].push(stripWrappingQuotes(listMatch[1].trim()));
+      return;
+    }
+
+    const keyMatch = line.match(/^([A-Za-z_][\w-]*):\s*(.*)$/);
+    if (!keyMatch) return;
+
+    currentKey = keyMatch[1];
+    const rawValue = keyMatch[2].trim();
+    if (!rawValue) {
+      result[currentKey] = [];
+      return;
+    }
+
+    result[currentKey] = parseFrontMatterScalar(rawValue);
+  });
+
+  return result;
+}
+
+function parseFrontMatterScalar(rawValue) {
+  const value = stripWrappingQuotes(String(rawValue || '').trim());
+  if (/^\[.*\]$/.test(value)) {
+    return value
+      .slice(1, -1)
+      .split(',')
+      .map((item) => stripWrappingQuotes(item.trim()))
+      .filter(Boolean);
+  }
+  return value;
+}
+
+function normalizeFrontMatterList(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+  if (!value) return [];
+  return String(value)
+    .split(/[\n,，]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function stripWrappingQuotes(value) {
+  return String(value || '').replace(/^['"]|['"]$/g, '');
+}
+
+function firstNonEmptyValue(values) {
+  for (const value of values) {
+    if (value === undefined || value === null) continue;
+    if (String(value).trim()) return value;
+  }
+  return '';
+}
+
+function findAudioSourceInContent(content) {
+  const audioTagMatch = String(content || '').match(/<audio[^>]+src=["']([^"']+)["']/i);
+  if (audioTagMatch) return audioTagMatch[1];
+  return '';
 }
 
 function mergeFrontMatter(body, meta) {

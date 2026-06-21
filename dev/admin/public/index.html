@@ -10,9 +10,9 @@
   <main class="shell">
     <section id="loginView" class="login-view" hidden>
       <div class="login-panel">
-        <div class="brand-mark">台</div>
+        <div class="brand-mark">博</div>
         <h1>博客发布台</h1>
-        <p>本地私有后台，仅用于上传文章、整理任务和部署你的博客。</p>
+        <p>本地私有后台，用来发文章、传媒体、整理任务和查看发布日志。</p>
         <form id="loginForm" class="login-form">
           <label for="password">管理密码</label>
           <input id="password" name="password" type="password" autocomplete="current-password" required>
@@ -25,18 +25,20 @@
     <section id="appView" class="app-view" hidden>
       <aside class="sidebar">
         <div class="sidebar-brand">
-          <div class="brand-mark">台</div>
+          <div class="brand-mark">博</div>
           <div>
             <strong>博客发布台</strong>
-            <span>Markdown / Media / Tasks</span>
+            <span>文章 / 媒体 / 任务 / 发布</span>
           </div>
         </div>
+
         <nav class="nav-tabs" aria-label="后台功能">
-          <button class="nav-tab is-active" type="button" data-panel="postPanel">文章</button>
-          <button class="nav-tab" type="button" data-panel="mediaPanel">媒体</button>
+          <button class="nav-tab is-active" type="button" data-panel="postPanel">发文章</button>
+          <button class="nav-tab" type="button" data-panel="mediaPanel">媒体库</button>
           <button class="nav-tab" type="button" data-panel="taskPanel">任务</button>
           <button class="nav-tab" type="button" data-panel="publishPanel">发布</button>
         </nav>
+
         <div class="sidebar-foot">
           <button id="logoutButton" class="ghost-button" type="button">退出登录</button>
         </div>
@@ -46,7 +48,7 @@
         <header class="topbar">
           <div>
             <h1 id="workspaceTitle">发布新内容</h1>
-            <p id="workspaceIntro">上传 Markdown、图片、音乐或视频，然后构建部署到你的博客。</p>
+            <p id="workspaceIntro">上传 Markdown、选择封面和文章音乐，然后决定是否立即触发发布。</p>
           </div>
           <div class="stats" aria-live="polite">
             <span><strong id="postCount">0</strong> 篇文章</span>
@@ -60,33 +62,42 @@
           id="postPanel"
           class="panel is-active"
           data-title="发布新内容"
-          data-description="上传 Markdown、图片、音乐或视频，然后构建部署到你的博客。"
+          data-description="文件上传、封面选择、标签分类和文章音乐都集中在这一页。"
         >
           <form id="postForm" class="grid-form">
             <div class="field span-2">
               <label for="markdownFile">Markdown 文件</label>
               <input id="markdownFile" name="markdown" type="file" accept=".md,.markdown" required>
+              <p class="field-hint">支持直接上传现成文章，标题会自动从文件名带出来。</p>
             </div>
+
             <div class="field">
               <label for="postTitle">文章标题</label>
-              <input id="postTitle" name="title" type="text" placeholder="留空则使用文件名">
+              <input id="postTitle" name="title" type="text" placeholder="不填就使用文件名">
             </div>
+
             <div class="field">
-              <label for="coverPath">封面图片路径</label>
+              <label for="coverPath">封面路径</label>
               <input id="coverPath" name="coverPath" type="text" placeholder="/assets/picture/cover.jpg">
+              <p class="field-hint">可以手填，也可以去媒体库点“设为封面”。</p>
             </div>
+
             <div class="field">
               <label for="categories">分类</label>
-              <input id="categories" name="categories" type="text" placeholder="生活, 技术">
+              <input id="categories" name="categories" type="text" placeholder="生活, 技术, 读书">
             </div>
+
             <div class="field">
               <label for="tags">标签</label>
-              <input id="tags" name="tags" type="text" placeholder="Hexo, 随笔">
+              <input id="tags" name="tags" type="text" placeholder="Hexo, 随笔, 复盘">
             </div>
-            <div class="field">
+
+            <div class="field span-2">
               <label for="postMusicFile">文章音乐文件</label>
               <input id="postMusicFile" name="postMusicFile" type="file" accept=".mp3,.ogg,.wav,.m4a,.flac,audio/*">
+              <p class="field-hint">可以直接上传，也可以在媒体库选择已有音乐。</p>
             </div>
+
             <div class="field">
               <label for="postMusicPlacement">音乐位置</label>
               <select id="postMusicPlacement" name="postMusicPlacement">
@@ -94,19 +105,31 @@
                 <option value="end">文章结尾</option>
               </select>
             </div>
+
+            <div class="field">
+              <label>当前选择</label>
+              <div class="selection-card">
+                <p id="selectedCoverPath" class="form-message">封面：未选择</p>
+                <p id="selectedPostMusic" class="form-message">文章音乐：未选择</p>
+              </div>
+            </div>
+
             <input id="postMusicPath" name="postMusicPath" type="hidden">
             <input id="postMusicName" name="postMusicName" type="hidden">
-            <p id="selectedPostMusic" class="form-message span-2">未选择文章音乐</p>
+
             <label class="checkbox-row span-2">
               <input id="addPostMusicToPlaylist" name="addPostMusicToPlaylist" type="checkbox">
-              <span>同时加入全站背景播放器</span>
+              <span>同时加入全站播放器</span>
             </label>
+
             <label class="checkbox-row span-2">
               <input id="publishNow" name="publishNow" type="checkbox">
-              <span>上传后立即部署上线</span>
+              <span>保存后立即进入构建和部署流程</span>
             </label>
+
             <div class="form-actions span-2">
-              <button type="submit">上传文章</button>
+              <button type="submit">保存文章</button>
+              <button id="clearPostSelections" type="button" class="ghost-button ghost-button-light">清空封面和文章音乐</button>
               <p id="postMessage" class="form-message" role="status"></p>
             </div>
           </form>
@@ -116,7 +139,7 @@
           id="mediaPanel"
           class="panel"
           data-title="管理媒体"
-          data-description="上传图片、音乐和视频，也可以把资源快速插入文章或播放器。"
+          data-description="上传图片、音乐、视频，并快速把资源回填到文章表单。"
         >
           <form id="mediaForm" class="media-form">
             <div class="segmented" role="radiogroup" aria-label="媒体类型">
@@ -124,14 +147,18 @@
               <label><input type="radio" name="kind" value="music"><span>音乐</span></label>
               <label><input type="radio" name="kind" value="video"><span>视频</span></label>
             </div>
+
             <div class="field">
               <label for="mediaFiles">上传文件</label>
               <input id="mediaFiles" name="files" type="file" multiple required>
+              <p id="mediaFileHint" class="field-hint">当前为图片模式，可一次上传多张。</p>
             </div>
-            <label class="checkbox-row">
+
+            <label id="addToPlaylistRow" class="checkbox-row" hidden>
               <input id="addToPlaylist" name="addToPlaylist" type="checkbox">
-              <span>音乐上传后加入全站播放器</span>
+              <span>上传后加入全站播放器</span>
             </label>
+
             <div class="form-actions">
               <button type="submit">上传媒体</button>
               <p id="mediaMessage" class="form-message" role="status"></p>
@@ -139,12 +166,17 @@
           </form>
 
           <div class="library-toolbar">
-            <h2>媒体库</h2>
+            <div>
+              <h2>媒体库</h2>
+              <p class="toolbar-copy">搜索文件名，或把资源一键带回文章表单。</p>
+            </div>
             <div class="toolbar-actions">
-              <button id="syncPlaylistButton" class="ghost-button" type="button">同步 music 到播放器</button>
-              <button id="refreshMediaButton" class="ghost-button" type="button">刷新</button>
+              <input id="mediaSearch" class="toolbar-search" type="search" placeholder="搜索文件名">
+              <button id="syncPlaylistButton" class="ghost-button ghost-button-light" type="button">同步 music 到播放器</button>
+              <button id="refreshMediaButton" class="ghost-button ghost-button-light" type="button">刷新</button>
             </div>
           </div>
+
           <div id="mediaList" class="media-list" aria-live="polite"></div>
         </section>
 
@@ -152,7 +184,7 @@
           id="taskPanel"
           class="panel"
           data-title="任务板"
-          data-description="在后台集中增删改任务，首页只负责展示和快速打勾。"
+          data-description="这里负责创建、编辑和批量导入任务。"
         >
           <div class="task-grid">
             <form id="taskForm" class="grid-form task-form">
@@ -182,7 +214,7 @@
                 </select>
               </div>
               <div id="taskRepeatDaysField" class="field span-2" hidden>
-                <label>每周几执行</label>
+                <label>每周哪几天</label>
                 <div class="weekday-group">
                   <label><input type="checkbox" name="taskRepeatDays" value="1"><span>周一</span></label>
                   <label><input type="checkbox" name="taskRepeatDays" value="2"><span>周二</span></label>
@@ -199,7 +231,7 @@
               </div>
               <div class="field span-2">
                 <label for="taskNotes">备注</label>
-                <textarea id="taskNotes" rows="4" placeholder="可选：写点提醒、上下文或准备事项"></textarea>
+                <textarea id="taskNotes" rows="4" placeholder="可选：上下文、提醒事项、材料链接"></textarea>
               </div>
               <label class="checkbox-row span-2">
                 <input id="taskCompleted" type="checkbox">
@@ -207,7 +239,7 @@
               </label>
               <div class="form-actions span-2">
                 <button id="taskSubmitButton" type="submit">保存任务</button>
-                <button id="taskCancelButton" type="button" class="ghost-button" hidden>取消编辑</button>
+                <button id="taskCancelButton" type="button" class="ghost-button ghost-button-light" hidden>取消编辑</button>
                 <p id="taskMessage" class="form-message" role="status"></p>
               </div>
             </form>
@@ -230,7 +262,7 @@
 
           <div class="library-toolbar">
             <h2>任务列表</h2>
-            <button id="refreshTasksButton" class="ghost-button" type="button">刷新</button>
+            <button id="refreshTasksButton" class="ghost-button ghost-button-light" type="button">刷新</button>
           </div>
           <div id="taskList" class="task-list" aria-live="polite"></div>
         </section>
@@ -239,12 +271,12 @@
           id="publishPanel"
           class="panel"
           data-title="构建与部署"
-          data-description="构建站点、提交源文件并推送到线上环境。"
+          data-description="这里展示的是命令执行日志，不代表线上已经完成可见更新。"
         >
           <div class="publish-actions">
-            <button id="buildButton" type="button">构建网站</button>
-            <button id="deployButton" type="button">推送触发 EdgeOne</button>
-            <button id="buildDeployButton" type="button">构建并部署上线</button>
+            <button id="buildButton" type="button">只构建站点</button>
+            <button id="deployButton" type="button">推送源码并执行部署</button>
+            <button id="buildDeployButton" type="button">构建后再部署</button>
           </div>
           <div class="job-card">
             <div class="job-head">
