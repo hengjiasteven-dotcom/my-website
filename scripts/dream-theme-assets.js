@@ -9,6 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, '..', '.env'), quiet: true, overri
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
 const AUDIO_EXTS = new Set(['.mp3', '.ogg', '.wav', '.m4a', '.flac']);
 const VIDEO_EXTS = new Set(['.mp4', '.webm', '.mov', '.m4v', '.ogv']);
+const REMOTE_MUSIC_LIST_PATH = path.resolve(__dirname, '..', 'source', 'data', 'remote-music-list.json');
 const BACKGROUND_IMAGE_NAMES = new Set([
   '小王子1.jpg',
   '小王子2.jpg',
@@ -120,6 +121,17 @@ function loadMusicPlaylist(musicDir, availableTracks, hexo) {
   }
 }
 
+function loadRemoteMusicList() {
+  if (!fs.existsSync(REMOTE_MUSIC_LIST_PATH)) return [];
+
+  try {
+    const payload = JSON.parse(fs.readFileSync(REMOTE_MUSIC_LIST_PATH, 'utf8'));
+    return Array.isArray(payload.music) ? uniqueTrackNames(payload.music.filter((name) => typeof name === 'string')) : [];
+  } catch {
+    return [];
+  }
+}
+
 function normalizeAssetMusicName(raw) {
   const value = String(raw || '').trim();
   if (!value) return '';
@@ -180,8 +192,10 @@ function collect(hexo) {
 
   const pictures = listFiles(pictureDir, IMAGE_EXTS);
   const backgroundPictures = pictures.filter((name) => BACKGROUND_IMAGE_NAMES.has(name));
-  const tracks = uniqueTrackNames(listFiles(musicDir, AUDIO_EXTS));
-  const playerTracks = loadMusicPlaylist(musicDir, tracks, hexo);
+  const localTracks = uniqueTrackNames(listFiles(musicDir, AUDIO_EXTS));
+  const remoteTracks = loadRemoteMusicList();
+  const tracks = localTracks.length ? localTracks : remoteTracks;
+  const playerTracks = localTracks.length ? loadMusicPlaylist(musicDir, tracks, hexo) : tracks;
   const referencedTracks = collectReferencedMusicFiles(postsDir, tracks);
   const copiedTracks = uniqueTrackNames(playerTracks.concat(referencedTracks))
     .sort((a, b) => a.localeCompare(b, 'zh-CN'));
