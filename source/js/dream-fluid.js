@@ -2,6 +2,21 @@
   'use strict';
 
   var assets = window.DREAM_THEME_ASSETS || { pictures: [], music: [] };
+
+  function dedupeMusicAssets(list) {
+    var seen = Object.create(null);
+    return (Array.isArray(list) ? list : []).filter(function(track) {
+      if (!track) return false;
+      var name = String(track.name || '').trim().toLowerCase();
+      var url = String(track.url || '').trim().toLowerCase();
+      var key = name || url;
+      if (!key || seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  }
+
+  assets.music = dedupeMusicAssets(assets.music);
   var storageKey = 'DreamFluidPlayer';
   var visitStorageKey = 'DreamVisitorCounters';
   var petStorageKey = 'DreamNetworkPet';

@@ -48,31 +48,53 @@ function musicTitle(file) {
     .trim();
 }
 
+function normalizeTrackName(name) {
+  return String(name || '').trim().toLowerCase();
+}
+
+function uniqueTrackNames(names) {
+  const seen = new Set();
+  const result = [];
+
+  names.forEach((name) => {
+    const normalized = normalizeTrackName(name);
+    if (!normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    result.push(String(name).trim());
+  });
+
+  return result;
+}
+
 function loadMusicPlaylist(musicDir, availableTracks, hexo) {
   const playlistPath = path.join(musicDir, 'playlist.json');
-  if (!fs.existsSync(playlistPath)) return availableTracks;
+  if (!fs.existsSync(playlistPath)) return uniqueTrackNames(availableTracks);
 
   try {
     const playlist = JSON.parse(fs.readFileSync(playlistPath, 'utf8'));
     if (!Array.isArray(playlist)) {
       hexo.log.warn('[DreamTheme] music/playlist.json must be an array of filenames. Falling back to all tracks.');
-      return availableTracks;
+      return uniqueTrackNames(availableTracks);
     }
 
-    const available = new Set(availableTracks);
+    const normalizedAvailable = new Map();
+    uniqueTrackNames(availableTracks).forEach((name) => {
+      normalizedAvailable.set(normalizeTrackName(name), name);
+    });
     const selected = [];
     playlist.forEach((name) => {
       if (typeof name !== 'string') return;
-      if (!available.has(name)) {
+      const resolvedName = normalizedAvailable.get(normalizeTrackName(name));
+      if (!resolvedName) {
         hexo.log.warn(`[DreamTheme] Playlist track not found in music/: ${name}`);
         return;
       }
-      if (!selected.includes(name)) selected.push(name);
+      selected.push(resolvedName);
     });
-    return selected;
+    return uniqueTrackNames(selected);
   } catch (error) {
     hexo.log.warn(`[DreamTheme] Failed to read music/playlist.json: ${error.message}. Falling back to all tracks.`);
-    return availableTracks;
+    return uniqueTrackNames(availableTracks);
   }
 }
 
@@ -95,7 +117,10 @@ function normalizeAssetMusicName(raw) {
 function collectReferencedMusicFiles(postsDir, availableTracks) {
   if (!fs.existsSync(postsDir)) return [];
 
-  const available = new Set(availableTracks);
+  const normalizedAvailable = new Map();
+  uniqueTrackNames(availableTracks).forEach((name) => {
+    normalizedAvailable.set(normalizeTrackName(name), name);
+  });
   const referenced = new Set();
   const postFiles = fs.readdirSync(postsDir).filter((name) => /\.md$/i.test(name));
   const patterns = [
@@ -109,7 +134,8 @@ function collectReferencedMusicFiles(postsDir, availableTracks) {
       let match = pattern.exec(content);
       while (match) {
         const trackName = normalizeAssetMusicName(match[1]);
-        if (available.has(trackName)) referenced.add(trackName);
+        const resolvedName = normalizedAvailable.get(normalizeTrackName(trackName));
+        if (resolvedName) referenced.add(resolvedName);
         match = pattern.exec(content);
       }
       pattern.lastIndex = 0;
@@ -132,10 +158,10 @@ function collect(hexo) {
 
   const pictures = listFiles(pictureDir, IMAGE_EXTS);
   const backgroundPictures = pictures.filter((name) => BACKGROUND_IMAGE_NAMES.has(name));
-  const tracks = listFiles(musicDir, AUDIO_EXTS);
+  const tracks = uniqueTrackNames(listFiles(musicDir, AUDIO_EXTS));
   const playerTracks = loadMusicPlaylist(musicDir, tracks, hexo);
   const referencedTracks = collectReferencedMusicFiles(postsDir, tracks);
-  const copiedTracks = Array.from(new Set(playerTracks.concat(referencedTracks)))
+  const copiedTracks = uniqueTrackNames(playerTracks.concat(referencedTracks))
     .sort((a, b) => a.localeCompare(b, 'zh-CN'));
   const videos = listFiles(videoDir, VIDEO_EXTS);
 

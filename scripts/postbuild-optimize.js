@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const crypto = require('crypto');
 
 const rootDir = path.resolve(__dirname, '..');
 const publicDir = path.join(rootDir, 'public');
@@ -11,6 +12,9 @@ const JS_EXT = /\.js$/i;
 const CSS_EXT = /\.css$/i;
 const HTML_EXT = /\.html$/i;
 const IMAGE_EXT = /\.(?:jpe?g|png|webp)$/i;
+const AUDIO_EXT = /\.(?:mp3|ogg|wav|m4a|flac)$/i;
+const sourceMusicDir = path.join(rootDir, 'music');
+const publicMusicDir = path.join(publicDir, 'assets', 'music');
 
 function walk(dir, files = []) {
   if (!fs.existsSync(dir)) return files;
@@ -54,6 +58,12 @@ function run(command, args) {
 
 function byteLength(file) {
   return fs.existsSync(file) ? fs.statSync(file).size : 0;
+}
+
+function fileHash(file) {
+  const hash = crypto.createHash('sha1');
+  hash.update(fs.readFileSync(file));
+  return hash.digest('hex');
 }
 
 function rel(file) {
@@ -182,6 +192,41 @@ function optimizeImages() {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 }
 
+function dedupePublicMusic() {
+  if (!fs.existsSync(sourceMusicDir) || !fs.existsSync(publicMusicDir)) {
+    return { linked: 0, bytesSaved: 0 };
+  }
+
+  let linked = 0;
+  let bytesSaved = 0;
+  const sourceFiles = new Map();
+
+  walk(sourceMusicDir).forEach((file) => {
+    if (!AUDIO_EXT.test(file)) return;
+    sourceFiles.set(path.basename(file), file);
+  });
+
+  walk(publicMusicDir).forEach((file) => {
+    if (!AUDIO_EXT.test(file)) return;
+
+    const source = sourceFiles.get(path.basename(file));
+    if (!source || !fs.existsSync(source)) return;
+
+    const sourceStat = fs.statSync(source);
+    const targetStat = fs.statSync(file);
+    if (sourceStat.size !== targetStat.size) return;
+    if (sourceStat.ino && targetStat.ino && sourceStat.ino === targetStat.ino) return;
+    if (fileHash(source) !== fileHash(file)) return;
+
+    fs.rmSync(file, { force: true });
+    fs.linkSync(source, file);
+    linked += 1;
+    bytesSaved += targetStat.size;
+  });
+
+  return { linked, bytesSaved };
+}
+
 function main() {
   if (!fs.existsSync(publicDir)) {
     throw new Error(`Public directory not found: ${publicDir}`);
@@ -191,9 +236,13 @@ function main() {
   optimizeTextFiles();
   optimizeModel();
   optimizeImages();
+  const dedupe = dedupePublicMusic();
   const after = walk(publicDir).reduce((sum, file) => sum + byteLength(file), 0);
   const saved = before - after;
   console.log(`[postbuild-optimize] Saved ${(saved / 1024 / 1024).toFixed(2)} MB (${(before / 1024 / 1024).toFixed(2)} MB -> ${(after / 1024 / 1024).toFixed(2)} MB).`);
+  if (dedupe.linked > 0) {
+    console.log(`[postbuild-optimize] Hard-linked ${dedupe.linked} duplicated music asset(s), reclaiming about ${(dedupe.bytesSaved / 1024 / 1024).toFixed(2)} MB of local disk usage.`);
+  }
 }
 
 if (require.main === module) {

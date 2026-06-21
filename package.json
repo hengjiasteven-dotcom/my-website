@@ -10,6 +10,7 @@
     "validate:scripts": "node scripts/validate-scripts.js",
     "validate": "npm run validate:scripts",
     "optimize:public": "node scripts/postbuild-optimize.js",
+    "dedupe:music": "node scripts/dedupe-music-assets.js",
     "clean": "hexo clean",
     "deploy": "hexo deploy",
     "server": "hexo server",
