@@ -10,6 +10,7 @@ const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
 const AUDIO_EXTS = new Set(['.mp3', '.ogg', '.wav', '.m4a', '.flac']);
 const VIDEO_EXTS = new Set(['.mp4', '.webm', '.mov', '.m4v', '.ogv']);
 const REMOTE_MUSIC_LIST_PATH = path.resolve(__dirname, '..', 'source', 'data', 'remote-music-list.json');
+const MUSIC_TITLE_MAP_PATH = path.resolve(__dirname, '..', 'source', 'data', 'music-title-map.json');
 const BACKGROUND_IMAGE_NAMES = new Set([
   '小王子1.jpg',
   '小王子2.jpg',
@@ -65,10 +66,32 @@ function shouldCopyMusicAssets(hexo) {
 }
 
 function musicTitle(file) {
+  const mapped = loadMusicTitleMap()[String(file || '')];
+  if (mapped) return mapped;
+
   return path.basename(file, path.extname(file))
     .replace(/\s+-\s+.+$/, '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+let cachedMusicTitleMap = null;
+
+function loadMusicTitleMap() {
+  if (cachedMusicTitleMap) return cachedMusicTitleMap;
+  if (!fs.existsSync(MUSIC_TITLE_MAP_PATH)) {
+    cachedMusicTitleMap = Object.create(null);
+    return cachedMusicTitleMap;
+  }
+
+  try {
+    const payload = JSON.parse(fs.readFileSync(MUSIC_TITLE_MAP_PATH, 'utf8'));
+    cachedMusicTitleMap = payload && typeof payload === 'object' ? payload : Object.create(null);
+  } catch {
+    cachedMusicTitleMap = Object.create(null);
+  }
+
+  return cachedMusicTitleMap;
 }
 
 function normalizeTrackName(name) {
