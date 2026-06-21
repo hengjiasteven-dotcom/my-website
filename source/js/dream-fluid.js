@@ -878,7 +878,7 @@
       '</div>'
     ].join('');
 
-    layoutRow.insertBefore(profile, postsCol);
+    layoutRow.appendChild(profile);
   }
 
   function cancelHomeAutoScroll() {

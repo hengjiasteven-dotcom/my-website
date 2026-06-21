@@ -1,8 +1,8 @@
 ---
 title: code
 date: "2026-06-21 12:37:16"
-index_img: "/assets/picture/小王子6 (2"
-banner_img: "/assets/picture/小王子6 (2"
+index_img: "/assets/picture/fathers-day-cover.png"
+banner_img: "/assets/picture/fathers-day-cover.png"
 tags:
   - 父亲节
   - 深度思考
@@ -15,7 +15,7 @@ cover: /images/fathers-day-deep.jpg
 excerpt: 从朱自清的背影到余华的卖血父亲，从美丽人生到是枝裕和的步履不停，我们穿过文学、电影与音乐，试图找到那个叫"父亲"的人的共同面孔。
 ---
 
-<audio controls preload="metadata" src="/assets/music/恋与情长.mp3">恋与情长</audio>
+<audio controls preload="metadata" src="/assets/music/我用什么把你留住.mp3">我用什么把你留住</audio>
 
 ## 引子：一个画面，千种父亲
 

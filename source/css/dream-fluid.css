@@ -4071,13 +4071,13 @@ body:not(.home) #board-ctn #board {
 
 @media (min-width: 992px) {
   .dream-home-posts {
-    padding-right: 0.5rem;
-    padding-left: 0.95rem;
+    padding-right: 0.2rem;
+    padding-left: 1.2rem;
   }
 
   .dream-profile-col {
-    padding-right: 0.95rem;
-    padding-left: 0.5rem;
+    padding-right: 1.2rem;
+    padding-left: 0.2rem;
   }
 }
 
