@@ -27473,11 +27473,19 @@ void main() {
       init_GLTFLoader();
       init_Reflector();
       window.__worldBootState.started = true;
+      var WORLD_ASSET_BASE = (() => {
+        var configured = (window.DREAM_WORLD_ASSET_BASE || "").trim().replace(/\/+$/, "");
+        return configured || "";
+      })();
+      function worldAssetUrl(assetPath) {
+        if (!WORLD_ASSET_BASE) return assetPath;
+        return WORLD_ASSET_BASE + assetPath;
+      }
       var ASSETS = {
-        character: "/world/models/%E7%8A%AC%E5%A4%9C%E5%8F%89.glb?v=20260613-1315",
+        character: worldAssetUrl("/world/models/%E7%8A%AC%E5%A4%9C%E5%8F%89.glb?v=20260613-1315"),
         environment: {
-          url: "/world/models/environment-trees.glb?v=20260613-full-local",
-          manifest: "/world/models/environment-trees.manifest.json?v=20260613-edgeone25"
+          url: worldAssetUrl("/world/models/environment-trees.glb?v=20260613-full-local"),
+          manifest: worldAssetUrl("/world/models/environment-trees.manifest.json?v=20260613-edgeone25")
         }
       };
       var WORLD_BOUNDS = {
