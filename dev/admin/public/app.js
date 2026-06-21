@@ -14,6 +14,7 @@ const mediaForm = document.querySelector('#mediaForm');
 const mediaMessage = document.querySelector('#mediaMessage');
 const mediaList = document.querySelector('#mediaList');
 const refreshMediaButton = document.querySelector('#refreshMediaButton');
+const syncPlaylistButton = document.querySelector('#syncPlaylistButton');
 
 const taskForm = document.querySelector('#taskForm');
 const taskBatchForm = document.querySelector('#taskBatchForm');
@@ -227,6 +228,13 @@ function bindForms() {
   });
 
   refreshMediaButton.addEventListener('click', refreshMedia);
+  syncPlaylistButton.addEventListener('click', async () => {
+    setMessage(mediaMessage, '正在同步 music 文件夹到播放器...');
+    const result = await request('/admin/api/playlist/sync', { method: 'POST' });
+    if (!result) return;
+    setMessage(mediaMessage, `已同步 ${result.added} 首新音乐到播放器，当前共 ${result.total} 首`, 'success');
+    refreshMedia();
+  });
   refreshTasksButton.addEventListener('click', refreshTasks);
   buildButton.addEventListener('click', () => startJob('/admin/api/build'));
   deployButton.addEventListener('click', () => startJob('/admin/api/deploy'));

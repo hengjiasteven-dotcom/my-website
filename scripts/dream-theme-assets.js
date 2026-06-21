@@ -34,15 +34,11 @@ function rootUrl(root, assetPath) {
 }
 
 function musicUrl(hexo, name) {
-  if (hexo.config.url === 'https://xiaodaidai.site') {
-    return `https://raw.githubusercontent.com/hengjiasteven-dotcom/my-website/source/music/${encodeURIComponent(name)}`;
-  }
-
   return rootUrl(hexo.config.root, `assets/music/${name}`);
 }
 
 function shouldCopyMusicAssets(hexo) {
-  return hexo.config.url !== 'https://xiaodaidai.site';
+  return true;
 }
 
 function musicTitle(file) {

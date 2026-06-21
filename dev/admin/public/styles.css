@@ -521,6 +521,10 @@ button:focus-visible {
 
 .library-toolbar {
   margin: 28px 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .library-toolbar h2,
@@ -532,6 +536,12 @@ button:focus-visible {
 .library-toolbar h2,
 .job-head h2 {
   font-size: 18px;
+}
+
+.toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .media-list {

@@ -346,6 +346,29 @@ app.post('/admin/api/playlist', requireAuth, (req, res) => {
   }
 });
 
+app.post('/admin/api/playlist/sync', requireAuth, (req, res) => {
+  try {
+    const musicFiles = listMediaFiles(musicDir, 'music').map((file) => file.name);
+    const playlist = readPlaylist();
+    const next = playlist.slice();
+
+    musicFiles.forEach((name) => {
+      if (!next.includes(name)) next.push(name);
+    });
+
+    writePlaylist(next);
+    rememberPendingPublishFiles([path.relative(rootDir, path.join(musicDir, 'playlist.json'))]);
+    res.json({
+      ok: true,
+      added: next.length - playlist.length,
+      total: next.length,
+      playlist: next
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 app.post('/admin/api/build', requireAuth, (req, res) => {
   try {
     const job = startCommandJob(['npm', 'run', 'build'], '构建网站');
