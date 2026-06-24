@@ -27473,10 +27473,10 @@ void main() {
       init_GLTFLoader();
       init_Reflector();
       window.__worldBootState.started = true;
-      var WORLD_ASSET_BASE = (() => {
+      var WORLD_ASSET_BASE = function() {
         var configured = (window.DREAM_WORLD_ASSET_BASE || "").trim().replace(/\/+$/, "");
         return configured || "";
-      })();
+      }();
       function worldAssetUrl(assetPath) {
         if (!WORLD_ASSET_BASE) return assetPath;
         return WORLD_ASSET_BASE + assetPath;
