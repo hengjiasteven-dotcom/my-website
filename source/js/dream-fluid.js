@@ -859,7 +859,7 @@
 
     layoutRow.classList.add('dream-home-layout', 'align-items-start');
     postsCol.classList.remove('col-md-10', 'm-auto');
-    postsCol.classList.add('dream-home-posts', 'col-lg-7');
+    postsCol.classList.add('dream-home-posts', 'col-lg-8');
 
     var profile = document.createElement('aside');
     profile.className = 'col-12 col-lg-4 dream-profile-col';
@@ -878,11 +878,7 @@
       '</div>'
     ].join('');
 
-    var spacer = document.createElement('div');
-    spacer.className = 'd-none d-lg-block col-lg-1 dream-home-gap';
-
     layoutRow.insertBefore(profile, postsCol);
-    layoutRow.insertBefore(spacer, postsCol);
   }
 
   function cancelHomeAutoScroll() {

@@ -14,12 +14,12 @@ font:
   code_font_size: 85%
 
 custom_css:
-  - /css/dream-fluid.css?v=20260618-taskglass
+  - /css/dream-fluid.css?v=20260624-home-refresh
 
 custom_js:
   - /js/dream-theme-manifest.js?v=20260613-music-refresh
   - /js/dream-daily-signs.js?v=20260618-daily-sign
-  - /js/dream-fluid.js?v=20260618-intro
+  - /js/dream-fluid.js?v=20260624-home-refresh
 
 static_prefix:
   waline: /js/vendor/waline/
