@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  var assets = window.DREAM_THEME_ASSETS || { pictures: [], music: [] };
+  var assets = window.DREAM_THEME_ASSETS || { pictures: [], spotlightPictures: [], music: [], videos: [] };
 
   function dedupeMusicAssets(list) {
     var seen = Object.create(null);
@@ -24,6 +24,10 @@
   var legalConsentStorageKey = 'DreamLegalConsent';
   var legalConsentVersion = '2026-06-18';
   var walineServerURL = 'https://my-blog-eta-one-13.vercel.app';
+  var videoSpotlightState = {
+    home: null,
+    tool: null
+  };
   var root = document.documentElement;
   var searchShortcutBound = false;
   var dreamToolsHashBound = false;
@@ -35,6 +39,12 @@
   var homeHeroTypingTimers = [];
   var deferredHomeFeaturesStarted = false;
   var homeAutoScrollState = null;
+  var homeNavbarState = {
+    enabled: false,
+    visible: false,
+    hideTimer: 0,
+    lastPointerY: Number.POSITIVE_INFINITY
+  };
   var homeIntroStorageKey = 'DreamHomeIntroSeen';
   var homeIntroState = null;
   var legalPolicyTemplates = {
@@ -43,28 +53,28 @@
       '<h2>隐私政策</h2>',
       '<h3>1. 信息收集范围</h3>',
       '<ol>',
-      '<li>本站仅会自动收集您访问网站时产生的基础访问日志，包含访问IP地址、访问时间、浏览器类型、访问页面、设备类型等匿名化访问数据，仅用于站点访问量统计、异常访问排查、网站安全防护与访问体验优化，不会定位到具体自然人身份。</li>',
-      '<li>仅当您主动在本站评论、留言时，您自愿填写的昵称、邮箱、留言内容会被本站存储；邮箱仅用于留言回复通知、防恶意刷评论校验，不会公开展示在页面中。</li>',
-      '<li>本站不会主动收集您的身份证、手机号、住址、银行卡等敏感个人隐私信息，不会强制要求您授权第三方账号登录。</li>',
+      '<li>本站仅在实现页面展示、访问安全、基础统计、留言互动等必要范围内处理相关信息，可能包括访问日志、访问时间、IP地址、浏览器类型、设备信息、访问页面，以及为记住访问确认或页面偏好而写入的 Cookie 或本地存储信息。</li>',
+      '<li>仅当您主动在本站评论、留言或提交反馈时，您自愿填写的昵称、邮箱、留言内容等信息，才会由本站或实际提供该功能的第三方服务商按功能所需进行处理；其中邮箱通常仅用于回复通知、身份校验或防滥用，不会在页面公开展示，除非相关功能另有明确说明。</li>',
+      '<li>除法律法规另有要求或者业务功能确有必要并另行告知外，本站原则上不会主动收集身份证号、银行卡号、精确定位、生物识别信息等敏感个人信息，也不会以误导、欺诈或强迫方式获取您的个人信息。</li>',
       '</ol>',
       '<h3>2. 信息使用规则</h3>',
       '<ol>',
-      '<li>所有收集的访问统计数据、留言信息仅用于本站正常运营，不会向任何无关第三方出售、出租、共享、泄露您的个人信息。</li>',
-      '<li>匿名访问日志会定期自动清理，仅保留最近12个月的站点统计数据；您的留言内容可由您联系站长申请删除、修改。</li>',
-      '<li>本站不会基于收集的用户数据开展精准广告推送、用户画像商业营销行为。</li>',
+      '<li>本站处理前述信息的目的限于站点运行维护、安全防护、访问统计、互动回复、问题排查与功能优化，不会超出与前述目的直接相关的合理范围使用您的个人信息。</li>',
+      '<li>除法律法规规定、取得您的授权同意，或为实现评论、统计、CDN、安全防护等必要功能而由相关服务商在合法范围内处理外，本站不会向无关第三方出售、出租或以其他非法方式提供您的个人信息。</li>',
+      '<li>相关日志、留言与本地存储信息将按照实现处理目的所需的最短合理期限保存；在法律法规允许且技术上可行的范围内，您可联系站长申请删除、更正与本人相关的留言或反馈信息。</li>',
       '</ol>',
       '<h3>3. 第三方服务说明</h3>',
       '<ol>',
-      '<li>本站可能接入第三方访客统计、评论系统、字体、图标、CDN加速等第三方服务，第三方将遵循其自身隐私政策处理相关访问数据，本站会优先选择合规正规的第三方服务商。</li>',
-      '<li>若您拒绝提供留言所需信息，仅会无法使用评论互动功能，不影响网站文章、页面的正常浏览。</li>',
+      '<li>本站可能接入第三方统计、评论系统、字体、图标、对象存储、CDN、安全防护等服务。相关第三方在提供服务过程中，可能依其自身规则处理必要数据；该等处理活动受其各自隐私政策、服务协议及适用法律约束。</li>',
+      '<li>若您点击外部链接、使用第三方评论或登录服务，相关页面或功能由第三方独立运营，本站对第三方的信息处理活动不作额外控制或担保，建议您在使用前自行查阅其规则说明。</li>',
       '</ol>',
       '<h3>4. 用户权利</h3>',
       '<ol>',
-      '<li>您有权随时联系站长，申请查看、删除本人的留言记录；可通过浏览器清除Cookie拒绝本站本地存储的访问授权记录。</li>',
-      '<li>如后续本站隐私条款发生更新，您再次访问网站时将重新触发访问确认弹窗，需重新同意后方可继续浏览。</li>',
+      '<li>在适用法律法规规定的范围内，您有权就本人主动提交的信息向站长申请查询、更正、删除，也可通过浏览器自行清理 Cookie 或本地存储记录；清理后，部分页面偏好或访问确认状态可能会被重置。</li>',
+      '<li>如后续本站隐私条款发生更新，本站会通过页面提示、重新确认等合理方式向您告知；更新后的规则自公布或提示的生效时间起适用。</li>',
       '</ol>',
       '<h3>5. 数据安全保障</h3>',
-      '<p>本站会通过基础技术防护手段保护您的非公开数据，防止信息泄露、篡改、恶意访问；如遭遇非法网络攻击导致数据泄露，站长会第一时间采取补救措施并公示风险提示。</p>',
+      '<p>本站会采取与现有技术条件相适应的安全措施保护您的非公开信息，尽力降低未经授权访问、泄露、篡改或丢失的风险；但互联网传输与存储并非绝对安全。若发生或者可能发生影响个人信息安全的事件，本站将根据实际情况依法采取补救、通知等措施。</p>',
       '</article>'
     ].join(''),
     'terms-of-service': [
@@ -72,45 +82,46 @@
       '<h2>网站服务协议</h2>',
       '<h3>1. 站点性质说明</h3>',
       '<ol>',
-      '<li>本站为<strong>个人非经营性公益向技术博客站点</strong>，仅用于站长个人技术学习记录、知识分享、技术交流，不开展任何线上交易、金融理财、付费咨询、托管担保、医疗法律专业意见、商品售卖等经营性商业活动。</li>',
-      '<li>本站所有免费公开内容仅作学习参考，不构成任何投资、就业、技术落地的专业保证，您依据本站内容产生的一切决策、行为风险由您个人自行承担。</li>',
+      '<li>本站为<strong>个人非经营性内容站点</strong>，主要用于个人学习记录、经验整理、资料分享与交流展示，不直接提供线上交易、付费咨询、商品售卖、托管担保、医疗建议、法律建议等经营性或专业执业服务。</li>',
+      '<li>站内内容可能包含原创内容、转载内容、引用内容、公开资料整理内容以及依据开源协议、授权规则或合理使用规则展示的第三方素材。各内容的权利归属与使用范围，以页面标注、原始来源说明、授权协议或适用法律规定为准。</li>',
       '</ol>',
       '<h3>2. 用户使用规范</h3>',
       '<ol>',
-      '<li>您在本站留言、评论、转载分享站内内容时，必须严格遵守《中华人民共和国网络安全法》《互联网信息服务管理办法》等相关法律法规，禁止发布下列内容：<ul><li>造谣、诽谤、辱骂、人身攻击、色情暴力、涉恐涉赌、涉政违法违规言论；</li><li>广告引流、恶意灌水、外链推广、病毒木马、恶意程序、钓鱼网站相关内容；</li><li>侵犯他人肖像权、著作权、隐私权等合法权益的内容。</li></ul></li>',
-      '<li>禁止对本站实施恶意网络攻击、高频爬虫批量抓取全站资源、伪造请求滥用网站接口、破解站点权限、植入恶意脚本等破坏网站正常运营的行为；一经发现，站长有权封禁您的访问IP、删除违规留言，并保留追究法律责任的权利。</li>',
-      '<li>未成年人访问本站需在监护人陪同下浏览，请勿在留言区泄露自身家庭、学校、手机号等私密信息。</li>',
+      '<li>您在本站留言、评论、投稿、转载分享站内内容或使用相关互动功能时，应遵守《中华人民共和国网络安全法》《中华人民共和国个人信息保护法》《中华人民共和国著作权法》及其他适用法律法规，不得发布、传播、存储任何违法违规、侵权、侮辱诽谤、虚假有害、恶意营销或破坏网络安全的内容。</li>',
+      '<li>如您主动提交文字、图片、音视频、链接或其他材料，您应保证其来源合法，并已取得必要授权或具备合法使用基础；因您提交内容引发的侵权、隐私、名誉或其他争议，应由您依法承担相应责任。本站有权在收到投诉、发现明显风险或认为必要时，对相关内容采取删除、屏蔽、断开链接、停止展示等措施。</li>',
+      '<li>未经许可，不得以影响本站正常运行或超出合理范围的方式实施自动化抓取、批量下载、接口滥用、破解防护、植入恶意脚本、干扰服务稳定性等行为；对于涉嫌破坏网站正常运行或侵害他人合法权益的访问，站长有权采取限制访问、删除内容、保全记录等必要措施。</li>',
       '</ol>',
       '<h3>3. 服务免责声明</h3>',
       '<ol>',
-      '<li>本站尽力保障网站稳定可访问，但因服务器故障、运营商网络波动、第三方服务异常、不可抗力等因素导致网站临时无法访问、数据短暂异常，本站不承担任何赔偿责任。</li>',
-      '<li>站内文章可能存在技术疏漏、时效性滞后等问题，站长会不定期修正内容，但不对信息绝对准确性、完整性作出承诺；站内第三方跳转链接的页面内容、服务由第三方平台负责，本站不对外链内容承担担保责任。</li>',
-      '<li>站长有权在不提前通知的前提下，对网站内容、页面功能、服务条款、隐私政策进行调整、更新，或临时关停、永久下线本站。</li>',
+      '<li>本站会尽力维护内容来源标注、页面可访问性与站点安全，但不保证所有转载、引用、整理信息始终完整、实时、绝对准确，也不保证站点服务持续不中断。您基于本站内容作出的判断、决策与后果，应由您结合自身情况自行审慎评估。</li>',
+      '<li>站内涉及的第三方链接、嵌入资源、评论服务及外部平台内容，由相应第三方独立提供并负责；对于第三方页面的合法性、准确性、可用性及其后续变更，本站不作明示或默示担保。</li>',
+      '<li>在符合法律法规的前提下，站长有权根据运营需要、投诉处理、合规要求或技术维护需要，对网站内容、页面功能、访问规则、服务条款、隐私政策及版权说明进行调整、补充、修订、暂停或下线。</li>',
       '</ol>',
       '<h3>4. 协议生效与终止</h3>',
-      '<p>您勾选同意条款并进入网站，即代表本服务协议在您与本站之间生效；若您违反本服务条款及国家法律法规，站长有权随时终止您的本站访问、留言权限。</p>',
+      '<p>您勾选同意条款并继续访问本站，即视为您已阅读并同意受本服务协议、隐私政策与版权说明约束；若您违反本协议或相关法律法规，站长有权依法或依本协议采取限制访问、删除内容、暂停互动权限等处理措施。</p>',
       '</article>'
     ].join(''),
     'copyright-notice': [
       '<article class="about-legal-modal-article">',
       '<h2>版权声明</h2>',
-      '<h3>1. 原创内容版权归属</h3>',
+      '<h3>1. 权利归属说明</h3>',
       '<ol>',
-      '<li>除页面明确标注转载、引用来源的内容外，本站内所有原创文章、技术笔记、页面文案、原创配图、代码示例、站点页面设计版式等内容，著作权均归本站主办者个人所有，受《中华人民共和国著作权法》保护。</li>',
-      '<li>未经站长书面授权，禁止任何单位、个人将本站原创内容用于商业用途转载、汇编、二次售卖、封装至付费产品内。</li>',
+      '<li>本站中由站长独立创作并明确标注为原创的文章、页面文案、自制图片、代码示例、页面设计及其他原创表达内容，其著作权及相关权益归本站主办者或相应权利人所有，法律另有规定或另行声明的除外。</li>',
+      '<li>站内转载、引用、摘编、整理、嵌入或展示的第三方文章、图片、音视频、代码、商标、字体、图标及其他素材，其著作权、邻接权、商标权等权利仍归原作者、原平台或其他合法权利人所有。本站对该等内容的展示，不视为取得转授权或有权向他人再许可。</li>',
       '</ol>',
-      '<h3>2. 非商业使用规范</h3>',
+      '<h3>2. 使用规则说明</h3>',
       '<ol>',
-      '<li>个人学习、技术交流等<strong>非商业场景</strong>下，允许有限转载、摘抄本站原创内容，但必须同时满足以下两项要求：<ul><li>清晰标注原文作者、文章来源；</li><li>附上本站原文原始访问链接，不得篡改、删减原文内容后伪装为原创发布。</li></ul></li>',
-      '<li>社交媒体、技术社区等平台合理引用本站少量内容，需遵守上述署名、留来源链接规则，单次引用不得超过原文完整篇幅的30%。</li>',
+      '<li>您转载、摘录、引用本站原创内容时，应遵守《中华人民共和国著作权法》及其他适用法律法规。属于合理使用范围的，应依法注明作者姓名或者名称、作品名称和来源，不得歪曲、篡改原意，不得影响作品的正常使用，也不得不合理地损害权利人的合法权益；超出合理使用范围或涉及商业使用的，应事先取得相应授权。</li>',
+      '<li>对于站内非原创或来源于第三方的内容，您应以原始权利声明、原平台规则、开源许可证或法律规定为准判断能否继续使用。除法律明确允许外，请勿仅因该内容出现在本站，即视为可任意复制、转载、下载、改编或商用。</li>',
+      '<li>站内引用的开源项目、代码片段、字体、图标及其他按协议开放的素材，应同时遵守对应开源许可证、素材授权条款或平台使用规则。</li>',
       '</ol>',
-      '<h3>3. 开源与第三方素材说明</h3>',
+      '<h3>3. 侵权通知与处理</h3>',
       '<ol>',
-      '<li>本站部分图标、前端框架、开源工具、第三方开源代码片段遵循对应开源协议使用，相关知识产权归原开源作者所有，本站仅做合规学习部署使用。</li>',
-      '<li>站内标注转载的文章、图片、素材，版权归原作者所有，本站仅做知识分享用途；若权利人发现本站存在侵权内容，可联系站长，本站会在24小时内完成侵权内容下架、删除处理。</li>',
+      '<li>如您认为本站相关内容侵犯了您的著作权、信息网络传播权、商标权、肖像权或其他合法权益，请提供权利人身份信息、权属证明、涉嫌侵权内容的具体页面链接、初步侵权说明及联系方式，并通过站内可用联系方式通知站长。</li>',
+      '<li>在收到相对完整、有效的权利通知后，本站会结合现有资料进行核实，并视情况及时采取删除、断开链接、补充来源标注、更正说明等必要处理措施；对于明显缺乏依据或材料不完整的通知，本站有权要求补充证明材料后再行处理。</li>',
       '</ol>',
-      '<h3>4. 侵权投诉方式</h3>',
-      '<p>如您发现本站存在侵犯您著作权、肖像权等合法权益的内容，可通过留言方式联系站长，提交权属证明、侵权位置等材料，本站核实后将第一时间处理侵权内容；若您违反本版权声明擅自商用、洗稿篡改本站原创内容，本站将依法维护自身著作权，追究侵权方相关法律责任。</p>',
+      '<h3>4. 其他说明</h3>',
+      '<p>本站会尽力尊重原创与合法来源，并对可识别的转载、引用、整理内容补充出处说明；若您发现来源标注有误、授权状态变化或其他合规风险，也欢迎联系站长协助更正。本站仅对自身依法享有权利的原创内容主张相应权利，不因第三方内容被收录、转载、整理或展示，而对该等第三方内容主张超出法定或授权范围的权益。</p>',
       '</article>'
     ].join('')
   };
@@ -545,15 +556,15 @@
         '<div class="dream-consent-grid">',
           '<div class="dream-consent-item">',
             '<strong>隐私条款</strong>',
-            '<p>本站仅在必要范围内处理访问日志、基础统计与访客主动提交的留言信息，不向无关第三方出售个人数据。</p>',
+            '<p>本站仅在必要范围内处理访问日志、基础统计、Cookie/本地存储与访客主动提交的留言信息，不向无关第三方非法提供个人数据。</p>',
           '</div>',
           '<div class="dream-consent-item">',
             '<strong>服务条款</strong>',
-            '<p>本站属于个人非经营性内容站点，不提供交易、托管或专业意见保证，禁止恶意抓取、滥用接口与违法互动内容。</p>',
+            '<p>本站属于个人非经营性内容站点，站内可能包含原创、转载、引用与整理内容，不提供交易、托管或专业意见保证。</p>',
           '</div>',
           '<div class="dream-consent-item">',
             '<strong>版权说明</strong>',
-            '<p>除特别标注外，原创文章、页面文案与站点整理内容归本站主办者所有；非商业引用请保留来源与原始链接。</p>',
+            '<p>本站内容可能对应不同权利状态；原创内容与第三方内容应分别依据页面标注、来源说明、授权规则及法律规定使用。</p>',
           '</div>',
         '</div>',
         '<div class="dream-consent-links">',
@@ -1581,6 +1592,79 @@
     document.body.classList.toggle('dream-scrolled', window.scrollY > 28);
   }
 
+  function clearHomeNavbarHideTimer() {
+    if (!homeNavbarState.hideTimer) return;
+    window.clearTimeout(homeNavbarState.hideTimer);
+    homeNavbarState.hideTimer = 0;
+  }
+
+  function setHomeNavbarVisible(visible) {
+    clearHomeNavbarHideTimer();
+    homeNavbarState.visible = !!visible;
+    document.body.classList.toggle('dream-home-nav-visible', homeNavbarState.visible);
+  }
+
+  function shouldEnableHomeNavbarAutoHide() {
+    if (!document.body.classList.contains('home')) return false;
+    if (window.innerWidth <= 991) return false;
+    if (!window.matchMedia) return true;
+    return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  }
+
+  function syncHomeNavbarAutoHide() {
+    var shouldEnable = shouldEnableHomeNavbarAutoHide();
+    var navbar = document.getElementById('navbar');
+    homeNavbarState.enabled = shouldEnable;
+    document.body.classList.toggle('dream-home-nav-auto-hide', shouldEnable);
+
+    if (!shouldEnable) {
+      clearHomeNavbarHideTimer();
+      homeNavbarState.visible = false;
+      document.body.classList.remove('dream-home-nav-visible');
+      return;
+    }
+
+    if (navbar && navbar.matches(':hover, :focus-within')) {
+      setHomeNavbarVisible(true);
+      return;
+    }
+
+    if (homeNavbarState.lastPointerY <= 88) {
+      setHomeNavbarVisible(true);
+      return;
+    }
+
+    homeNavbarState.visible = false;
+    document.body.classList.remove('dream-home-nav-visible');
+  }
+
+  function scheduleHomeNavbarHide() {
+    clearHomeNavbarHideTimer();
+    homeNavbarState.hideTimer = window.setTimeout(function() {
+      homeNavbarState.hideTimer = 0;
+      if (!homeNavbarState.enabled) return;
+      homeNavbarState.visible = false;
+      document.body.classList.remove('dream-home-nav-visible');
+    }, 120);
+  }
+
+  function handleHomeNavbarPointerMove(event) {
+    if (!homeNavbarState.enabled || !event || typeof event.clientY !== 'number') return;
+
+    homeNavbarState.lastPointerY = event.clientY;
+
+    var navbar = document.getElementById('navbar');
+    var revealThreshold = navbar ? Math.max(navbar.offsetHeight + 24, 88) : 88;
+    var pointerOnNavbar = !!(navbar && event.target && navbar.contains(event.target));
+
+    if (event.clientY <= revealThreshold || pointerOnNavbar) {
+      setHomeNavbarVisible(true);
+      return;
+    }
+
+    scheduleHomeNavbarHide();
+  }
+
   function clearHomeHeroTyping() {
     while (homeHeroTypingTimers.length) {
       window.clearTimeout(homeHeroTypingTimers.pop());
@@ -1991,8 +2075,573 @@
     return (size / 1024 / 1024).toFixed(1) + ' MB';
   }
 
+  function formatDuration(seconds) {
+    var total = Math.max(0, Math.floor(Number(seconds) || 0));
+    var mins = Math.floor(total / 60);
+    var secs = total % 60;
+    return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+  }
+
   function fileStem(name) {
     return String(name || 'download').replace(/\.[^.]+$/, '') || 'download';
+  }
+
+  function getVideoSpotlightConfig() {
+    var data = window.DREAM_SITE_DATA || {};
+    var fallback = {
+      preferredGroup: 'abyss',
+      frameProvider: 'qiniu-vframe',
+      title: '来自深渊点播机',
+      subtitle: '默认轮播图片，访客可以切换到视频模式点播。'
+    };
+
+    if (!data.videoSpotlight || typeof data.videoSpotlight !== 'object') {
+      return fallback;
+    }
+
+    return {
+      preferredGroup: String(data.videoSpotlight.preferredGroup || fallback.preferredGroup),
+      frameProvider: String(data.videoSpotlight.frameProvider || fallback.frameProvider),
+      title: String(data.videoSpotlight.title || fallback.title),
+      subtitle: String(data.videoSpotlight.subtitle || fallback.subtitle)
+    };
+  }
+
+  function videoAssets() {
+    return Array.isArray(assets.videos) ? assets.videos.filter(function(item) {
+      return item && item.url;
+    }) : [];
+  }
+
+  function preferredVideoPool() {
+    var videos = videoAssets();
+    if (!videos.length) return [];
+
+    var config = getVideoSpotlightConfig();
+    var preferred = videos.filter(function(item) {
+      var group = String(item.group || '').toLowerCase();
+      return Boolean(item.isAbyss) || (config.preferredGroup && group.indexOf(String(config.preferredGroup).toLowerCase()) >= 0);
+    });
+
+    return preferred.length ? preferred : videos;
+  }
+
+  function spotlightImageAssets() {
+    return Array.isArray(assets.spotlightPictures) ? assets.spotlightPictures.filter(function(item) {
+      return item && item.url;
+    }) : [];
+  }
+
+  function spotlightPictures() {
+    return (assets.pictures || []).filter(function(item) {
+      return item && item.url;
+    });
+  }
+
+  function createPictureSlides(videos) {
+    return videos.slice(0, 12).map(function(video) {
+      var title = String(video.title || video.name || video.path || '');
+      var imageUrl = String(video.cover || '');
+      if (!imageUrl) {
+        imageUrl = video.stills && video.stills[0] ? String(video.stills[0].url || '') : '';
+      }
+      if (!imageUrl && /^https?:\/\//i.test(String(video.url || ''))) {
+        imageUrl = String(video.url) + '?vframe/jpg/offset/30/w/1600';
+      }
+      return imageUrl ? { imageUrl: imageUrl, title: title } : null;
+    }).filter(Boolean);
+  }
+
+  function buildPicturePool() {
+    var spotlightImages = spotlightImageAssets();
+    var config = getVideoSpotlightConfig();
+    var preferredImages = spotlightImages.filter(function(item) {
+      var group = String(item.group || '').toLowerCase();
+      return Boolean(item.isAbyss) || (config.preferredGroup && group.indexOf(String(config.preferredGroup).toLowerCase()) >= 0);
+    });
+    var imagePool = preferredImages.length ? preferredImages : spotlightImages;
+    if (imagePool.length) {
+      return imagePool.map(function(item) {
+        return {
+          imageUrl: String(item.url || ''),
+          title: String(item.title || item.name || '图片模式'),
+          sortKey: String(item.path || item.name || '')
+        };
+      }).filter(function(item) {
+        return item.imageUrl;
+      }).sort(function(a, b) {
+        return a.sortKey.localeCompare(b.sortKey, 'zh-CN', { numeric: true });
+      });
+    }
+
+    var videos = preferredVideoPool();
+    var fromVideos = createPictureSlides(videos);
+    if (fromVideos.length) return fromVideos;
+
+    return spotlightPictures().map(function(item) {
+      return {
+        imageUrl: String(item.url || ''),
+        title: String(item.name || '图片轮播')
+      };
+    }).filter(function(item) {
+      return item.imageUrl;
+    });
+  }
+
+  function pickRandomVideo(excludePath) {
+    var pool = preferredVideoPool();
+    if (!pool.length) return null;
+
+    var candidates = excludePath ? pool.filter(function(item) {
+      return item.path !== excludePath;
+    }) : pool.slice();
+
+    if (!candidates.length) candidates = pool.slice();
+    return candidates[Math.floor(Math.random() * candidates.length)] || candidates[0] || null;
+  }
+
+  function pickRandomFrameTime(videoAsset) {
+    var duration = Math.max(1, Number(videoAsset && videoAsset.duration) || 0);
+    if (duration <= 1) return 1;
+
+    var min = Math.min(8, duration * 0.08);
+    var max = Math.max(min + 1, duration * 0.92);
+    return Math.min(duration - 0.5, min + Math.random() * Math.max(1, max - min));
+  }
+
+  function qiniuFrameUrl(videoAsset, seconds) {
+    var offset = Math.max(1, Math.floor(Number(seconds) || 1));
+    return String(videoAsset.url) + '?vframe/jpg/offset/' + offset + '/w/1600';
+  }
+
+  function formatVideoDurationLabel(seconds) {
+    var total = Number(seconds) || 0;
+    return total > 0 ? formatDuration(total) : '';
+  }
+
+  function makeSpotlightMeta(video, seconds) {
+    var parts = [];
+    if (video && video.title) parts.push(String(video.title));
+    if (video && video.group) parts.push(String(video.group).replace(/\//g, ' · '));
+    if (Number.isFinite(seconds)) parts.push('预览 ' + formatDuration(seconds));
+    return parts.join(' · ');
+  }
+
+  function setVideoSpotlightStatus(state, text, loading) {
+    if (!state || !state.status) return;
+    state.status.textContent = text;
+    if (state.root) {
+      state.root.classList.toggle('is-loading', Boolean(loading));
+    }
+  }
+
+  function setSpotlightMode(state, mode) {
+    if (!state) return;
+    state.mode = mode;
+    if (state.root) state.root.setAttribute('data-spotlight-mode', mode);
+    if (state.pictureToggle) state.pictureToggle.classList.toggle('is-active', mode === 'picture');
+    if (state.videoToggle) state.videoToggle.classList.toggle('is-active', mode === 'video');
+    if (state.videoArea) state.videoArea.hidden = mode !== 'video';
+    if (state.pictureArea) state.pictureArea.hidden = mode !== 'picture';
+    if (state.stage) state.stage.classList.toggle('is-video-mode', mode === 'video');
+    if (state.library) state.library.hidden = mode !== 'video';
+    if (state.sourceTabs) state.sourceTabs.hidden = mode !== 'video' || !state.currentVideo;
+    if (state.sourceMode) state.sourceMode.hidden = mode !== 'video' || !state.currentVideo;
+    if (state.random) state.random.hidden = mode === 'video';
+    if (state.play) {
+      state.play.hidden = mode === 'picture';
+      state.play.textContent = '播放';
+    }
+    if (mode === 'picture') {
+      if (state.currentPicture && state.meta) {
+        state.meta.textContent = state.currentPicture.title || '图片轮播中';
+      }
+      setVideoSpotlightStatus(state, '图片模式，每 10 秒自动切换', false);
+      return;
+    }
+    if (state.currentVideo) {
+      if (state.meta) {
+        state.meta.textContent = makeSpotlightMeta(state.currentVideo, Number(state.currentVideo.duration) ? Math.min(30, Number(state.currentVideo.duration)) : 0);
+      }
+      updateVideoSourceControls(state);
+      setVideoSpotlightStatus(state, '已进入视频模式，请从右侧目录选择本站视频', false);
+      return;
+    }
+    setVideoSpotlightStatus(state, '已进入视频模式，但当前没有可播放视频', false);
+  }
+
+  function bindPictureSlide(state, slide) {
+    if (!state || !slide || !state.image) return;
+    state.currentPicture = slide;
+    if (typeof slide.index === 'number') {
+      state.currentPictureIndex = slide.index;
+    }
+    state.image.src = slide.imageUrl;
+    state.image.alt = slide.title || '轮播图片';
+    state.image.hidden = false;
+    if (state.video) {
+      state.video.pause();
+      state.video.hidden = true;
+      state.video.removeAttribute('controls');
+    }
+    if (state.meta) state.meta.textContent = slide.title || '图片轮播中';
+    setVideoSpotlightStatus(state, '图片模式，每 10 秒自动切换', false);
+  }
+
+  function nextPictureSlide(state, forceDifferent) {
+    var pool = state && Array.isArray(state.picturePool) ? state.picturePool : [];
+    if (!pool.length) return null;
+    var currentIndex = typeof state.currentPictureIndex === 'number' ? state.currentPictureIndex : -1;
+    var nextIndex = currentIndex + 1;
+    if (nextIndex >= pool.length || nextIndex < 0) nextIndex = 0;
+    if (!forceDifferent && currentIndex >= 0 && currentIndex < pool.length) {
+      nextIndex = currentIndex;
+    }
+    var next = pool[nextIndex] || pool[0] || null;
+    if (!next) return null;
+    return Object.assign({ index: nextIndex }, next);
+  }
+
+  function startPictureLoop(state) {
+    if (!state) return;
+    if (state.pictureTimer) {
+      window.clearInterval(state.pictureTimer);
+    }
+    state.pictureTimer = window.setInterval(function() {
+      if (state.mode !== 'picture') return;
+      var next = nextPictureSlide(state, true);
+      if (next) bindPictureSlide(state, next);
+    }, 10000);
+  }
+
+  function renderVideoSpotlightLibrary(state) {
+    if (!state || !state.library) return;
+
+    var videos = preferredVideoPool();
+    if (!videos.length) {
+      state.library.hidden = true;
+      state.library.innerHTML = '';
+      return;
+    }
+
+    state.library.hidden = false;
+    state.library.innerHTML = [
+      '<section class="dream-video-spotlight-group" data-video-group="local">',
+      '<h3 class="dream-video-spotlight-group-title">本站视频目录</h3>',
+      videos.map(function(item, index) {
+        var active = state.currentVideo && state.currentVideo.path === item.path;
+        var duration = formatVideoDurationLabel(item.duration);
+        var metaParts = [duration].filter(Boolean);
+        return [
+          '<button class="dream-video-spotlight-library-item' + (active ? ' is-active' : '') + '" type="button" data-video-select="' + escapeAttribute(item.path) + '">',
+          '<span class="dream-video-spotlight-library-index">' + String(index + 1).padStart(2, '0') + '</span>',
+          '<span class="dream-video-spotlight-library-copy">',
+          '<strong>' + escapeHtml(item.title || item.name || item.path) + '</strong>',
+          metaParts.length ? '<small>' + escapeHtml(metaParts.join(' · ')) + '</small>' : '',
+          '</span>',
+          '</button>'
+        ].join('');
+      }).join(''),
+      '</section>'
+    ].join('');
+  }
+
+  function updateVideoSourceControls(state) {
+    if (!state || !state.sourceTabs || !state.currentVideo) return;
+    state.sourceTabs.hidden = false;
+    if (state.sourceMode) {
+      state.sourceMode.hidden = false;
+      state.sourceMode.textContent = '当前使用本站视频播放';
+    }
+    if (state.qiniu) state.qiniu.disabled = !state.currentVideo.url;
+  }
+
+  function showQiniuVideo(state) {
+    if (!state || !state.currentVideo || !state.video) return;
+    var video = state.currentVideo;
+    if (state.embed) {
+      state.embed.hidden = true;
+      state.embed.removeAttribute('src');
+    }
+    state.video.pause();
+    state.video.removeAttribute('src');
+    state.video.load();
+    if (state.image) state.image.hidden = true;
+    state.video.hidden = false;
+    state.video.controls = true;
+    state.video.poster = state.currentPoster || '';
+    state.video.src = video.url;
+    state.video.load();
+    state.video.addEventListener('loadeddata', function handleLoadedData() {
+      state.video.removeEventListener('loadeddata', handleLoadedData);
+      var playPromise = state.video.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(function(error) {
+          console.warn('Video playback failed:', error);
+        });
+      }
+    }, { once: true });
+    state.video.addEventListener('error', function handleVideoError() {
+      state.video.removeEventListener('error', handleVideoError);
+      if (state.image) state.image.hidden = false;
+      state.video.hidden = true;
+      setVideoSpotlightStatus(state, '本站视频加载失败，请确认资源可访问', false);
+    }, { once: true });
+    setVideoSpotlightStatus(state, '正在加载视频', false);
+  }
+
+  function playSelectedVideo(state) {
+    if (!state || !state.currentVideo) return;
+    if (state.currentVideo.url) {
+      showQiniuVideo(state);
+      return;
+    }
+    setVideoSpotlightStatus(state, '当前视频没有可用的播放地址', false);
+  }
+
+  function toggleCurrentVideoPlayback(state) {
+    if (!state || !state.video || state.video.hidden || !state.video.getAttribute('src')) {
+      playSelectedVideo(state);
+      return;
+    }
+
+    if (state.video.paused) {
+      var playPromise = state.video.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(function(error) {
+          console.warn('Video resume failed:', error);
+        });
+      }
+      if (state.play) state.play.textContent = '暂停';
+      setVideoSpotlightStatus(state, '已继续播放本站视频', false);
+      return;
+    }
+
+    state.video.pause();
+    if (state.play) state.play.textContent = '播放';
+    setVideoSpotlightStatus(state, '已暂停本站视频', false);
+  }
+
+  function bindVideoSelection(state, videoAsset) {
+    if (!state || !videoAsset) return Promise.resolve();
+    state.currentVideo = videoAsset;
+    var time = pickRandomFrameTime(videoAsset);
+    state.currentPoster = /^https?:\/\//i.test(String(videoAsset.url || '')) ? qiniuFrameUrl(videoAsset, time) : ((videoAsset.stills && videoAsset.stills[0]) ? String(videoAsset.stills[0].url || '') : '');
+    if (state.image && state.mode === 'video') {
+      state.image.src = state.currentPoster || '';
+      state.image.alt = (videoAsset.title || videoAsset.name || '视频海报') + ' 海报';
+      state.image.hidden = false;
+    }
+    if (state.meta) state.meta.textContent = makeSpotlightMeta(videoAsset, time);
+    if (state.video) {
+      state.video.hidden = true;
+      state.video.pause();
+      state.video.removeAttribute('src');
+      state.video.load();
+    }
+    if (state.embed) {
+      state.embed.hidden = true;
+      state.embed.removeAttribute('src');
+    }
+    if (state.play) {
+      state.play.disabled = false;
+      state.play.textContent = '播放';
+    }
+    updateVideoSourceControls(state);
+    renderVideoSpotlightLibrary(state);
+    setVideoSpotlightStatus(state, '已选中视频，可点击播放或本站播放开始', false);
+    return Promise.resolve();
+  }
+
+  function buildVideoSpotlightMarkup(kind) {
+    var config = getVideoSpotlightConfig();
+    var isHome = kind === 'home';
+    var iconMarkup = [
+      '<svg class="dream-video-spotlight-symbol" viewBox="0 0 64 64" aria-hidden="true">',
+      '<circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" stroke-width="4.5"></circle>',
+      '<path d="M27 21.5L42 32L27 42.5Z" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>',
+      '</svg>'
+    ].join('');
+
+    return [
+      '<div class="' + (isHome ? 'dream-video-spotlight-head' : 'tool-panel-head') + '">',
+      '<span class="' + (isHome ? 'dream-video-spotlight-icon' : 'tool-panel-icon') + '">' + iconMarkup + '</span>',
+      '<div>',
+      '<h2>' + escapeHtml(config.title) + '</h2>',
+      '<p>' + escapeHtml(config.subtitle) + '</p>',
+      '</div>',
+      '</div>',
+      '<div class="dream-video-spotlight-mode-switch">',
+      '<button class="tool-button is-active" type="button" data-spotlight-mode="picture">图片模式</button>',
+      '<button class="tool-ghost-button" type="button" data-spotlight-mode="video">视频模式</button>',
+      '</div>',
+      '<div class="' + (isHome ? 'dream-video-spotlight-body dream-video-spotlight-shell' : 'tool-video-spotlight-layout dream-video-spotlight-shell') + '">',
+      '<div class="dream-video-spotlight-stage" data-video-stage>',
+      '<div class="dream-video-spotlight-picture-area" data-picture-area>',
+      '<img class="dream-video-spotlight-image" data-video-image alt="点播器预览图" hidden>',
+      '</div>',
+      '<div class="dream-video-spotlight-video-area" data-video-area hidden>',
+      '<video class="dream-video-spotlight-player" data-video-player playsinline hidden></video>',
+      '<iframe class="dream-video-spotlight-embed" data-video-embed hidden allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>',
+      '</div>',
+      '<div class="dream-video-spotlight-empty" data-video-empty hidden>当前没有可展示的图片或视频资源，请稍后再试。</div>',
+      '</div>',
+      '<div class="' + (isHome ? 'dream-video-spotlight-side' : 'tool-result dream-video-spotlight-side') + '">',
+      '<p class="tool-status-text dream-video-spotlight-status" data-video-status>正在准备点播内容</p>',
+      '<p class="dream-video-spotlight-meta" data-video-meta>等待展示信息</p>',
+      '<div class="dream-video-spotlight-actions">',
+      '<button class="tool-button" type="button" data-video-random>换一个</button>',
+      '<button class="tool-ghost-button" type="button" data-video-play>播放</button>',
+      '</div>',
+      '<div class="dream-video-source-tabs" data-video-source-tabs hidden><button class="tool-ghost-button" type="button" data-video-qiniu>本站播放</button></div><p class="dream-video-source-mode" data-video-source-mode hidden></p><div class="dream-video-spotlight-library" data-video-library hidden></div>',
+      '</div>',
+      '</div>'
+    ].join('');
+  }
+
+  function hydrateVideoSpotlight(root, kind) {
+    if (!root) return null;
+
+    var state = {
+      root: root,
+      kind: kind,
+      mode: 'picture',
+      currentPicture: null,
+      currentPictureIndex: -1,
+      currentVideo: null,
+      currentPoster: '',
+      picturePool: buildPicturePool(),
+      pictureTimer: 0,
+      status: root.querySelector('[data-video-status]'),
+      meta: root.querySelector('[data-video-meta]'),
+      image: root.querySelector('[data-video-image]'),
+      video: root.querySelector('[data-video-player]'),
+      embed: root.querySelector('[data-video-embed]'),
+      empty: root.querySelector('[data-video-empty]'),
+      random: root.querySelector('[data-video-random]'),
+      play: root.querySelector('[data-video-play]'),
+      pictureToggle: root.querySelector('[data-spotlight-mode="picture"]'),
+      videoToggle: root.querySelector('[data-spotlight-mode="video"]'),
+      pictureArea: root.querySelector('[data-picture-area]'),
+      videoArea: root.querySelector('[data-video-area]'),
+      sourceTabs: root.querySelector('[data-video-source-tabs]'),
+      sourceMode: root.querySelector('[data-video-source-mode]'),
+            qiniu: root.querySelector('[data-video-qiniu]'),
+      library: root.querySelector('[data-video-library]'),
+      stage: root.querySelector('[data-video-stage]')
+    };
+
+    if (state.pictureToggle && state.pictureToggle.dataset.bound !== 'true') {
+      state.pictureToggle.dataset.bound = 'true';
+      state.pictureToggle.addEventListener('click', function() {
+        setSpotlightMode(state, 'picture');
+      });
+    }
+
+    if (state.videoToggle && state.videoToggle.dataset.bound !== 'true') {
+      state.videoToggle.dataset.bound = 'true';
+      state.videoToggle.addEventListener('click', function() {
+        setSpotlightMode(state, 'video');
+      });
+    }
+
+    if (state.random && state.random.dataset.bound !== 'true') {
+      state.random.dataset.bound = 'true';
+      state.random.addEventListener('click', function() {
+        if (state.mode === 'picture') {
+          var next = nextPictureSlide(state, true);
+          if (next) bindPictureSlide(state, next);
+          return;
+        }
+        var selected = pickRandomVideo(state.currentVideo ? state.currentVideo.path : '');
+        if (selected) {
+          bindVideoSelection(state, selected);
+        }
+      });
+    }
+
+    if (state.play && state.play.dataset.bound !== 'true') {
+      state.play.dataset.bound = 'true';
+      state.play.addEventListener('click', function() {
+        if (state.mode === 'video') {
+          toggleCurrentVideoPlayback(state);
+        }
+      });
+    }
+
+    if (state.qiniu && state.qiniu.dataset.bound !== 'true') {
+      state.qiniu.dataset.bound = 'true';
+      state.qiniu.addEventListener('click', function() {
+        showQiniuVideo(state);
+      });
+    }
+
+    if (state.library && state.library.dataset.bound !== 'true') {
+      state.library.dataset.bound = 'true';
+      state.library.addEventListener('click', function(event) {
+        var target = event.target && event.target.closest ? event.target.closest('[data-video-select]') : null;
+        if (!target) return;
+        var selectedPath = target.getAttribute('data-video-select') || '';
+        var selected = preferredVideoPool().find(function(item) {
+          return item.path === selectedPath;
+        });
+        if (!selected) return;
+        bindVideoSelection(state, selected);
+      });
+    }
+
+    setSpotlightMode(state, 'picture');
+    var firstPicture = nextPictureSlide(state, false);
+    if (firstPicture) bindPictureSlide(state, firstPicture);
+    startPictureLoop(state);
+    var firstVideo = preferredVideoPool()[0];
+    if (firstVideo) bindVideoSelection(state, firstVideo);
+    return state;
+  }
+
+  function resetVideoSpotlightStates() {
+    if (videoSpotlightState.home && videoSpotlightState.home.pictureTimer) window.clearInterval(videoSpotlightState.home.pictureTimer);
+    if (videoSpotlightState.tool && videoSpotlightState.tool.pictureTimer) window.clearInterval(videoSpotlightState.tool.pictureTimer);
+    videoSpotlightState.home = null;
+    videoSpotlightState.tool = null;
+  }
+
+  function createHomeVideoSpotlight() {
+    if (!document.body.classList.contains('home')) return;
+
+    var postsCol = document.querySelector('.dream-home-posts');
+    if (!postsCol || postsCol.querySelector('.dream-video-spotlight-card')) return;
+
+    var card = document.createElement('section');
+    card.className = 'dream-video-spotlight-card';
+    card.setAttribute('aria-label', 'video spotlight');
+    card.innerHTML = buildVideoSpotlightMarkup('home');
+
+    var firstMarker = postsCol.querySelector('.dream-archive-month, .dream-archive-day, .index-card');
+    if (firstMarker) {
+      firstMarker.parentNode.insertBefore(card, firstMarker);
+    } else {
+      postsCol.appendChild(card);
+    }
+
+    videoSpotlightState.home = hydrateVideoSpotlight(card, 'home');
+  }
+
+  function initVideoSpotlightTool() {
+    var panel = document.querySelector('[data-video-spotlight-tool]');
+    if (!panel) {
+      videoSpotlightState.tool = null;
+      return;
+    }
+
+    if (!panel.querySelector('[data-video-status]')) {
+      panel.innerHTML = [
+        '<button class="tool-back-button" type="button" data-tool-close>返回工具列表</button>',
+        buildVideoSpotlightMarkup('tool')
+      ].join('');
+    }
+
+    videoSpotlightState.tool = hydrateVideoSpotlight(panel, 'tool');
   }
 
   function fileExtension(name, fallback) {
@@ -2460,6 +3109,7 @@
     var toolsRoot = document.querySelector('[data-dream-tools]');
     if (!toolsRoot) {
       activeDreamToolShow = null;
+      videoSpotlightState.tool = null;
       return;
     }
 
@@ -2536,6 +3186,7 @@
     }
 
     showTool((window.location.hash || '').replace(/^#/, ''), { keepHash: true, scroll: false });
+    initVideoSpotlightTool();
     initImageConverter();
     initMarkdownPreview();
     initAudioConverter();
@@ -4273,8 +4924,10 @@
   }
 
   function initPage() {
+    resetVideoSpotlightStates();
     deferredHomeFeaturesStarted = false;
     markPageType();
+    syncHomeNavbarAutoHide();
     pickBackgrounds();
     startHomeIntro();
     enhanceHomeHero();
@@ -4293,12 +4946,24 @@
     createHomeWorldPortal();
     createHomeTasksCard();
     createHomeDailySignCard();
+    createHomeVideoSpotlight();
     startDeferredHomeFeatures();
   }
 
   function initOnce() {
     addBackgroundLayer();
     window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', syncHomeNavbarAutoHide, { passive: true });
+    document.addEventListener('pointermove', handleHomeNavbarPointerMove, { passive: true });
+    document.addEventListener('focusin', function(event) {
+      var navbar = document.getElementById('navbar');
+      if (!homeNavbarState.enabled || !navbar || !event.target || !navbar.contains(event.target)) return;
+      setHomeNavbarVisible(true);
+    });
+    document.addEventListener('focusout', function() {
+      if (!homeNavbarState.enabled) return;
+      window.setTimeout(syncHomeNavbarAutoHide, 0);
+    });
     initPjaxNavigation();
     initLegalConsentGate();
   }

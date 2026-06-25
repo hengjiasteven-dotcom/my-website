@@ -71,6 +71,36 @@ function readTasks(hexo) {
   }
 }
 
+function readVideoSpotlight(hexo) {
+  const filePath = path.join(hexo.source_dir, '_data', 'video-spotlight.json');
+  if (!fs.existsSync(filePath)) {
+    return {
+      preferredGroup: 'abyss',
+      frameProvider: 'qiniu-vframe',
+      title: '来自深渊随机放映',
+      subtitle: '从全部视频里随机抽取一部，再随机截取其中一帧。'
+    };
+  }
+
+  try {
+    const value = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    return {
+      preferredGroup: String(value.preferredGroup || 'abyss'),
+      frameProvider: String(value.frameProvider || 'qiniu-vframe'),
+      title: String(value.title || '来自深渊随机放映'),
+      subtitle: String(value.subtitle || '从全部视频里随机抽取一部，再随机截取其中一帧。')
+    };
+  } catch (error) {
+    hexo.log.warn(`[DreamTheme] Failed to read video-spotlight.json: ${error.message}`);
+    return {
+      preferredGroup: 'abyss',
+      frameProvider: 'qiniu-vframe',
+      title: '来自深渊随机放映',
+      subtitle: '从全部视频里随机抽取一部，再随机截取其中一帧。'
+    };
+  }
+}
+
 function generateSiteData(hexo, locals) {
   const now = new Date();
   const posts = (locals.posts && locals.posts.toArray ? locals.posts.toArray() : [])
@@ -126,7 +156,8 @@ function generateSiteData(hexo, locals) {
     },
     tags,
     calendar,
-    tasks: readTasks(hexo)
+    tasks: readTasks(hexo),
+    videoSpotlight: readVideoSpotlight(hexo)
   };
 
   return {
@@ -149,6 +180,7 @@ module.exports = {
   stripHtml,
   daysSince,
   readTasks,
+  readVideoSpotlight,
   generateSiteData,
   register
 };

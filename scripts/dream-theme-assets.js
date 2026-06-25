@@ -8,8 +8,8 @@ dotenv.config({ path: path.resolve(__dirname, '..', '.env'), quiet: true, overri
 
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
 const AUDIO_EXTS = new Set(['.mp3', '.ogg', '.wav', '.m4a', '.flac']);
-const VIDEO_EXTS = new Set(['.mp4', '.webm', '.mov', '.m4v', '.ogv']);
 const REMOTE_MUSIC_LIST_PATH = path.resolve(__dirname, '..', 'source', 'data', 'remote-music-list.json');
+const REMOTE_VIDEO_LIST_PATH = path.resolve(__dirname, '..', 'source', 'data', 'remote-video-list.json');
 const MUSIC_TITLE_MAP_PATH = path.resolve(__dirname, '..', 'source', 'data', 'music-title-map.json');
 const BACKGROUND_IMAGE_NAMES = new Set([
   '小王子1.jpg',
@@ -24,11 +24,52 @@ function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
+function streamFile(filePath) {
+  return fs.createReadStream(filePath);
+}
+
 function listFiles(dir, exts) {
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir)
     .filter((name) => exts.has(path.extname(name).toLowerCase()))
     .sort((a, b) => a.localeCompare(b, 'zh-CN'));
+}
+
+function listFilesRecursive(dir, exts, rootDir = dir) {
+  if (!fs.existsSync(dir)) return [];
+
+  return fs.readdirSync(dir, { withFileTypes: true })
+    .flatMap((entry) => {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        return listFilesRecursive(fullPath, exts, rootDir);
+      }
+
+      if (!entry.isFile() || !exts.has(path.extname(entry.name).toLowerCase())) {
+        return [];
+      }
+
+      return [path.relative(rootDir, fullPath).split(path.sep).join('/')];
+    })
+    .sort((a, b) => a.localeCompare(b, 'zh-CN'));
+}
+
+function pictureTitle(file) {
+  return path.basename(String(file || ''), path.extname(String(file || '')))
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function pictureGroup(file) {
+  const relativePath = String(file || '').replace(/\\/g, '/');
+  const parts = relativePath.split('/').filter(Boolean);
+  return parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+}
+
+function isAbyssPicture(file) {
+  const value = String(file || '').replace(/\\/g, '/').toLowerCase();
+  return /(^|\/)(abyss|made[-_\s]*in[-_\s]*abyss)(\/|$)/.test(value) || /[\u6765\u81ea]?\u6df1\u6e0a/i.test(String(file || ''));
 }
 
 function rootUrl(root, assetPath) {
@@ -46,6 +87,10 @@ function remoteAssetBase(hexo) {
   return normalizeBaseUrl(process.env.ASSET_CDN_BASE || hexo?.config?.asset_cdn_base);
 }
 
+function remoteVideoAssetBase(hexo) {
+  return normalizeBaseUrl(process.env.VIDEO_ASSET_CDN_BASE || hexo?.config?.video_asset_cdn_base || remoteAssetBase(hexo));
+}
+
 function assetUrl(hexo, assetPath) {
   const base = remoteAssetBase(hexo);
   if (base) {
@@ -55,6 +100,27 @@ function assetUrl(hexo, assetPath) {
       .join('/')}`;
   }
   return rootUrl(hexo.config.root, assetPath);
+}
+
+function normalizeVideoPublicPath(relativePath) {
+  const normalized = String(relativePath || '').replace(/\\/g, '/').replace(/^\/+/, '');
+  const match = normalized.match(/^abyss\/movies\/([^/]+)$/i);
+  if (match) {
+    return `abyss/${match[1]}`;
+  }
+  return normalized;
+}
+
+function videoAssetUrl(hexo, relativePath) {
+  const publicPath = normalizeVideoPublicPath(relativePath);
+  const base = remoteVideoAssetBase(hexo);
+  if (base) {
+    return `${base}/assets/video/${publicPath
+      .split('/')
+      .map((part) => encodeURIComponent(part))
+      .join('/')}`;
+  }
+  return rootUrl(hexo.config.root, `assets/video/${publicPath}`);
 }
 
 function musicUrl(hexo, name) {
@@ -73,6 +139,24 @@ function musicTitle(file) {
     .replace(/\s+-\s+.+$/, '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function videoTitle(file) {
+  return path.basename(String(file || ''), path.extname(String(file || '')))
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function videoGroup(file) {
+  const relativePath = String(file || '').replace(/\\/g, '/');
+  const parts = relativePath.split('/').filter(Boolean);
+  return parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+}
+
+function isAbyssVideo(file) {
+  const value = String(file || '').toLowerCase();
+  return /(^|\/)(abyss|made[-_\s]*in[-_\s]*abyss)(\/|$)/.test(value) || /[\u6765\u81ea]?\u6df1\u6e0a/i.test(String(file || ''));
 }
 
 let cachedMusicTitleMap = null;
@@ -155,6 +239,30 @@ function loadRemoteMusicList() {
   }
 }
 
+function loadRemoteVideoList() {
+  if (!fs.existsSync(REMOTE_VIDEO_LIST_PATH)) return [];
+
+  try {
+    const payload = JSON.parse(fs.readFileSync(REMOTE_VIDEO_LIST_PATH, 'utf8'));
+    const rawList = Array.isArray(payload.videos) ? payload.videos : [];
+
+    return rawList
+      .filter((item) => item && typeof item === 'object' && item.path)
+      .map((item) => ({
+        path: String(item.path).replace(/\\/g, '/').replace(/^\/+/, ''),
+        title: String(item.title || ''),
+        group: String(item.group || ''),
+        duration: Number(item.duration || 0),
+        cover: String(item.cover || ''),
+        sourceType: String(item.sourceType || 'qiniu'),
+        bilibiliUrl: String(item.bilibiliUrl || ''),
+        isAbyss: typeof item.isAbyss === 'boolean' ? item.isAbyss : isAbyssVideo(item.path)
+      }));
+  } catch {
+    return [];
+  }
+}
+
 function normalizeAssetMusicName(raw) {
   const value = String(raw || '').trim();
   if (!value) return '';
@@ -210,11 +318,12 @@ function collect(hexo) {
 
   const pictureDir = path.join(baseDir, 'picture');
   const musicDir = path.join(baseDir, 'music');
-  const videoDir = path.join(baseDir, 'video');
   const postsDir = path.join(baseDir, 'source', '_posts');
 
-  const pictures = listFiles(pictureDir, IMAGE_EXTS);
-  const backgroundPictures = pictures.filter((name) => BACKGROUND_IMAGE_NAMES.has(name));
+  const rootPictures = listFiles(pictureDir, IMAGE_EXTS);
+  const pictureFiles = listFilesRecursive(pictureDir, IMAGE_EXTS);
+  const backgroundPictures = rootPictures.filter((name) => BACKGROUND_IMAGE_NAMES.has(name));
+  const spotlightPictures = pictureFiles.filter((relativePath) => pictureGroup(relativePath));
   const localTracks = uniqueTrackNames(listFiles(musicDir, AUDIO_EXTS));
   const remoteTracks = loadRemoteMusicList();
   const tracks = localTracks.length ? localTracks : remoteTracks;
@@ -222,44 +331,62 @@ function collect(hexo) {
   const referencedTracks = collectReferencedMusicFiles(postsDir, tracks);
   const copiedTracks = uniqueTrackNames(playerTracks.concat(referencedTracks))
     .sort((a, b) => a.localeCompare(b, 'zh-CN'));
-  const videos = listFiles(videoDir, VIDEO_EXTS);
+  const videos = loadRemoteVideoList();
 
   const manifest = {
     pictures: backgroundPictures.map((name) => ({
       name,
       url: rootUrl(hexo.config.root, `assets/picture/${name}`)
     })),
+    spotlightPictures: spotlightPictures.map((relativePath) => ({
+      name: path.basename(relativePath),
+      path: relativePath,
+      title: pictureTitle(relativePath),
+      group: pictureGroup(relativePath),
+      isAbyss: isAbyssPicture(relativePath),
+      url: assetUrl(hexo, `assets/picture/${relativePath}`)
+    })),
     music: playerTracks.map((name) => ({
       name,
       title: musicTitle(name),
       url: musicUrl(hexo, name)
     })),
-    videos: videos.map((name) => ({
-      name,
-      title: path.basename(name, path.extname(name)),
-      url: rootUrl(hexo.config.root, `assets/video/${name}`)
-    }))
+    videos: videos.map((item) => {
+      const relativePath = String(item.path || '');
+      const publicPath = normalizeVideoPublicPath(relativePath);
+      return {
+        name: path.basename(publicPath),
+        path: publicPath,
+        title: item.title || videoTitle(relativePath),
+        group: item.group || videoGroup(relativePath),
+        isAbyss: typeof item.isAbyss === 'boolean' ? item.isAbyss : isAbyssVideo(relativePath),
+        sourceType: 'qiniu',
+        bilibiliUrl: '',
+        url: videoAssetUrl(hexo, relativePath),
+        duration: Number(item.duration || 0),
+        cover: item.cover || '',
+        stills: []
+      };
+    })
   };
 
   const content = `window.DREAM_THEME_ASSETS = ${JSON.stringify(manifest, null, 2)};\n`;
 
   cachedManifest = content;
   cachedFiles = {
-    pictures: pictures.map((name) => ({
-      name,
-      source: path.join(pictureDir, name)
+    pictures: pictureFiles.map((relativePath) => ({
+      name: path.basename(relativePath),
+      path: relativePath,
+      source: path.join(pictureDir, ...relativePath.split('/'))
     })),
     tracks: copiedTracks.map((name) => ({
       name,
       source: path.join(musicDir, name)
     })),
-    videos: videos.map((name) => ({
-      name,
-      source: path.join(videoDir, name)
-    }))
+    videos: []
   };
 
-  hexo.log.info(`[DreamTheme] Synced ${pictures.length} picture asset(s), ${backgroundPictures.length} background image(s), ${tracks.length} audio asset(s), ${playerTracks.length} player track(s), ${referencedTracks.length} referenced post track(s), ${copiedTracks.length} copied audio asset(s), and ${videos.length} video file(s).`);
+  hexo.log.info(`[DreamTheme] Synced ${pictureFiles.length} picture asset(s), ${backgroundPictures.length} background image(s), ${spotlightPictures.length} spotlight image(s), ${tracks.length} audio asset(s), ${playerTracks.length} player track(s), ${referencedTracks.length} referenced post track(s), ${copiedTracks.length} copied audio asset(s), and ${videos.length} remote video item(s).`);
 }
 
 function generateRoutes(hexo) {
@@ -277,8 +404,8 @@ function generateRoutes(hexo) {
 
   cachedFiles.pictures.forEach((file) => {
     routes.push({
-      path: `assets/picture/${file.name}`,
-      data: () => Promise.resolve(fs.readFileSync(file.source))
+      path: `assets/picture/${file.path}`,
+      data: () => Promise.resolve(streamFile(file.source))
     });
   });
 
@@ -286,15 +413,15 @@ function generateRoutes(hexo) {
     if (shouldCopyMusicAssets(hexo)) {
       routes.push({
         path: `assets/music/${file.name}`,
-        data: () => Promise.resolve(fs.readFileSync(file.source))
+        data: () => Promise.resolve(streamFile(file.source))
       });
     }
   });
 
   cachedFiles.videos.forEach((file) => {
     routes.push({
-      path: `assets/video/${file.name}`,
-      data: () => Promise.resolve(fs.readFileSync(file.source))
+      path: `assets/video/${file.path}`,
+      data: () => Promise.resolve(streamFile(file.source))
     });
   });
 
@@ -324,16 +451,23 @@ function register(hexo) {
 module.exports = {
   IMAGE_EXTS,
   AUDIO_EXTS,
-  VIDEO_EXTS,
   BACKGROUND_IMAGE_NAMES,
   ensureDir,
+  streamFile,
   listFiles,
   rootUrl,
   musicUrl,
   shouldCopyMusicAssets,
   musicTitle,
+  pictureTitle,
+  pictureGroup,
+  isAbyssPicture,
+  videoTitle,
+  videoGroup,
+  isAbyssVideo,
   loadMusicPlaylist,
   collectReferencedMusicFiles,
+  listFilesRecursive,
   collect,
   generateRoutes,
   register
