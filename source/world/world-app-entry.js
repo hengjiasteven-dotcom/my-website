@@ -51,14 +51,7 @@ import * as THREE from '../js/vendor/three/build/three.module.js';
       cabin: 5
     };
 
-    const WORLD_CHAT_API_URL = (() => {
-      const localHosts = new Set(['localhost', '127.0.0.1', '::1']);
-      if (localHosts.has(window.location.hostname) || window.location.hostname.endsWith('.vercel.app')) {
-        return '/api/world-chat';
-      }
-
-      return 'https://my-website-zeta-indol-39.vercel.app/api/world-chat';
-    })();
+    const WORLD_CHAT_API_URL = '/api/world-chat';
 
     const IS_LOCAL_PREVIEW = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
 

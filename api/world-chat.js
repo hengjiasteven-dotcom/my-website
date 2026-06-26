@@ -1,5 +1,5 @@
-const DEFAULT_CHAT_ENDPOINT = 'https://www.oiocode.com/v1/chat/completions';
-const DEFAULT_MODEL = 'gpt-5.4';
+const DEFAULT_CHAT_ENDPOINT = 'https://api.deepseek.com/v1/chat/completions';
+const DEFAULT_MODEL = 'deepseek-chat';
 const DEFAULT_ALLOWED_ORIGINS = [
   'https://xiaodaidai.site',
   'https://my-website-zeta-indol-39.vercel.app',
