@@ -33,9 +33,12 @@
         </div>
 
         <nav class="nav-tabs" aria-label="后台功能">
-          <button class="nav-tab is-active" type="button" data-panel="postPanel">发文章</button>
+          <button class="nav-tab is-active" type="button" data-panel="overviewPanel">总览</button>
+          <button class="nav-tab" type="button" data-panel="postPanel">发文章</button>
           <button class="nav-tab" type="button" data-panel="mediaPanel">媒体库</button>
           <button class="nav-tab" type="button" data-panel="taskPanel">任务</button>
+          <button class="nav-tab" type="button" data-panel="postsPanel">文章管理</button>
+          <button class="nav-tab" type="button" data-panel="friendPanel">友链</button>
           <button class="nav-tab" type="button" data-panel="publishPanel">发布</button>
         </nav>
 
@@ -58,9 +61,54 @@
           </div>
         </header>
 
+        
         <section
-          id="postPanel"
+          id="overviewPanel"
           class="panel is-active"
+          data-title="总览仪表盘"
+          data-description="博客核心数据一览。"
+        >
+          <div class="overview-grid" aria-live="polite">
+            <div class="stat-card"><strong id="statPosts">0</strong><span>文章</span></div>
+            <div class="stat-card"><strong id="statMedia">0</strong><span>媒体</span></div>
+            <div class="stat-card"><strong id="statTasks">0</strong><span>任务</span></div>
+            <div class="stat-card"><strong id="statFriends">0</strong><span>友链</span></div>
+          </div>
+          <div class="overview-detail-grid">
+            <div class="ov-section">
+              <h3>数据明细</h3>
+              <div class="ov-detail-list">
+                <div><span>文章</span><strong id="ovPostCount">0</strong></div>
+                <div><span>本地图片</span><strong id="ovPictureCount">0</strong></div>
+                <div><span>本地音乐</span><strong id="ovLocalMusicCount">0</strong></div>
+                <div><span>远程音乐</span><strong id="ovRemoteMusicCount">0</strong></div>
+                <div><span>远程视频</span><strong id="ovRemoteVideoCount">0</strong></div>
+                <div><span>播放器</span><strong id="ovPlaylistCount">0</strong></div>
+                <div><span>任务 已完成/总数</span><strong id="ovTaskDetail">0</strong></div>
+                <div><span>今日任务</span><strong id="ovTaskToday">0</strong></div>
+                <div><span>待发布</span><strong id="ovPendingCount">0</strong></div>
+              </div>
+            </div>
+            <div class="ov-section">
+              <h3>部署状态</h3>
+              <p id="ovDeployStatus" class="ov-deploy-status">idle</p>
+              <p id="ovDeployTime" class="ov-deploy-time"></p>
+            </div>
+          </div>
+          <div class="overview-detail-grid">
+            <div class="ov-section">
+              <h3>最近文章</h3>
+              <div id="ovRecentPosts" class="ov-post-list"></div>
+            </div>
+            <div class="ov-section">
+              <h3>待办任务</h3>
+              <div id="ovPendingTasks" class="ov-task-list"></div>
+            </div>
+          </div>
+        </section>
+<section
+          id="postPanel"
+          class="panel"
           data-title="发布新内容"
           data-description="文件上传、封面选择、标签分类和文章音乐都集中在这一页。"
         >
@@ -128,11 +176,16 @@
             </label>
 
             <div class="form-actions span-2">
-              <button type="submit">保存文章</button>
+              <button id="postSubmitButton" type="submit">保存文章</button>
               <button id="clearPostSelections" type="button" class="ghost-button ghost-button-light">清空封面和文章音乐</button>
               <p id="postMessage" class="form-message" role="status"></p>
             </div>
           </form>
+            <input id="postEditName" type="hidden">
+            <div id="postBodyField" class="field span-2" hidden>
+              <label for="postBody">文章正文 (Markdown)</label>
+              <textarea id="postBody" rows="20" placeholder="正文内容..."></textarea>
+            </div>
         </section>
 
         <section
@@ -160,7 +213,7 @@
             </label>
 
             <div class="form-actions">
-              <button type="submit">上传媒体</button>
+              <button id="mediaSubmitButton" type="submit">上传媒体</button>
               <p id="mediaMessage" class="form-message" role="status"></p>
             </div>
           </form>
@@ -178,6 +231,43 @@
           </div>
 
           <div id="mediaList" class="media-list" aria-live="polite"></div>
+        
+
+          <hr class="panel-divider">
+          <div class="library-toolbar">
+            <h2>远程媒体配置</h2>
+            <p class="toolbar-copy">管理托管在七牛云 / CDN 上的音乐和视频文件列表。每行一个文件名即可。</p>
+          </div>
+
+          <div class="remote-section">
+            <h3>远程音乐列表</h3>
+            <p class="field-hint">每行一个文件名，保存后更新 source/data/remote-music-list.json。</p>
+            <textarea id="remoteMusicEditor" rows="10" placeholder="薄荷与猫.mp3&#10;贝加尔湖畔.m4a&#10;..."></textarea>
+            <div class="form-actions">
+              <button id="saveRemoteMusicButton" type="button">保存远程音乐列表</button>
+              <p id="remoteMusicMessage" class="form-message" role="status"></p>
+            </div>
+          </div>
+
+          <div class="remote-section">
+            <h3>音乐标题映射</h3>
+            <p class="field-hint">格式：文件名 | 显示标题。只写文件名则自动用文件名当标题。</p>
+            <textarea id="musicTitleEditor" rows="8" placeholder="薄荷与猫.mp3 | 薄荷与猫&#10;贝加尔湖畔.m4a | 贝加尔湖畔"></textarea>
+            <div class="form-actions">
+              <button id="saveMusicTitlesButton" type="button">保存标题映射</button>
+              <p id="musicTitleMessage" class="form-message" role="status"></p>
+            </div>
+          </div>
+
+          <div class="remote-section">
+            <h3>远程视频列表</h3>
+            <p class="field-hint">每行一个视频路径，其余字段自动填充默认值。</p>
+            <textarea id="remoteVideoEditor" rows="12" placeholder="abyss/made-in-abyss-movie-01.mp4&#10;abyss/made-in-abyss-movie-02.mp4"></textarea>
+            <div class="form-actions">
+              <button id="saveRemoteVideoButton" type="button">保存远程视频列表</button>
+              <p id="remoteVideoMessage" class="form-message" role="status"></p>
+            </div>
+          </div>
         </section>
 
         <section
@@ -267,7 +357,73 @@
           <div id="taskList" class="task-list" aria-live="polite"></div>
         </section>
 
+        
         <section
+          id="postsPanel"
+          class="panel"
+          data-title="文章管理"
+          data-description="浏览、搜索、编辑和删除已有文章。"
+        >
+          <div class="library-toolbar">
+            <h2>文章列表</h2>
+            <div class="toolbar-actions">
+              <input id="postSearch" class="toolbar-search" type="search" placeholder="搜索文章...">
+              <button id="refreshPostsButton" class="ghost-button ghost-button-light" type="button">刷新</button>
+            </div>
+          </div>
+          <div id="postList" class="post-manage-list" aria-live="polite"></div>
+        </section>
+
+        <section
+          id="friendPanel"
+          class="panel"
+          data-title="友链管理"
+          data-description="管理博客友情链接。"
+        >
+          <form id="friendForm" class="grid-form">
+            <input id="friendEditFilename" type="hidden">
+            <div class="field">
+              <label for="friendTitle">网站名称</label>
+              <input id="friendTitle" type="text" placeholder="一叉树树" required>
+            </div>
+            <div class="field">
+              <label for="friendUrl">网站链接</label>
+              <input id="friendUrl" type="url" placeholder="https://example.com" required>
+            </div>
+            <div class="field span-2">
+              <label for="friendAvatar">头像地址</label>
+              <input id="friendAvatar" type="url" placeholder="https://example.com/avatar.png">
+              <div id="friendAvatarPreview" class="avatar-preview" hidden><img src="" alt="预览"></div>
+            </div>
+            <div class="field">
+              <label for="friendDescription">简介</label>
+              <input id="friendDescription" type="text" placeholder="简短描述">
+            </div>
+            <div class="field">
+              <label for="friendBacklink">回链地址</label>
+              <input id="friendBacklink" type="url" placeholder="对方网站的回链">
+            </div>
+            <div class="field">
+              <label for="friendContact">联系方式</label>
+              <input id="friendContact" type="text" placeholder="邮箱或社交账号">
+            </div>
+            <div class="field">
+              <label for="friendTags">标签</label>
+              <input id="friendTags" type="text" placeholder="技术, 生活, 设计">
+            </div>
+            <div class="form-actions span-2">
+              <button id="friendSubmitButton" type="submit">保存友链</button>
+              <button id="friendCancelButton" type="button" class="ghost-button ghost-button-light" hidden>取消</button>
+              <p id="friendMessage" class="form-message" role="status"></p>
+            </div>
+          </form>
+          <div class="library-toolbar">
+            <h2>友链列表</h2>
+            <button id="refreshFriendsButton" class="ghost-button ghost-button-light" type="button">刷新</button>
+          </div>
+          <div id="friendList" class="friend-list" aria-live="polite"></div>
+        </section>
+<section
           id="publishPanel"
           class="panel"
           data-title="构建与部署"

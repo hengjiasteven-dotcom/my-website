@@ -71,6 +71,55 @@ const postCount = document.querySelector('#postCount');
 const pictureCount = document.querySelector('#pictureCount');
 const musicCount = document.querySelector('#musicCount');
 const taskCount = document.querySelector('#taskCount');
+const postEditName = document.querySelector('#postEditName');
+const postBody = document.querySelector('#postBody');
+const postSearch = document.querySelector('#postSearch');
+const refreshPostsButton = document.querySelector('#refreshPostsButton');
+const postList = document.querySelector('#postList');
+const remoteMusicEditor = document.querySelector('#remoteMusicEditor');
+const remoteVideoEditor = document.querySelector('#remoteVideoEditor');
+const musicTitleEditor = document.querySelector('#musicTitleEditor');
+const saveRemoteMusicButton = document.querySelector('#saveRemoteMusicButton');
+const saveRemoteVideoButton = document.querySelector('#saveRemoteVideoButton');
+const saveMusicTitlesButton = document.querySelector('#saveMusicTitlesButton');
+const remoteMusicMessage = document.querySelector('#remoteMusicMessage');
+const remoteVideoMessage = document.querySelector('#remoteVideoMessage');
+const musicTitleMessage = document.querySelector('#musicTitleMessage');
+const pickCoverButton = document.querySelector('#pickCoverButton');
+const pickMusicButton = document.querySelector('#pickMusicButton');
+const mediaPickerDialog = document.querySelector('#mediaPickerDialog');
+const pickerTitle = document.querySelector('#pickerTitle');
+const pickerCloseButton = document.querySelector('#pickerCloseButton');
+const pickerSearch = document.querySelector('#pickerSearch');
+const pickerList = document.querySelector('#pickerList');
+const statPosts = document.querySelector('#statPosts');
+const statMedia = document.querySelector('#statMedia');
+const statTasks = document.querySelector('#statTasks');
+const statFriends = document.querySelector('#statFriends');
+const ovPostCount = document.querySelector('#ovPostCount');
+const ovMediaCount = document.querySelector('#ovMediaCount');
+const ovTaskCount = document.querySelector('#ovTaskCount');
+const ovTaskDetail = document.querySelector('#ovTaskDetail');
+const ovFriendCount = document.querySelector('#ovFriendCount');
+const ovPendingCount = document.querySelector('#ovPendingCount');
+const ovDeployStatus = document.querySelector('#ovDeployStatus');
+const ovDeployTime = document.querySelector('#ovDeployTime');
+const ovRecentPosts = document.querySelector('#ovRecentPosts');
+const ovPendingTasks = document.querySelector('#ovPendingTasks');
+const friendForm = document.querySelector('#friendForm');
+const friendEditFilename = document.querySelector('#friendEditFilename');
+const friendTitle = document.querySelector('#friendTitle');
+const friendUrl = document.querySelector('#friendUrl');
+const friendAvatar = document.querySelector('#friendAvatar');
+const friendBacklink = document.querySelector('#friendBacklink');
+const friendDescription = document.querySelector('#friendDescription');
+const friendContact = document.querySelector('#friendContact');
+const friendTags = document.querySelector('#friendTags');
+const friendSubmitButton = document.querySelector('#friendSubmitButton');
+const friendCancelButton = document.querySelector('#friendCancelButton');
+const friendMessage = document.querySelector('#friendMessage');
+const refreshFriendsButton = document.querySelector('#refreshFriendsButton');
+const friendList = document.querySelector('#friendList');
 
 const weekdayLabels = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 const mediaKindMeta = {
@@ -145,7 +194,8 @@ function bindForms() {
   postForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    if (!markdownFile.files[0]) {
+    const isEditing = Boolean(postEditName.value);
+    if (!isEditing && !markdownFile.files[0]) {
       setMessage(postMessage, '请先选择 Markdown 文件。', 'error');
       markdownFile.focus();
       return;
@@ -156,7 +206,7 @@ function bindForms() {
     const postMusicFile = postMusicFileInput.files[0];
     form.delete('postMusicFile');
 
-    if (postMusicFile) {
+    if (!isEditing && postMusicFile) {
       setMessage(postMessage, '正在上传文章音乐...');
       const musicForm = new FormData();
       musicForm.set('kind', 'music');
@@ -171,12 +221,19 @@ function bindForms() {
     }
 
     form.set('publishNow', publishNowInput.checked ? 'true' : 'false');
-    const result = await request('/admin/api/posts', { method: 'POST', body: form });
+    const result = await request(
+      isEditing ? `/admin/api/posts/${encodeURIComponent(postEditName.value)}` : '/admin/api/posts',
+      isEditing
+        ? { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: (form.get('title') || '').trim(), categories: (form.get('categories') || '').trim(), tags: (form.get('tags') || '').trim(), coverPath: (form.get('coverPath') || '').trim(), postMusicPath: (form.get('postMusicPath') || '').trim(), postMusicName: (form.get('postMusicName') || '').trim(), body: postBody.value || undefined }) }
+        : { method: 'POST', body: form }
+    );
     if (!result) return;
 
     resetPostForm();
     const suffix = result.job ? '，并已开始构建/部署流程' : '';
-    setMessage(postMessage, `已保存：${result.post.path}${suffix}`, 'success');
+    const label = isEditing ? '已更新' : '已保存';
+    const name = result.post ? result.post.path : (result.name || '');
+    setMessage(postMessage, `${label}：${name}${suffix}`, 'success');
     await refreshMedia();
     await refreshStatus();
   });
@@ -304,6 +361,49 @@ function bindForms() {
   buildButton.addEventListener('click', () => startJob('/admin/api/build'));
   deployButton.addEventListener('click', () => startJob('/admin/api/deploy'));
   buildDeployButton.addEventListener('click', () => startJob('/admin/api/build-deploy'));
+
+  saveRemoteMusicButton.addEventListener('click', saveRemoteMusic);
+  saveRemoteVideoButton.addEventListener('click', saveRemoteVideos);
+  saveMusicTitlesButton.addEventListener('click', saveMusicTitles);
+
+  friendForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    var filename = friendEditFilename.value || slugify(friendTitle.value) + '.json';
+    var payload = {
+      title: friendTitle.value.trim(),
+      url: friendUrl.value.trim(),
+      avatar: friendAvatar.value.trim(),
+      description: friendDescription.value.trim(),
+      backlink: friendBacklink.value.trim(),
+      contact: friendContact.value.trim(),
+      tags: (friendTags.value || '').split(/[,\n，]+/).map(function(s) { return s.trim(); }).filter(Boolean)
+    };
+    if (!payload.title || !payload.url) {
+      setMessage(friendMessage, '网站名称和链接必填。', 'error');
+      return;
+    }
+    var result = await request('/admin/api/friends/' + encodeURIComponent(filename), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!result) return;
+    resetFriendForm();
+    loadFriendList();
+    setMessage(friendMessage, '已保存：' + payload.title, 'success');
+  });
+
+  friendCancelButton.addEventListener('click', function() {
+    resetFriendForm();
+    setMessage(friendMessage, '已取消编辑。');
+  });
+
+  refreshFriendsButton.addEventListener('click', loadFriendList);
+
+  friendAvatar.addEventListener('input', updateFriendAvatarPreview);
+
+  postSearch.addEventListener('input', () => loadPostList(postSearch.value));
+  refreshPostsButton.addEventListener('click', () => loadPostList());
 }
 
 function activatePanel(panelId) {
@@ -318,6 +418,308 @@ function activatePanel(panelId) {
   if (!panel) return;
   workspaceTitle.textContent = panel.dataset.title || '博客发布台';
   workspaceIntro.textContent = panel.dataset.description || '';
+  if (panelId === 'overviewPanel') loadOverview();
+  if (panelId === 'mediaPanel') loadRemoteMedia();
+  if (panelId === 'postsPanel') loadPostList();
+  if (panelId === 'friendPanel') loadFriendList();
+}
+
+async function loadRemoteMedia() {
+  const data = await request('/admin/api/remote-media', { quiet: true });
+  if (!data) return;
+  if (data.music && data.music.length) {
+    remoteMusicEditor.value = data.music.join(String.fromCharCode(10));
+  }
+  if (data.musicTitles && Object.keys(data.musicTitles).length) {
+    musicTitleEditor.value = Object.entries(data.musicTitles)
+      .map(([k, v]) => k + ' | ' + v).join(String.fromCharCode(10));
+  }
+  if (data.videos && data.videos.length) {
+    remoteVideoEditor.value = data.videos.map(v => v.path).join(String.fromCharCode(10));
+  }
+}
+
+async function saveRemoteMusic() {
+  const lines = remoteMusicEditor.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  const result = await request('/admin/api/remote-media/music', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items: lines })
+  });
+  if (result) setMessage(remoteMusicMessage, '已保存 ' + lines.length + ' 首远程音乐。', 'success');
+}
+
+async function saveRemoteVideos() {
+  const lines = remoteVideoEditor.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  const items = lines.map(p => ({ path: p, title: p.replace(/\.[^.]+$/, ''), group: 'qiniu', duration: 0, cover: '', sourceType: 'qiniu', bilibiliUrl: '', isAbyss: false }));
+  const result = await request('/admin/api/remote-media/videos', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items })
+  });
+  if (result) setMessage(remoteVideoMessage, '已保存 ' + lines.length + ' 个远程视频。', 'success');
+}
+
+async function saveMusicTitles() {
+  const lines = musicTitleEditor.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  const map = {};
+  for (const line of lines) {
+    const idx = line.indexOf(' | ');
+    if (idx > 0) {
+      map[line.slice(0, idx).trim()] = line.slice(idx + 3).trim();
+    } else {
+      const name = line.trim();
+      map[name] = name.replace(/\.[^.]+$/, '');
+    }
+  }
+  const result = await request('/admin/api/remote-media/music-titles', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(map)
+  });
+  if (result) setMessage(musicTitleMessage, '已保存 ' + Object.keys(map).length + ' 条标题映射。', 'success');
+}
+
+async function loadPostList(search) {
+  const q = search !== undefined ? search : postSearch.value.trim();
+  const url = q ? '/admin/api/posts?q=' + encodeURIComponent(q) : '/admin/api/posts';
+  const result = await request(url, { quiet: true });
+  if (!result) return;
+  renderPostList(result.posts || []);
+}
+
+function renderPostList(posts) {
+  if (!posts.length) {
+    postList.innerHTML = '<p class="form-message">暂无文章，先去"发文章"写一篇吧。</p>';
+    return;
+  }
+
+  postList.innerHTML = posts.map(function(p) {
+    var cats = (p.categories || []).map(function(c) { return '<span class="tag-chip">' + escapeHtml(c) + '</span>'; }).join('');
+    var tags = (p.tags || []).map(function(t) { return '<span class="tag-chip tag-chip-light">' + escapeHtml(t) + '</span>'; }).join('');
+    var date = p.date ? p.date.slice(0, 10) : '';
+    return '<article class="post-manage-item">\n' +
+      '  <div class="post-manage-main">\n' +
+      '    <div class="post-manage-title">' + escapeHtml(p.title) + '</div>\n' +
+      '    <div class="post-manage-meta">\n' +
+      '      <span>' + escapeHtml(p.name) + '</span>\n' +
+      '      ' + (date ? '<span>' + date + '</span>' : '') + '\n' +
+      '      ' + (cats ? '<span>' + cats + '</span>' : '') + '\n' +
+      '      ' + (tags ? '<span>' + tags + '</span>' : '') + '\n' +
+      '      <span>' + formatSize(p.size) + '</span>\n' +
+      '    </div>\n' +
+      '  </div>\n' +
+      '  <div class="post-manage-actions">\n' +
+      '    <button type="button" data-edit-post="' + escapeAttr(p.name) + '">编辑</button>\n' +
+      '    <button type="button" data-delete-post="' + escapeAttr(p.name) + '" class="ghost-button ghost-button-danger">删除</button>\n' +
+      '  </div>\n' +
+      '</article>';
+  }).join('');
+
+  postList.querySelectorAll('[data-edit-post]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      editPost(btn.dataset.editPost);
+    });
+  });
+
+  postList.querySelectorAll('[data-delete-post]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      deletePost(btn.dataset.deletePost);
+    });
+  });
+}
+
+async function editPost(filename) {
+  var result = await request('/admin/api/posts/' + encodeURIComponent(filename), { quiet: true });
+  if (!result) return;
+
+  postEditName.value = filename;
+  postTitleInput.value = result.title || '';
+  categoriesInput.value = (result.categories || []).join(', ');
+  tagsInput.value = (result.tags || []).join(', ');
+  coverPathInput.value = result.coverPath || '';
+  postMusicPathInput.value = result.postMusicPath || '';
+  postMusicNameInput.value = result.postMusicName || '';
+  postBody.value = result.body || '';
+
+  document.getElementById('postBodyField').hidden = false;
+  document.getElementById('markdownFile').closest('.field').hidden = true;
+  publishNowInput.closest('.checkbox-row').hidden = true;
+  postSubmitButton.textContent = '更新文章';
+
+  renderSelectedCover();
+  renderSelectedPostMusic();
+  activatePanel('postPanel');
+  setMessage(postMessage, '正在编辑：' + (result.title || filename), 'success');
+}
+
+async function deletePost(filename) {
+  if (!window.confirm('确定删除文章 "' + filename + '"？此操作不可撤销。')) return;
+  var result = await request('/admin/api/posts/' + encodeURIComponent(filename), { method: 'DELETE' });
+  if (!result) return;
+  loadPostList();
+  setMessage(postMessage, '已删除：' + filename, 'success');
+}
+
+async function loadOverview() {
+  var result = await request('/admin/api/overview', { quiet: true });
+  if (!result) return;
+  var s = result.stats;
+
+  statPosts.textContent = s.posts;
+  statMedia.textContent = s.pictures + s.localMusic + s.localVideos;
+  statTasks.textContent = s.tasksCompleted + '/' + s.tasks;
+  statFriends.textContent = '-';
+
+  ovPostCount.textContent = s.posts;
+  document.getElementById('ovPictureCount').textContent = s.pictures;
+  document.getElementById('ovLocalMusicCount').textContent = s.localMusic;
+  document.getElementById('ovRemoteMusicCount').textContent = s.remoteMusic;
+  document.getElementById('ovRemoteVideoCount').textContent = s.remoteVideos;
+  document.getElementById('ovPlaylistCount').textContent = s.playlist;
+  ovTaskDetail.textContent = s.tasksCompleted + ' / ' + s.tasks;
+  document.getElementById('ovTaskToday').textContent = s.tasksToday;
+  ovPendingCount.textContent = s.pendingFiles;
+
+  if (result.latestJob) {
+    ovDeployStatus.textContent = humanJobStatus(result.latestJob.status);
+    ovDeployStatus.className = 'ov-deploy-status ' + (result.latestJob.status || 'idle');
+    ovDeployTime.textContent = localTime(result.latestJob.finishedAt || result.latestJob.startedAt);
+  } else {
+    ovDeployStatus.textContent = 'idle';
+    ovDeployStatus.className = 'ov-deploy-status';
+    ovDeployTime.textContent = '暂无部署记录';
+  }
+
+  if (result.recentPosts && result.recentPosts.length) {
+    ovRecentPosts.innerHTML = result.recentPosts.map(function(p) {
+      var d = p.date ? p.date.slice(0, 10) : '';
+      return '<div class="ov-post-item" data-edit-post="' + escapeAttr(p.name) + '" role="button" tabindex="0">' +
+        '<span class="ov-post-title">' + escapeHtml(p.title) + '</span>' +
+        '<span class="ov-post-date">' + (d || '无日期') + '</span>' +
+        '</div>';
+    }).join('');
+    ovRecentPosts.querySelectorAll('[data-edit-post]').forEach(function(el) {
+      el.addEventListener('click', function() { editPost(el.dataset.editPost); });
+    });
+  } else {
+    ovRecentPosts.innerHTML = '<p class="form-message">暂无文章</p>';
+  }
+
+  if (result.pendingTasks && result.pendingTasks.length) {
+    ovPendingTasks.innerHTML = result.pendingTasks.map(function(t) {
+      return '<div class="ov-task-item">' +
+        '<span>' + (t.completed ? '✓' : '○') + '</span>' +
+        '<span>' + escapeHtml(t.title) + '</span>' +
+        '<span class="ov-task-time">' + (t.date || '') + ' ' + formatTaskTime(t) + '</span>' +
+        '</div>';
+    }).join('');
+  } else {
+    ovPendingTasks.innerHTML = '<p class="form-message">暂无待办任务</p>';
+  }
+
+  loadFriendCount();
+}
+
+async function loadFriendCount() {
+  var result = await request('/admin/api/friends', { quiet: true });
+  if (result && result.friends) statFriends.textContent = result.friends.length;
+}
+
+async function loadFriendList() {
+  var result = await request('/admin/api/friends', { quiet: true });
+  if (!result) return;
+  renderFriendList(result.friends || []);
+  if (result.friends) statFriends.textContent = result.friends.length;
+}
+
+function renderFriendList(friends) {
+  if (!friends.length) {
+    friendList.innerHTML = '<p class="form-message">暂无友链，用上方表单添加一个。</p>';
+    return;
+  }
+
+  friendList.innerHTML = friends.map(function(f) {
+    var tags = (f.tags || []).map(function(t) {
+      return '<span class="tag-chip tag-chip-light">' + escapeHtml(t) + '</span>';
+    }).join('');
+    var avatarHtml = f.avatar ? '<img class="friend-avatar-sm" src="' + escapeAttr(f.avatar) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : '';
+    return '<article class="friend-item">' +
+      '<div class="friend-item-main">' +
+      avatarHtml +
+      '<div>' +
+      '<div class="friend-item-title">' + escapeHtml(f.title) + '</div>' +
+      '<div class="friend-item-url">' + escapeHtml(f.url) + '</div>' +
+      (f.description ? '<div class="friend-item-desc">' + escapeHtml(f.description) + '</div>' : '') +
+      (tags ? '<div class="friend-item-tags">' + tags + '</div>' : '') +
+      '</div>' +
+      '</div>' +
+      '<div class="friend-item-actions">' +
+      '<button type="button" data-friend-edit="' + escapeAttr(f.filename) + '">编辑</button>' +
+      '<button type="button" data-friend-delete="' + escapeAttr(f.filename) + '" class="ghost-button ghost-button-danger">删除</button>' +
+      '</div>' +
+      '</article>';
+  }).join('');
+
+  friendList.querySelectorAll('[data-friend-edit]').forEach(function(btn) {
+    btn.addEventListener('click', function() { editFriend(btn.dataset.friendEdit); });
+  });
+  friendList.querySelectorAll('[data-friend-delete]').forEach(function(btn) {
+    btn.addEventListener('click', function() { deleteFriend(btn.dataset.friendDelete); });
+  });
+}
+
+async function editFriend(filename) {
+  var result = await request('/admin/api/friends/' + encodeURIComponent(filename), { quiet: true });
+  if (!result) return;
+
+  friendEditFilename.value = filename;
+  friendTitle.value = result.title || '';
+  friendUrl.value = result.url || '';
+  friendAvatar.value = result.avatar || '';
+  friendDescription.value = result.description || '';
+  friendBacklink.value = result.backlink || '';
+  friendContact.value = result.contact || '';
+  friendTags.value = (result.tags || []).join(', ');
+
+  updateFriendAvatarPreview();
+  friendSubmitButton.textContent = '更新友链';
+  friendCancelButton.hidden = false;
+  activatePanel('friendPanel');
+}
+
+async function deleteFriend(filename) {
+  if (!window.confirm('确定删除友链 "' + filename + '"？')) return;
+  var result = await request('/admin/api/friends/' + encodeURIComponent(filename), { method: 'DELETE' });
+  if (!result) return;
+  loadFriendList();
+}
+
+function updateFriendAvatarPreview() {
+  var url = friendAvatar.value.trim();
+  var preview = document.getElementById('friendAvatarPreview');
+  if (url) {
+    preview.hidden = false;
+    preview.querySelector('img').src = url;
+  } else {
+    preview.hidden = true;
+  }
+}
+
+function resetFriendForm() {
+  friendForm.reset();
+  friendEditFilename.value = '';
+  friendSubmitButton.textContent = '保存友链';
+  friendCancelButton.hidden = true;
+  document.getElementById('friendAvatarPreview').hidden = true;
+}
+
+function slugify(text) {
+  return String(text || '').trim()
+    .replace(/[^\w\u4e00-\u9fff-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase() || 'friend';
 }
 
 function showLogin() {
@@ -330,7 +732,7 @@ function showLogin() {
 function showApp() {
   loginView.hidden = true;
   appView.hidden = false;
-  activatePanel(document.querySelector('.nav-tab.is-active')?.dataset.panel || 'postPanel');
+  activatePanel(document.querySelector('.nav-tab.is-active')?.dataset.panel || 'overviewPanel');
   refreshMedia();
   refreshTasks();
   refreshStatus();
@@ -375,6 +777,15 @@ function renderMedia() {
     ['音乐', mediaState.music || [], 'music'],
     ['视频', mediaState.videos || [], 'video']
   ].filter(([, , kind]) => kind === activeKind);
+
+  if (activeKind === 'music' && mediaState.remoteMusic && mediaState.remoteMusic.length) {
+    groups[1][1] = (mediaState.music || []).concat(mediaState.remoteMusic);
+    groups[1][0] = '音乐';
+  }
+  if (activeKind === 'video' && mediaState.remoteVideos && mediaState.remoteVideos.length) {
+    groups[2][1] = (mediaState.videos || []).concat(mediaState.remoteVideos);
+    groups[2][0] = '视频';
+  }
 
   mediaList.innerHTML = groups.map(([title, files, kind]) => {
     const filtered = files.filter((file) => {
@@ -627,11 +1038,13 @@ function clearPostSelections() {
 
 function resetPostForm() {
   postForm.reset();
-  postMusicPathInput.value = '';
-  postMusicNameInput.value = '';
-  renderSelectedCover();
-  renderSelectedPostMusic();
-  syncMediaKindState();
+  postEditName.value = '';
+  postBody.value = '';
+  document.getElementById('postBodyField').hidden = true;
+  document.getElementById('markdownFile').closest('.field').hidden = false;
+  publishNowInput.closest('.checkbox-row').hidden = false;
+  postSubmitButton.textContent = '保存文章';
+  clearPostSelections();
 }
 
 function extractMarkdownDefaults(content, fileName = '') {
@@ -817,12 +1230,17 @@ function mediaItem(file, kind, playlist) {
   const articleMusicButton = isTrack
     ? `<button type="button" data-article-music data-url="${escapeAttr(file.url)}" data-name="${escapeAttr(file.name)}">设为文章音乐</button>`
     : '';
+  const remoteBadge = file.remote ? '<span class="media-badge media-badge-cdn">CDN</span>' : '';
+  const displayTitle = file.displayTitle || file.name;
+  const metaInfo = file.remote
+    ? `${escapeHtml(file.url)} · <span class="media-badge media-badge-cdn">CDN</span>`
+    : `${escapeHtml(file.url)} · ${formatSize(file.size)} · ${localTime(file.modifiedAt)}`;
 
   return `
     <article class="media-item">
       <div class="media-main">
-        <div class="media-name">${escapeHtml(file.name)}</div>
-        <div class="media-meta">${escapeHtml(file.url)} · ${formatSize(file.size)} · ${localTime(file.modifiedAt)}</div>
+        <div class="media-name">${escapeHtml(displayTitle)}${remoteBadge}</div>
+        <div class="media-meta">${metaInfo}</div>
       </div>
       <div class="media-actions">
         ${coverButton}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head><body>
+<div id="loginView"></div><div id="appView"></div>
+<div id="loginForm"></div><div id="loginMessage"></div>
+<div id="logoutButton"></div><div id="workspaceTitle"></div><div id="workspaceIntro"></div>
+<form id="postForm"></form><div id="postMessage"></div>
+<input id="markdownFile"><input id="postTitle"><input id="categories"><input id="tags">
+<input id="coverPath"><div id="selectedCoverPath"></div>
+<input id="postMusicFile"><input id="postMusicPath"><input id="postMusicName">
+<div id="selectedPostMusic"></div><button id="clearPostSelections"></button>
+<input id="publishNow"><input id="addPostMusicToPlaylist">
+<form id="mediaForm"></form><div id="mediaMessage"></div><div id="mediaList"></div>
+<button id="refreshMediaButton"></button><button id="syncPlaylistButton"></button>
+<input id="mediaSearch"><input id="mediaFiles"><div id="mediaFileHint"></div>
+<div id="addToPlaylistRow"></div><input id="addToPlaylist">
+<form id="taskForm"></form><form id="taskBatchForm"></form>
+<input id="taskEditId"><input id="taskTitle"><input id="taskDate">
+<input id="taskStartTime"><input id="taskEndTime"><select id="taskRepeatMode"></select>
+<input id="taskRepeatUntil"><div id="taskRepeatDaysField"></div><div id="taskRepeatUntilField"></div>
+<textarea id="taskNotes"></textarea><input id="taskCompleted">
+<button id="taskSubmitButton"></button><button id="taskCancelButton"></button>
+<div id="taskMessage"></div><input id="taskBatchDate"><textarea id="taskBatchText"></textarea>
+<div id="taskBatchMessage"></div><button id="refreshTasksButton"></button><div id="taskList"></div>
+<button id="buildButton"></button><button id="deployButton"></button><button id="buildDeployButton"></button>
+<div id="jobTitle"></div><div id="jobMeta"></div><div id="jobStatus"></div><pre id="jobOutput"></pre>
+<div id="postCount"></div><div id="pictureCount"></div><div id="musicCount"></div><div id="taskCount"></div>
+<input id="postEditName"><div id="postBodyField"><textarea id="postBody"></textarea></div>
+<input id="postSearch"><button id="refreshPostsButton"></button><div id="postList"></div>
+<textarea id="remoteMusicEditor"></textarea><textarea id="remoteVideoEditor"></textarea>
+<textarea id="musicTitleEditor"></textarea>
+<button id="saveRemoteMusicButton"></button><button id="saveRemoteVideoButton"></button>
+<button id="saveMusicTitlesButton"></button>
+<div id="remoteMusicMessage"></div><div id="remoteVideoMessage"></div><div id="musicTitleMessage"></div>
+<button id="pickCoverButton"></button><button id="pickMusicButton"></button>
+<dialog id="mediaPickerDialog"><div id="pickerTitle"></div><button id="pickerCloseButton"></button>
+<input id="pickerSearch"><div id="pickerList"></div></dialog>
+<div id="statPosts"></div><div id="statMedia"></div><div id="statTasks"></div><div id="statFriends"></div>
+<div id="ovPostCount"></div><div id="ovMediaCount"></div><div id="ovTaskCount"></div>
+<div id="ovTaskDetail"></div><div id="ovFriendCount"></div><div id="ovPendingCount"></div>
+<div id="ovDeployStatus"></div><div id="ovDeployTime"></div><div id="ovRecentPosts"></div><div id="ovPendingTasks"></div>
+<form id="friendForm"></form><input id="friendEditFilename"><input id="friendTitle">
+<input id="friendUrl"><input id="friendAvatar"><div id="friendAvatarPreview"></div>
+<input id="friendDescription"><input id="friendBacklink"><input id="friendContact">
+<input id="friendTags"><button id="friendSubmitButton"></button><button id="friendCancelButton"></button>
+<div id="friendMessage"></div><button id="refreshFriendsButton"></button><div id="friendList"></div>
+<div id="ovPictureCount"></div><div id="ovLocalMusicCount"></div><div id="ovRemoteMusicCount"></div>
+<div id="ovRemoteVideoCount"></div><div id="ovPlaylistCount"></div><div id="ovTaskToday"></div>
+<script>
+window.onerror = function(msg) { document.body.innerHTML += '<p style=color:red>ERROR: '+msg+'</p>'; };
+</script>
+<script src="/admin/assets/app.js" defer></script>
+<p>If you see this, HTML loaded. Check for red errors above.</p>
+</body></html>

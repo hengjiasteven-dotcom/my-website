@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const crypto = require('crypto');
 const fs = require('fs');
@@ -23,6 +23,17 @@ const videoDir = path.join(rootDir, 'video');
 const publicDir = path.join(__dirname, 'public');
 const uploadTempDir = path.join(rootDir, '.admin-uploads');
 const pendingPublishPath = path.join(uploadTempDir, 'pending-publish.json');
+const remoteMusicListPath = path.join(rootDir, 'source', 'data', 'remote-music-list.json');
+const remoteVideoListPath = path.join(rootDir, 'source', 'data', 'remote-video-list.json');
+const musicTitleMapPath = path.join(rootDir, 'source', 'data', 'music-title-map.json');
+const friendsDir = path.join(rootDir, 'source', '_data', 'friends');
+const CDN_BASE = (function() {
+  try {
+    const yaml = fs.readFileSync(path.join(rootDir, '_config.yml'), 'utf8');
+    const m = yaml.match(/^asset_cdn_base:\s*(.+)$/m);
+    return (m ? m[1].trim().replace(/\/+$/, '') : '') || '/assets';
+  } catch { return '/assets'; }
+})();
 const edgeoneBranch = process.env.ADMIN_EDGEONE_BRANCH || 'source';
 const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
 const sshDir = path.join(homeDir, '.ssh');
@@ -141,11 +152,36 @@ app.get('/admin/api/status', requireAuth, (req, res) => {
 });
 
 app.get('/admin/api/media', requireAuth, (req, res) => {
+  const remoteMusic = readRemoteMusicList();
+  const remoteVideos = readRemoteVideoList();
+  const musicTitleMap = readMusicTitleMap();
   res.json({
     pictures: listMediaFiles(pictureDir, 'picture'),
     music: listMediaFiles(musicDir, 'music'),
     videos: listMediaFiles(videoDir, 'video'),
-    playlist: readPlaylist()
+    playlist: readPlaylist(),
+    remoteMusic: remoteMusic.map(function(name) {
+      return {
+        name: name,
+        url: CDN_BASE + '/music/' + encodeURIComponent(name),
+        markdown: '<audio controls src="' + CDN_BASE + '/music/' + encodeURIComponent(name) + '"></audio>',
+        size: 0,
+        modifiedAt: '',
+        remote: true,
+        displayTitle: musicTitleMap[name] || name.replace(/\.[^.]+$/, '')
+      };
+    }),
+    remoteVideos: remoteVideos.map(function(v) {
+      return {
+        name: v.title || v.path.replace(/\.[^.]+$/, ''),
+        url: CDN_BASE + '/' + v.path.replace(/^\//, ''),
+        markdown: '<video controls src="' + CDN_BASE + '/' + v.path.replace(/^\//, '') + '"></video>',
+        size: 0,
+        modifiedAt: '',
+        remote: true,
+        duration: v.duration || 0
+      };
+    })
   });
 });
 
@@ -348,7 +384,8 @@ app.post('/admin/api/playlist', requireAuth, (req, res) => {
     const name = String(req.body.name || '').trim();
     const action = String(req.body.action || '').trim();
     if (!name) throw new Error('缺少音乐文件名');
-    ensureExistingMedia(musicDir, name);
+    const isRemote = readRemoteMusicList().includes(name);
+    if (!isRemote) ensureExistingMedia(musicDir, name);
 
     const playlist = readPlaylist();
     const next = action === 'remove'
@@ -365,11 +402,13 @@ app.post('/admin/api/playlist', requireAuth, (req, res) => {
 
 app.post('/admin/api/playlist/sync', requireAuth, (req, res) => {
   try {
-    const musicFiles = listMediaFiles(musicDir, 'music').map((file) => file.name);
+    const localFiles = listMediaFiles(musicDir, 'music').map((file) => file.name);
+    const remoteFiles = readRemoteMusicList();
+    const allFiles = localFiles.concat(remoteFiles);
     const playlist = readPlaylist();
     const next = playlist.slice();
 
-    musicFiles.forEach((name) => {
+    allFiles.forEach((name) => {
       if (!next.includes(name)) next.push(name);
     });
 
@@ -384,6 +423,210 @@ app.post('/admin/api/playlist/sync', requireAuth, (req, res) => {
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
+});
+
+
+// -- Post Management --
+
+console.log('[REGISTER] posts-list');
+app.get('/admin/api/posts', requireAuth, (req, res) => {
+  try {
+    var search = String(req.query.q || '').trim().toLowerCase();
+    var posts = listMarkdownPosts().filter(function(post) {
+      if (!search) return true;
+      return post.title.toLowerCase().includes(search)
+        || post.name.toLowerCase().includes(search)
+        || (post.categories || []).some(function(c) { return c.toLowerCase().includes(search); })
+        || (post.tags || []).some(function(t) { return t.toLowerCase().includes(search); });
+    });
+    res.json({ posts: posts });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/admin/api/posts/:filename', requireAuth, (req, res) => {
+  try {
+    var fp = safeJoin(postsDir, decodeURIComponent(req.params.filename));
+    if (!fs.existsSync(fp)) return res.status(404).json({ error: 'Not found' });
+    var raw = fs.readFileSync(fp, 'utf8');
+    var meta = extractMarkdownPostMeta(raw);
+    var body = stripFrontMatter(raw);
+    var stat = fs.statSync(fp);
+    res.json({
+      name: path.basename(fp), title: meta.title || filenameTitle(path.basename(fp)),
+      date: meta.date, categories: meta.categories, tags: meta.tags,
+      coverPath: meta.coverPath, postMusicPath: meta.postMusicPath,
+      postMusicName: meta.postMusicName, body: body, size: stat.size,
+      modifiedAt: stat.mtime.toISOString()
+    });
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+app.put('/admin/api/posts/:filename', requireAuth, (req, res) => {
+  try {
+    var fp = safeJoin(postsDir, decodeURIComponent(req.params.filename));
+    if (!fs.existsSync(fp)) return res.status(404).json({ error: 'Not found' });
+    var fields = {};
+    if (req.body.title !== undefined) fields.title = String(req.body.title).trim();
+    if (req.body.date !== undefined) fields.date = String(req.body.date).trim();
+    if (req.body.categories !== undefined) fields.categories = splitTags(req.body.categories);
+    if (req.body.tags !== undefined) fields.tags = splitTags(req.body.tags);
+    if (req.body.coverPath !== undefined) fields.coverPath = normalizeMediaReferencePath(String(req.body.coverPath).trim(), 'picture');
+    if (req.body.postMusicPath !== undefined) fields.postMusicPath = normalizeMediaReferencePath(String(req.body.postMusicPath).trim(), 'music');
+    if (req.body.postMusicName !== undefined) fields.postMusicName = String(req.body.postMusicName).trim();
+    var newContent;
+    if (req.body.body !== undefined) {
+      newContent = buildPostContent(String(req.body.body), fields);
+    } else {
+      newContent = updateFrontMatterFields(fs.readFileSync(fp, 'utf8'), fields);
+    }
+    fs.writeFileSync(fp, newContent, 'utf8');
+    rememberPendingPublishFiles([path.relative(rootDir, fp)]);
+    var updated = extractMarkdownPostMeta(newContent);
+    res.json({ ok: true, name: path.basename(fp), title: updated.title || filenameTitle(path.basename(fp)),
+      date: updated.date, categories: updated.categories, tags: updated.tags,
+      coverPath: updated.coverPath, postMusicPath: updated.postMusicPath, postMusicName: updated.postMusicName });
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+app.delete('/admin/api/posts/:filename', requireAuth, (req, res) => {
+  try {
+    var fp = safeJoin(postsDir, decodeURIComponent(req.params.filename));
+    if (!fs.existsSync(fp)) return res.status(404).json({ error: 'Not found' });
+    fs.unlinkSync(fp);
+    res.json({ ok: true });
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// -- Overview Dashboard --
+
+console.log('[REGISTER] overview');
+app.get('/admin/api/overview', requireAuth, (req, res) => {
+  try {
+    var posts = listMarkdownPosts();
+    var pictures = listMediaFiles(pictureDir, 'picture');
+    var music = listMediaFiles(musicDir, 'music');
+    var videos = listMediaFiles(videoDir, 'video');
+    var tasks = sortTasks(readTasks());
+    var remoteMusic = readRemoteMusicList();
+    var remoteVideos = readRemoteVideoList();
+    var playlist = readPlaylist();
+    var pendingFiles = readPendingPublishFiles();
+    var total = tasks.length;
+    var completed = tasks.filter(function(t) { return t.completed; }).length;
+    var today = formatDate(new Date());
+    var todayTasks = tasks.filter(function(t) { return t.date === today; });
+    var latestJob = jobHistory.length ? publicJob(jobHistory[jobHistory.length - 1]) : null;
+    res.json({
+      stats: {
+        posts: posts.length,
+        pictures: pictures.length,
+        localMusic: music.length,
+        localVideos: videos.length,
+        remoteMusic: remoteMusic.length,
+        remoteVideos: remoteVideos.length,
+        playlist: playlist.length,
+        tasks: total,
+        tasksCompleted: completed,
+        tasksToday: todayTasks.length,
+        pendingFiles: pendingFiles.length
+      },
+      recentPosts: posts.slice(0, 5).map(function(p) {
+        return { name: p.name, title: p.title, date: p.date };
+      }),
+      pendingTasks: tasks.filter(function(t) { return !t.completed; }).slice(0, 5),
+      latestJob: latestJob,
+      activeJob: activeJob ? publicJob(activeJob) : null
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// -- Friend Links Management --
+
+app.get('/admin/api/friends', requireAuth, (req, res) => {
+  try {
+    var friends = listFriendLinks();
+    res.json({ friends: friends });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/admin/api/friends/:filename', requireAuth, (req, res) => {
+  try {
+    var fp = safeJoin(friendsDir, decodeURIComponent(req.params.filename));
+    if (!fs.existsSync(fp)) return res.status(404).json({ error: 'not found' });
+    var data = JSON.parse(fs.readFileSync(fp, 'utf8'));
+    var result = { filename: req.params.filename, title: data.title || data.name || '', url: data.url || '', avatar: data.avatar || '', description: data.description || '', backlink: data.backlink || '', screenshots: data.screenshots || [], contact: data.contact || '', tags: data.tags || [], lastChecked: data.lastChecked || '' };
+    res.json(result);
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+app.put('/admin/api/friends/:filename', requireAuth, (req, res) => {
+  try {
+    var fp = safeJoin(friendsDir, decodeURIComponent(req.params.filename));
+    var data = {
+      title: String(req.body.title || '').trim(),
+      url: String(req.body.url || '').trim(),
+      avatar: String(req.body.avatar || '').trim(),
+      description: String(req.body.description || '').trim(),
+      backlink: String(req.body.backlink || '').trim(),
+      screenshots: Array.isArray(req.body.screenshots) ? req.body.screenshots.filter(Boolean) : [],
+      contact: String(req.body.contact || '').trim(),
+      tags: Array.isArray(req.body.tags) ? req.body.tags.filter(Boolean) : [],
+      lastChecked: req.body.lastChecked || ''
+    };
+    fs.mkdirSync(friendsDir, { recursive: true });
+    fs.writeFileSync(fp, JSON.stringify(data, null, 2) + '\n', 'utf8');
+    rememberPendingPublishFiles([path.relative(rootDir, fp)]);
+    res.json({ ok: true, friend: data });
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+app.delete('/admin/api/friends/:filename', requireAuth, (req, res) => {
+  try {
+    var fp = safeJoin(friendsDir, decodeURIComponent(req.params.filename));
+    if (!fs.existsSync(fp)) return res.status(404).json({ error: 'not found' });
+    fs.unlinkSync(fp);
+    res.json({ ok: true });
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// -- Remote Media Management --
+
+
+console.log('[REGISTER] remote-media');
+app.get('/admin/api/remote-media', requireAuth, (req, res) => {
+  try {
+    res.json({
+      music: readRemoteMusicList(), videos: readRemoteVideoList(),
+      musicTitles: readMusicTitleMap(), playlist: readPlaylist()
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/admin/api/remote-media/music', requireAuth, (req, res) => {
+  try {
+    var items = Array.isArray(req.body.items) ? req.body.items.map(function(s) { return String(s).trim(); }).filter(Boolean) : [];
+    writeRemoteMusicList(items);
+    rememberPendingPublishFiles([path.relative(rootDir, remoteMusicListPath)]);
+    res.json({ ok: true, music: items });
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+app.put('/admin/api/remote-media/videos', requireAuth, (req, res) => {
+  try {
+    var items = Array.isArray(req.body.items) ? req.body.items : [];
+    writeRemoteVideoList(items);
+    rememberPendingPublishFiles([path.relative(rootDir, remoteVideoListPath)]);
+    res.json({ ok: true, videos: items });
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+app.put('/admin/api/remote-media/music-titles', requireAuth, (req, res) => {
+  try {
+    var map = typeof req.body === 'object' && req.body !== null && !Array.isArray(req.body) ? req.body : {};
+    writeMusicTitleMap(map);
+    rememberPendingPublishFiles([path.relative(rootDir, musicTitleMapPath)]);
+    res.json({ ok: true, musicTitles: map });
+  } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
 app.post('/admin/api/build', requireAuth, (req, res) => {
@@ -423,6 +666,7 @@ app.use('/admin/api', (req, res) => {
 app.use((req, res) => {
   res.redirect('/admin');
 });
+
 
 app.listen(port, host, () => {
   console.log(`[admin] Blog admin is running at http://${host}:${port}/admin`);
@@ -932,7 +1176,6 @@ function buildPublishSourceAddCommand() {
     'edgeone.json',
     'package.json',
     'package-lock.json',
-    'yarn.lock',
     'source',
     'scripts',
     'dev/admin'
@@ -1415,4 +1658,126 @@ function removeTemp(filePath) {
 
 function cleanupFiles(file) {
   if (file && file.path) removeTemp(file.path);
+}
+
+
+// -- Post Helpers --
+
+function listMarkdownPosts() {
+  if (!fs.existsSync(postsDir)) return [];
+  return fs.readdirSync(postsDir, { withFileTypes: true })
+    .filter(function(entry) { return entry.isFile() && /\.md$/i.test(entry.name); })
+    .map(function(entry) {
+      var fp = path.join(postsDir, entry.name);
+      var raw = fs.readFileSync(fp, 'utf8');
+      var meta = extractMarkdownPostMeta(raw);
+      var stat = fs.statSync(fp);
+      return {
+        name: entry.name, title: meta.title || filenameTitle(entry.name),
+        date: meta.date || '', categories: meta.categories || [], tags: meta.tags || [],
+        coverPath: meta.coverPath || '', postMusicPath: meta.postMusicPath || '',
+        postMusicName: meta.postMusicName || '', size: stat.size, modifiedAt: stat.mtime.toISOString()
+      };
+    })
+    .sort(function(a, b) { return (b.date || '').localeCompare(a.date || '') || a.title.localeCompare(b.title, 'zh-CN'); });
+}
+
+function stripFrontMatter(raw) {
+  var source = String(raw || '').replace(/^\uFEFF/, '');
+  var match = source.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
+  return match ? source.slice(match[0].length) : source;
+}
+
+function buildPostContent(body, meta) {
+  var fm = { title: meta.title || 'Untitled' };
+  if (meta.date) fm.date = meta.date;
+  if (meta.categories && meta.categories.length) fm.categories = meta.categories;
+  if (meta.tags && meta.tags.length) fm.tags = meta.tags;
+  if (meta.coverPath) { fm.index_img = meta.coverPath; fm.banner_img = meta.coverPath; }
+  if (meta.postMusicPath) fm.music = meta.postMusicPath;
+  return '---\n' + frontMatterText(fm) + '---\n\n' + String(body || '');
+}
+
+function updateFrontMatterFields(raw, fields) {
+  var source = String(raw || '').replace(/^\uFEFF/, '');
+  var fmMatch = source.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+  if (!fmMatch) return buildPostContent(source.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, ''), fields);
+  var existing = parseFrontMatterBlock(fmMatch[1]);
+  var merged = Object.assign({}, existing);
+  if (fields.title !== undefined) merged.title = fields.title;
+  if (fields.date !== undefined) merged.date = fields.date;
+  if (fields.categories !== undefined) { merged.categories = fields.categories; delete merged.category; }
+  if (fields.tags !== undefined) { merged.tags = fields.tags; delete merged.tag; }
+  if (fields.coverPath !== undefined) { merged.index_img = fields.coverPath; merged.banner_img = fields.coverPath; }
+  if (fields.postMusicPath !== undefined) merged.music = fields.postMusicPath;
+  return '---\n' + frontMatterText(merged) + '---\n' + source.slice(fmMatch[0].length);
+}
+
+// -- Remote Media Helpers --
+
+function readRemoteMusicList() {
+  if (!fs.existsSync(remoteMusicListPath)) return [];
+  try {
+    var value = JSON.parse(fs.readFileSync(remoteMusicListPath, 'utf8'));
+    return (value && Array.isArray(value.music)) ? value.music : (Array.isArray(value) ? value : []);
+  } catch (e) { return []; }
+}
+function writeRemoteMusicList(items) {
+  fs.mkdirSync(path.dirname(remoteMusicListPath), { recursive: true });
+  fs.writeFileSync(remoteMusicListPath, JSON.stringify({ music: items }, null, 2) + '\n', 'utf8');
+}
+function readRemoteVideoList() {
+  if (!fs.existsSync(remoteVideoListPath)) return [];
+  try {
+    var value = JSON.parse(fs.readFileSync(remoteVideoListPath, 'utf8'));
+    return (value && Array.isArray(value.videos)) ? value.videos : (Array.isArray(value) ? value : []);
+  } catch (e) { return []; }
+}
+function writeRemoteVideoList(items) {
+  fs.mkdirSync(path.dirname(remoteVideoListPath), { recursive: true });
+  fs.writeFileSync(remoteVideoListPath, JSON.stringify({ videos: items }, null, 2) + '\n', 'utf8');
+}
+function readMusicTitleMap() {
+  if (!fs.existsSync(musicTitleMapPath)) return {};
+  try {
+    var value = JSON.parse(fs.readFileSync(musicTitleMapPath, 'utf8'));
+    return (value && typeof value === 'object' && !Array.isArray(value)) ? value : {};
+  } catch (e) { return {}; }
+}
+function writeMusicTitleMap(map) {
+  fs.mkdirSync(path.dirname(musicTitleMapPath), { recursive: true });
+  var sorted = {};
+  Object.keys(map).sort().forEach(function(key) { sorted[key] = String(map[key] || '').trim(); });
+  fs.writeFileSync(musicTitleMapPath, JSON.stringify(sorted, null, 2) + '\n', 'utf8');
+}
+
+// -- Friend Link Helpers --
+
+function listFriendLinks() {
+  if (!fs.existsSync(friendsDir)) return [];
+  return fs.readdirSync(friendsDir, { withFileTypes: true })
+    .filter(function(entry) { return entry.isFile() && /\.json$/i.test(entry.name); })
+    .map(function(entry) {
+      try {
+        var fp = path.join(friendsDir, entry.name);
+        var data = JSON.parse(fs.readFileSync(fp, 'utf8'));
+        var stat = fs.statSync(fp);
+        return {
+          filename: entry.name, title: data.title || data.name || '', url: data.url || '',
+          avatar: data.avatar || '', description: data.description || '',
+          backlink: data.backlink || '', screenshots: data.screenshots || [],
+          contact: data.contact || '', tags: data.tags || [],
+          lastChecked: data.lastChecked || '', modifiedAt: stat.mtime.toISOString()
+        };
+      } catch (e) { return null; }
+    })
+    .filter(Boolean)
+    .sort(function(a, b) { return (a.title || '').localeCompare(b.title || '', 'zh-CN'); });
+}
+
+function formatDate(date) {
+  var y = date.getFullYear();
+  var m = String(date.getMonth() + 1).padStart(2, '0');
+  var d = String(date.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + d;
 }
