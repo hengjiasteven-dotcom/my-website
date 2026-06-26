@@ -59,7 +59,9 @@ function extractError(data) {
 }
 
 async function requestChatCompletion({ apiKey, endpoint, model, character, message }) {
-  const signal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  const controller = new AbortController();
+  const signal = controller.signal;
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
     const upstream = await fetch(endpoint, {
@@ -112,6 +114,7 @@ async function requestChatCompletion({ apiKey, endpoint, model, character, messa
 
     return extractReply(data) || '我听见了。';
   } catch (error) {
+    clearTimeout(timer);
     if (error.name === 'TimeoutError' || error.name === 'AbortError') {
       const timeoutError = new Error('Chat service timed out');
       timeoutError.status = 504;

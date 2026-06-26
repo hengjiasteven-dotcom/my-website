@@ -79,7 +79,9 @@ function extractError(data) {
 }
 
 async function requestChatCompletion({ apiKey, endpoint, model, message, history }) {
-  const signal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  const controller = new AbortController();
+  const signal = controller.signal;
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   const recentHistory = Array.isArray(history) ? history.slice(-8) : [];
   const safeHistory = recentHistory.map(item => ({
     role: item && item.role === 'assistant' ? 'assistant' : 'user',
@@ -116,6 +118,7 @@ async function requestChatCompletion({ apiKey, endpoint, model, message, history
 
     return extractReply(data) || '没、没事的……我在这里。';
   } catch (error) {
+    clearTimeout(timer);
     if (error.name === 'TimeoutError' || error.name === 'AbortError') {
       const timeoutError = new Error('Pet chat service timed out');
       timeoutError.status = 504;
