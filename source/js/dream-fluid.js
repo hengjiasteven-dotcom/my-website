@@ -3321,7 +3321,7 @@
 
     function petChatEndpoints() {
       var primary = siteAssetUrl('api/pet-chat');
-      var fallback = 'https://my-website-zeta-indol-39.vercel.app/api/pet-chat';
+      var fallback = primary; // Vercel deployment removed, using local only
 
       if (primary === fallback) {
         return [primary];
@@ -3455,7 +3455,7 @@
       var controller = new AbortController();
       var timeout = window.setTimeout(function() {
         controller.abort();
-      }, 26000);
+      }, 8000);
 
       return fetch(endpoint, {
         method: 'POST',
