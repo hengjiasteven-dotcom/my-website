@@ -1,4 +1,4 @@
-﻿# Hexo Configuration
+# Hexo Configuration
 ## Docs: https://hexo.io/docs/configuration.html
 
 # Site
@@ -14,7 +14,6 @@ timezone: Asia/Shanghai
 url: https://xiaodaidai.site
 root: /
 asset_cdn_base: https://static.xiaodaidai.site
-video_asset_cdn_base: https://tgz646ank.sabkt.gdipper.com
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:

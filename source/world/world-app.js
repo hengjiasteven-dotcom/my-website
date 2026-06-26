@@ -27516,13 +27516,7 @@ void main() {
       var DROPPED_MODEL_SCALE_MULTIPLIERS = {
         cabin: 5
       };
-      var WORLD_CHAT_API_URL = (() => {
-        const localHosts = /* @__PURE__ */ new Set(["localhost", "127.0.0.1", "::1"]);
-        if (localHosts.has(window.location.hostname) || window.location.hostname.endsWith(".vercel.app")) {
-          return "/api/world-chat";
-        }
-        return "https://my-website-zeta-indol-39.vercel.app/api/world-chat";
-      })();
+      var WORLD_CHAT_API_URL = "/api/world-chat";
       var IS_LOCAL_PREVIEW = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
       var stage = document.querySelector("[data-world-stage]");
       var canvas = document.getElementById("world-canvas");

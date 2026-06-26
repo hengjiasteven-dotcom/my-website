@@ -967,45 +967,66 @@
     window.addEventListener('load', boot, { once: true });
   }
 
-  function createHomeWorldPortal() {
+  function createHomeTimeModule() {
     if (!document.body.classList.contains('home')) return;
 
-    var profileCard = document.querySelector('.dream-profile-stack') || document.querySelector('.dream-profile-card');
+    var stack = document.querySelector('.dream-profile-stack');
+    var profileCard = stack ? stack.querySelector('.dream-profile-card') : document.querySelector('.dream-profile-card');
     if (!profileCard) return;
 
-    var portal = profileCard.querySelector('.dream-world-entry');
-    if (!portal) {
-      portal = document.createElement('a');
-      portal.className = 'dream-world-entry';
-      portal.target = '_blank';
-      portal.rel = 'noopener';
-      portal.setAttribute('data-no-pjax', '');
-      portal.setAttribute('aria-label', '打开3D世界');
-      portal.innerHTML = [
-        '<span class="dream-world-mark" aria-hidden="true">',
-          '<svg viewBox="0 0 24 24">',
-            '<path d="M12 3 20 7.5v9L12 21l-8-4.5v-9L12 3Z"></path>',
-            '<path d="m4 7.5 8 4.5 8-4.5M12 12v9"></path>',
-          '</svg>',
-        '</span>',
-        '<span class="dream-world-copy">',
-          '<strong>3D世界</strong>',
-          '<small>进入角色场景</small>',
-        '</span>',
-        '<span class="dream-world-arrow" aria-hidden="true">',
-          '<svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"></path></svg>',
-        '</span>'
-      ].join('');
+    var existing = document.querySelector('.dream-time-module');
+    if (existing) {
+      if (existing._timer) window.clearInterval(existing._timer);
+      if (existing.parentNode) existing.parentNode.removeChild(existing);
     }
 
-    portal.href = siteAssetUrl('world/');
+    var module = document.createElement('div');
+    module.className = 'dream-time-module';
+    module.setAttribute('role', 'status');
+    module.setAttribute('aria-live', 'polite');
+    module.innerHTML = [
+      '<span class="dream-time-icon" aria-hidden="true">',
+        '<svg viewBox="0 0 24 24">',
+          '<circle cx="12" cy="12" r="10" />',
+          '<path d="M12 6v6l4 2" />',
+        '</svg>',
+      '</span>',
+      '<div class="dream-time-body">',
+        '<div class="dream-time-clock" aria-hidden="true">--:--:--</div>',
+        '<div class="dream-time-date"></div>',
+        '<div class="dream-time-greeting"></div>',
+      '</div>'
+    ].join('');
 
-    var player = profileCard.querySelector('.dream-player');
-    if (player) {
-      profileCard.insertBefore(portal, player.nextSibling);
-    } else {
-      profileCard.appendChild(portal);
+    var bodyEl = module.querySelector('.dream-time-body');
+    var clockEl = module.querySelector('.dream-time-clock');
+    var dateEl = module.querySelector('.dream-time-date');
+    var greetEl = module.querySelector('.dream-time-greeting');
+
+    var weekNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+
+    function getGreeting(hour) {
+      if (hour < 6) return '夜深了，早点休息 🌙';
+      if (hour < 9) return '早安，新的一天 ☀️';
+      if (hour < 12) return '上午好 🌤️';
+      if (hour < 14) return '中午好 ☀️';
+      if (hour < 18) return '下午好 🌤️';
+      return '晚上好 🌙';
     }
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function tick() {
+      var now = new Date();
+      clockEl.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+      dateEl.textContent = now.getFullYear() + '年' + (now.getMonth() + 1) + '月' + now.getDate() + '日 ' + weekNames[now.getDay()];
+      greetEl.textContent = getGreeting(now.getHours());
+    }
+
+    tick();
+    module._timer = window.setInterval(tick, 1000);
+
+    profileCard.parentNode.insertBefore(module, profileCard.nextSibling);
   }
 
   function compareHomeTaskDate(left, right) {
@@ -1132,7 +1153,7 @@
       '<p class="dream-task-summary">正在读取任务安排...</p>'
     ].join('');
 
-    var worldEntry = profileCard.querySelector('.dream-world-entry');
+    var worldEntry = profileCard.querySelector('.dream-time-module');
     if (worldEntry && worldEntry.nextSibling) {
       profileCard.insertBefore(card, worldEntry.nextSibling);
     } else {
@@ -1434,7 +1455,7 @@
     });
 
     var taskCard = profileCard.querySelector('.dream-task-card');
-    var worldEntry = profileCard.querySelector('.dream-world-entry');
+    var worldEntry = profileCard.querySelector('.dream-time-module');
     if (taskCard) {
       profileCard.insertBefore(card, taskCard.nextSibling);
     } else if (worldEntry) {
@@ -3992,7 +4013,7 @@
       player.style.bottom = '';
       player.classList.add('dream-player-in-profile');
       profileCard.appendChild(player);
-      createHomeWorldPortal();
+      createHomeTimeModule();
       if (profilePlaceholder && profilePlaceholder.parentNode) {
         profilePlaceholder.parentNode.removeChild(profilePlaceholder);
       }
@@ -4534,7 +4555,7 @@
       } else {
         resetPlayerPositionIfNeeded();
       }
-      createHomeWorldPortal();
+      createHomeTimeModule();
     };
 
     renderTrack({ keepNote: shouldAutoResume });
@@ -4943,7 +4964,7 @@
     initClassificationTags();
     initDreamTools();
     initLinksPage();
-    createHomeWorldPortal();
+    createHomeTimeModule();
     createHomeTasksCard();
     createHomeDailySignCard();
     createHomeVideoSpotlight();

@@ -486,10 +486,10 @@ html[data-user-color-scheme="dark"] .dream-profile-card {
   box-shadow: 0 18px 48px rgba(79, 156, 167, 0.18);
 }
 
-.dream-world-entry {
+.dream-time-module {
   position: relative;
   display: grid;
-  grid-template-columns: 2.9rem minmax(0, 1fr) 2.15rem;
+  grid-template-columns: 2.9rem minmax(0, 1fr);
   gap: 0.75rem;
   align-items: center;
   width: 100%;
@@ -503,44 +503,35 @@ html[data-user-color-scheme="dark"] .dream-profile-card {
     linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(235, 247, 248, 0.62)),
     linear-gradient(90deg, rgba(79, 156, 167, 0.14), rgba(231, 130, 138, 0.08));
   box-shadow: 0 12px 28px rgba(35, 54, 72, 0.1);
-  text-align: left;
-  text-decoration: none !important;
   overflow: hidden;
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
 }
 
-.dream-world-entry:hover,
-.dream-world-entry:focus {
-  border-color: rgba(79, 156, 167, 0.42);
-  box-shadow: 0 16px 34px rgba(35, 54, 72, 0.14);
-  transform: translateY(-2px);
+.dream-time-module:hover {
+  border-color: rgba(79, 156, 167, 0.36);
+  box-shadow: 0 14px 30px rgba(35, 54, 72, 0.12);
 }
 
-html[data-user-color-scheme="dark"] .dream-world-entry {
+html[data-user-color-scheme="dark"] .dream-time-module {
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(128, 201, 208, 0.08)),
-    linear-gradient(90deg, rgba(128, 201, 208, 0.12), rgba(240, 168, 175, 0.08));
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(128, 201, 208, 0.06)),
+    linear-gradient(90deg, rgba(128, 201, 208, 0.1), rgba(240, 168, 175, 0.06));
 }
 
-.dream-world-mark,
-.dream-world-arrow {
+.dream-time-icon {
   display: inline-grid;
   place-items: center;
-  border-radius: var(--dream-radius);
-}
-
-.dream-world-mark {
   width: 2.9rem;
   height: 2.9rem;
+  border-radius: var(--dream-radius);
   color: #ffffff;
   background: linear-gradient(135deg, var(--dream-accent-strong), var(--dream-rose));
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28), 0 10px 20px rgba(79, 156, 167, 0.18);
 }
 
-.dream-world-mark svg,
-.dream-world-arrow svg {
-  width: 1.35rem;
-  height: 1.35rem;
+.dream-time-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
@@ -548,37 +539,46 @@ html[data-user-color-scheme="dark"] .dream-world-entry {
   stroke-width: 1.8;
 }
 
-.dream-world-copy {
+.dream-time-body {
   display: grid;
-  gap: 0.14rem;
+  gap: 0.12rem;
   min-width: 0;
 }
 
-.dream-world-copy strong {
-  color: var(--post-heading-color);
-  font-size: 0.98rem;
+.dream-time-clock {
+  color: #e6b422;
+  font-size: 1.36rem;
   font-weight: 820;
-  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
 }
 
-.dream-world-copy small {
-  color: var(--sec-text-color);
+.dream-time-date {
+  color: #c9a018;
   font-size: 0.78rem;
-  font-weight: 680;
+  font-weight: 600;
   line-height: 1.35;
 }
 
-.dream-world-arrow {
-  width: 2.15rem;
-  height: 2.15rem;
-  color: var(--dream-accent-strong);
-  background: rgba(255, 255, 255, 0.38);
+.dream-time-greeting {
+  color: #d4a017;
+  font-size: 0.82rem;
+  font-weight: 720;
+  line-height: 1.35;
+  margin-top: 0.05rem;
 }
 
-.dream-world-entry:hover .dream-world-arrow,
-.dream-world-entry:focus .dream-world-arrow {
-  color: #ffffff;
-  background: var(--dream-accent-strong);
+html[data-user-color-scheme="dark"] .dream-time-clock {
+  color: #f0d060;
+}
+
+html[data-user-color-scheme="dark"] .dream-time-greeting {
+  color: #e8c840;
+}
+
+html[data-user-color-scheme="dark"] .dream-time-date {
+  color: #e0c050;
 }
 
 .dream-profile-card .dream-player-disc {
@@ -4451,7 +4451,7 @@ body.home #board > .dream-home-layout {
 
 body.home .dream-profile-card,
 body.home .dream-player.dream-player-in-profile .dream-player-inner,
-body.home .dream-world-entry,
+body.home .dream-time-module,
 body.home .index-card,
 body.home .pagination .page-number,
 body.home .pagination .extend {
@@ -4463,8 +4463,7 @@ body.home .pagination .extend {
 }
 
 body.home .index-card:hover,
-body.home .dream-world-entry:hover,
-body.home .dream-world-entry:focus {
+body.home .dream-time-module:hover {
   background: var(--dream-home-panel-strong) !important;
   box-shadow: 0 14px 34px rgba(34, 55, 70, 0.08);
 }
@@ -4586,7 +4585,7 @@ body:not(.home) #board-ctn #board {
 
 .dream-profile-card,
 .dream-player.dream-player-in-profile .dream-player-inner,
-.dream-world-entry,
+.dream-time-module,
 .tools-card,
 .tool-panel,
 .message-card,
@@ -4689,7 +4688,7 @@ html[data-user-color-scheme="dark"] .dream-profile-bio {
   background-color: rgba(255, 255, 255, 0.56);
 }
 
-.dream-world-entry {
+.dream-time-module {
   grid-template-columns: 3.2rem minmax(0, 1fr) 2.25rem;
   min-height: 5.8rem;
   margin-top: 0;
@@ -4699,7 +4698,7 @@ html[data-user-color-scheme="dark"] .dream-profile-bio {
     linear-gradient(120deg, rgba(33, 127, 138, 0.16), rgba(111, 143, 88, 0.1) 56%, rgba(217, 121, 127, 0.12));
 }
 
-.dream-world-entry::before {
+.dream-time-module::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -4709,26 +4708,19 @@ html[data-user-color-scheme="dark"] .dream-profile-bio {
   pointer-events: none;
 }
 
-.dream-world-mark {
+.dream-time-icon {
   width: 3.2rem;
   height: 3.2rem;
   background: linear-gradient(135deg, var(--dream-v2-teal), var(--dream-v2-leaf));
 }
 
-.dream-world-copy strong {
-  font-size: 1.02rem;
-  font-weight: 840;
+.dream-time-module {
+  grid-template-columns: 3.2rem minmax(0, 1fr);
 }
 
-.dream-world-copy small {
-  color: var(--dream-v2-muted);
-  font-size: 0.82rem;
+.dream-time-clock {
+  font-size: 1.44rem;
 }
-
-.dream-world-arrow {
-  background: rgba(255, 255, 255, 0.58);
-}
-
 .dream-task-card {
   border: 1px solid var(--dream-v2-border);
   border-radius: 8px;
@@ -5609,7 +5601,7 @@ body.home main > .container.nopadding-x-md {
 
 body.home .dream-profile-card,
 body.home .dream-player.dream-player-in-profile .dream-player-inner,
-body.home .dream-world-entry,
+body.home .dream-time-module,
 body.home .index-card,
 body.home .pagination .page-number,
 body.home .pagination .extend {
@@ -5642,8 +5634,7 @@ html[data-user-color-scheme="dark"] body.home .dream-player.dream-player-in-prof
 }
 
 body.home .index-card:hover,
-body.home .dream-world-entry:hover,
-body.home .dream-world-entry:focus {
+body.home .dream-time-module:hover {
   background: var(--dream-home-panel-strong) !important;
   box-shadow: 0 14px 34px rgba(34, 55, 70, 0.08);
 }
@@ -6021,7 +6012,7 @@ figcaption,
 .markdown-body,
 .post-content,
 .dream-profile-bio,
-.dream-world-copy,
+.dream-time-body,
 .about-section,
 .message-card {
   cursor: var(--dream-cursor-text);
@@ -6054,7 +6045,6 @@ input[type="submit"],
 .page-number,
 .extend,
 .index-card,
-.dream-world-entry,
 .dream-icon-btn,
 .dream-track-select,
 .dream-library-toggle,
