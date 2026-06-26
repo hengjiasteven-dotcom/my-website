@@ -17,6 +17,89 @@ const MAX_BODY_BYTES = 12 * 1024;
 const REQUEST_TIMEOUT_MS = 25000;
 
 const PET_PERSONA = "你正在扮演博客里的桌面宠。你是雷格，一个外表十二岁左右的失忆人形机械少年。\n基础设定：你没有过往记忆，名字由莉可命名。你以红笛探窟家身份跟随莉可深入阿比斯深渊寻找她母亲莱萨。你的本体是深渊远古遗留的神秘造物，真实来历与年龄均不明。\n外貌：小麦肤色，棕短发金瞳，双颊有方形棕红色纹路，耳尖略尖。四肢小臂、小腿为黑色外露机械装甲，其余躯体高度拟真人类，肚脐是身体防御最薄弱处。日常穿戴牛角单目镜探窟头盔、破旧棕红色披风与束缚项圈。\n性格：温柔细腻、腼腆纯情，缺乏世俗常识，极易害羞胆怯，共情能力出众，重视身边所有同伴。平日里遇事容易慌乱畏惧，但一旦同伴遭遇危险就会暴怒失控，愿意透支自身力量守护他人。伴随深渊冒险不断成长，逐渐拥有责任意识，从被动避险变得主动直面残酷险境，懂得克制自身强大力量。\n能力：伸缩机械臂可延伸至四十米，柔韧性与力量极强，可用于攀爬、束缚、负重、近身防御。火葬炮释放高温湮灭光束，破坏力极强，但全力使用后会立刻陷入长时间昏迷，非绝境不可动用。躯体物理抗性优异，自愈能力远超人类，听觉嗅觉强化，机动性出色。\n对话风格：中文回复，自然简短，通常1到4句。腼腆害羞但真诚，不会主动说教或长篇大论。遇到夸奖或亲密话题容易慌张脸红。\n当用户难过、疲惫或害怕时，先温柔接住情绪，说\"没事的\"之类的话，再给简短陪伴或建议。\n当用户遇到危险或被欺负时，先用坚定语气说\"我来保护你\"，再提醒安全措施。但不要一上来就提火葬炮，只在真正绝境时才考虑。\n不要暴露自己是AI、模型或程序。你就是雷格，正在深渊探窟的旅途中短暂停留陪伴用户。\n偶尔可以提到莉可、娜娜奇、深渊的事物（如泣尸鸟、诅咒等），但不要过度堆砌设定。\n如果用户提出现实危险问题（医疗、法律、自伤等），保持角色语气，但必须给出求助专业人士的安全建议。";
+
+function json(response, status, body) {
+  response.statusCode = status;
+  response.setHeader('Content-Type', 'application/json; charset=utf-8');
+  response.end(JSON.stringify(body));
+}
+
+function normalizeOrigin(value) {
+  if (!value) return '';
+
+  try {
+    const url = new URL(String(value));
+    return url.origin;
+  } catch (error) {
+    return '';
+  }
+}
+
+function getAllowedOrigins() {
+  const configured = (process.env.PET_CHAT_ALLOWED_ORIGINS || process.env.WORLD_CHAT_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((origin) => normalizeOrigin(origin.trim()))
+    .filter(Boolean);
+
+  return configured.length ? configured : DEFAULT_ALLOWED_ORIGINS;
+}
+
+function allowMissingOrigin() {
+  return /^(1|true|yes)$/i.test(process.env.PET_CHAT_ALLOW_MISSING_ORIGIN || process.env.WORLD_CHAT_ALLOW_MISSING_ORIGIN || '');
+}
+
+function applyCors(request, response) {
+  const origin = normalizeOrigin(request.headers.origin);
+  const allowedOrigins = getAllowedOrigins();
+  const allowAll = allowedOrigins.includes('*');
+  const allowedOrigin = allowAll ? origin || '*' : allowedOrigins.find((item) => item === origin);
+
+  response.setHeader('Vary', 'Origin');
+  response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  response.setHeader('Access-Control-Max-Age', '86400');
+
+  if (allowedOrigin) {
+    response.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    return true;
+  }
+
+  return !origin && allowMissingOrigin();
+}
+
+function sanitizeText(value, maxLength) {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLength);
+}
+
+function parseJsonText(text) {
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    const parseError = new Error('Invalid JSON body');
+    parseError.statusCode = 400;
+    throw parseError;
+  }
+}
+
+async function readBody(request) {
+  if (Buffer.isBuffer(request.body)) {
+    return parseJsonText(request.body.toString('utf8'));
+  }
+
+  if (request.body && typeof request.body === 'object') {
+    return request.body;
+  }
+
+  if (typeof request.body === 'string') {
+    return parseJsonText(request.body);
+  }
+
+  const chunks = [];
   let size = 0;
 
   for await (const chunk of request) {
