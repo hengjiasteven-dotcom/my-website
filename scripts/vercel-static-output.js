@@ -70,23 +70,6 @@ console.log('Prepared static output for Vercel.');
 `;
 
 hexo.extend.generator.register('vercel_static_output', function() {
-  const worldChatApi = path.join(hexo.base_dir, 'api', 'world-chat.js');
-  const petChatApi = path.join(hexo.base_dir, 'api', 'pet-chat.js');
-
-  return [{
-    path: 'package.json',
-    data: staticPackageJson
-  }, {
-    path: 'vercel.json',
-    data: staticVercelJson
-  }, {
-    path: 'scripts/vercel-static-build.js',
-    data: `${staticBuildScript}\n`
-  }, {
-    path: 'api/world-chat.js',
-    data: () => Promise.resolve(fs.readFileSync(worldChatApi))
-  }, {
-    path: 'api/pet-chat.js',
-    data: () => Promise.resolve(fs.readFileSync(petChatApi))
-  }];
+  // Edge Functions handle /api/* — API files no longer copied to public
+  return [];
 });
