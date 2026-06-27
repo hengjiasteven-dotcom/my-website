@@ -19,7 +19,7 @@ custom_css:
 custom_js:
   - /js/dream-theme-manifest.js?v=20260613-music-refresh
   - /js/dream-daily-signs.js?v=20260618-daily-sign
-  - /js/dream-fluid.js?v=20260627-home-refresh-5
+  - /js/dream-fluid.js?v=20260627-home-refresh-6
 
 static_prefix:
   waline: /js/vendor/waline/

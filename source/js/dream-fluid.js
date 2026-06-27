@@ -3445,10 +3445,12 @@
     }
 
     function fallbackPetReply(error) {
+      console.error('[PetChat] Error:', error);
       if (error && error.name === 'AbortError') {
         return '\u600e\u4e48\u529e\u2026\u2026\u6211\u521a\u521a\u60f3\u4e86\u597d\u4e45\uff0c\u597d\u50cf\u8fde\u4e0d\u4e0a\u3002\u6ca1\u4e8b\u7684\uff0c\u7b49\u4e00\u4e0b\u518d\u8bd5\u8bd5\u3002';
       }
-      return '\u54a6\u2026\u2026AI\u90a3\u8fb9\u597d\u50cf\u6ca1\u6709\u56de\u5e94\u3002\u6ca1\u4e8b\u7684\uff0c\u6211\u8fd8\u5728\u8fd9\u91cc\u966a\u4f60\u3002';
+      var detail = error ? (error.statusCode ? ' (HTTP ' + error.statusCode + ')' : ' (' + (error.name || 'unknown') + ')') : '';
+      return '\u54a6\u2026\u2026AI\u90a3\u8fb9\u597d\u50cf\u6ca1\u6709\u56de\u5e94' + detail + '\u3002\u6ca1\u4e8b\u7684\uff0c\u6211\u8fd8\u5728\u8fd9\u91cc\u966a\u4f60\u3002';
     }
 
     function requestPetChat(endpoint, message) {
@@ -3457,6 +3459,7 @@
         controller.abort();
       }, 8000);
 
+      console.log('[PetChat] Fetching:', endpoint);
       return fetch(endpoint, {
         method: 'POST',
         signal: controller.signal,
@@ -3468,6 +3471,7 @@
           history: state.chatHistory
         })
       }).then(function(response) {
+        console.log('[PetChat] Response status:', response.status);
         return response.json().catch(function() {
           return {};
         }).then(function(data) {
