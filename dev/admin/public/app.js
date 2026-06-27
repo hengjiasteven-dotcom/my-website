@@ -216,7 +216,7 @@ postVideoFileInput.addEventListener('change', () => {
     const form = new FormData(postForm);
     const postMusicFile = postMusicFileInput.files[0];
     form.delete('postMusicFile');
-    const postVideoFile = postVideoFileInput.files[0];
+    const postVideoFile = postVideoFileInput && postVideoFileInput.files ? postVideoFileInput.files[0] : null;
     form.delete('postVideoFile');
 
     if (!isEditing && postMusicFile) {
