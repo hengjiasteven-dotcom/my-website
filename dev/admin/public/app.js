@@ -774,18 +774,9 @@ function renderMedia() {
   const playlist = new Set(mediaState.playlist || []);
   const groups = [
     ['图片', mediaState.pictures || [], 'picture'],
-    ['音乐', mediaState.music || [], 'music'],
-    ['视频', mediaState.videos || [], 'video']
-  ].filter(([, , kind]) => kind === activeKind);
-
-  if (activeKind === 'music' && mediaState.remoteMusic && mediaState.remoteMusic.length) {
-    groups[1][1] = (mediaState.music || []).concat(mediaState.remoteMusic);
-    groups[1][0] = '音乐';
-  }
-  if (activeKind === 'video' && mediaState.remoteVideos && mediaState.remoteVideos.length) {
-    groups[2][1] = (mediaState.videos || []).concat(mediaState.remoteVideos);
-    groups[2][0] = '视频';
-  }
+    ['音乐', (mediaState.music || []).concat(mediaState.remoteMusic || []), 'music'],
+    ['视频', (mediaState.videos || []).concat(mediaState.remoteVideos || []), 'video']
+  ].filter(([, files]) => files.length > 0).filter(([, , kind]) => kind === activeKind);
 
   mediaList.innerHTML = groups.map(([title, files, kind]) => {
     const filtered = files.filter((file) => {
