@@ -108,14 +108,41 @@ app.use(session({
 
 app.get('/', (req, res) => res.redirect('/admin'));
 app.get('/admin', (req, res) => {
-  res.setHeader('Cache-Control', 'no-store');
-  res.sendFile(path.join(publicDir, 'index.html'));
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  let html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
+  // Inject dynamic cache-bust version for JS and CSS
+  const jsFile = path.join(publicDir, 'app.js');
+  const cssFile = path.join(publicDir, 'styles.css');
+  try {
+    const jsVer = Math.floor(fs.statSync(jsFile).mtimeMs).toString(36);
+    const cssVer = Math.floor(fs.statSync(cssFile).mtimeMs).toString(36);
+    html = html.replace(/app\.js\?v=[^"]+/g, 'app.js?v=' + jsVer);
+    html = html.replace(/styles\.css\?v=[^"]+/g, 'styles.css?v=' + cssVer);
+  } catch {}
+  res.type('html').send(html);
 });
+// Force cache bust: serve assets with file mtime as version
+app.use('/admin/assets', (req, res, next) => {
+  const filePath = path.join(publicDir, req.path.replace(/\?.*$/, ''));
+  try {
+    const stat = fs.statSync(filePath);
+    if (stat.isFile()) {
+      const version = Math.floor(stat.mtimeMs).toString(36);
+      res.setHeader('X-Asset-Version', version);
+    }
+  } catch {}
+  next();
+});
+
 app.use('/admin/assets', express.static(publicDir, {
-  etag: true,
+  etag: false,
   maxAge: 0,
   setHeaders(res) {
-    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
   }
 }));
 
