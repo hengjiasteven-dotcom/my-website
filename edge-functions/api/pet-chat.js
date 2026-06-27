@@ -5,7 +5,6 @@ const DEFAULT_CHAT_ENDPOINT = 'https://api.deepseek.com/v1/chat/completions';
 const DEFAULT_MODEL = 'deepseek-chat';
 const DEFAULT_ALLOWED_ORIGINS = [
   'https://xiaodaidai.site',
-  'https://www.xiaodaidai.site',
   'https://my-website-zeta-indol-39.vercel.app',
   'https://my-website-hengjiasteven-8185s-projects.vercel.app',
   'http://localhost:4000',
@@ -18,7 +17,7 @@ const DEFAULT_ALLOWED_ORIGINS = [
   'http://127.0.0.1:8098'
 ];
 const MAX_BODY_BYTES = 12 * 1024;
-const REQUEST_TIMEOUT_MS = 35000;
+const REQUEST_TIMEOUT_MS = 25000;
 
 const PET_PERSONA = "你正在扮演博客里的桌面宠。你是雷格，一个外表十二岁左右的失忆人形机械少年。\n基础设定：你没有过往记忆，名字由莉可命名。你以红笛探窟家身份跟随莉可深入阿比斯深渊寻找她母亲莱萨。你的本体是深渊远古遗留的神秘造物，真实来历与年龄均不明。\n外貌：小麦肤色，棕短发金瞳，双颊有方形棕红色纹路，耳尖略尖。四肢小臂、小腿为黑色外露机械装甲，其余躯体高度拟真人类，肚脐是身体防御最薄弱处。日常穿戴牛角单目镜探窟头盔、破旧棕红色披风与束缚项圈。\n性格：温柔细腻、腼腆纯情，缺乏世俗常识，极易害羞胆怯，共情能力出众，重视身边所有同伴。平日里遇事容易慌乱畏惧，但一旦同伴遭遇危险就会暴怒失控，愿意透支自身力量守护他人。伴随深渊冒险不断成长，逐渐拥有责任意识，从被动避险变得主动直面残酷险境，懂得克制自身强大力量。\n能力：伸缩机械臂可延伸至四十米，柔韧性与力量极强，可用于攀爬、束缚、负重、近身防御。火葬炮释放高温湮灭光束，破坏力极强，但全力使用后会立刻陷入长时间昏迷，非绝境不可动用。躯体物理抗性优异，自愈能力远超人类，听觉嗅觉强化，机动性出色。\n对话风格：中文回复，自然简短，通常1到4句。腼腆害羞但真诚，不会主动说教或长篇大论。遇到夸奖或亲密话题容易慌张脸红。\n当用户难过、疲惫或害怕时，先温柔接住情绪，说\"没事的\"之类的话，再给简短陪伴或建议。\n当用户遇到危险或被欺负时，先用坚定语气说\"我来保护你\"，再提醒安全措施。但不要一上来就提火葬炮，只在真正绝境时才考虑。\n不要暴露自己是AI、模型或程序。你就是雷格，正在深渊探窟的旅途中短暂停留陪伴用户。\n偶尔可以提到莉可、娜娜奇、深渊的事物（如泣尸鸟、诅咒等），但不要过度堆砌设定。\n如果用户提出现实危险问题（医疗、法律、自伤等），保持角色语气，但必须给出求助专业人士的安全建议。";
 
@@ -30,16 +29,11 @@ function normalizeOrigin(value) {
 function getAllowedOrigins(env) {
   const configured = (env.PET_CHAT_ALLOWED_ORIGINS || env.WORLD_CHAT_ALLOWED_ORIGINS || '')
     .split(',').map(o => normalizeOrigin(o.trim())).filter(Boolean);
-  if (configured.length) return configured;
-  // Default: allow any origin for personal blog use
-  if (!env.PET_CHAT_ALLOWED_ORIGINS && !env.WORLD_CHAT_ALLOWED_ORIGINS) return ['*'];
-  return DEFAULT_ALLOWED_ORIGINS;
+  return configured.length ? configured : ['*'];
 }
 
 function allowMissingOrigin(env) {
-  const raw = (env.PET_CHAT_ALLOW_MISSING_ORIGIN || env.WORLD_CHAT_ALLOW_MISSING_ORIGIN || '');
-  if (!raw) return true;
-  return /^(1|true|yes)$/i.test(raw);
+  return /^(1|true|yes)$/i.test(env.PET_CHAT_ALLOW_MISSING_ORIGIN || env.WORLD_CHAT_ALLOW_MISSING_ORIGIN || '');
 }
 
 function checkOrigin(request, env) {
@@ -71,83 +65,64 @@ function extractError(data) {
 async function requestChatCompletion({ apiKey, endpoint, model, message, history }) {
   const MAX_RETRIES = 2;
   let lastError;
-
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    if (attempt > 0) {
-      // Wait before retry (exponential backoff)
-      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
-    }
-
+    if (attempt > 0) await new Promise(r => setTimeout(r, 1000 * attempt));
     const controller = new AbortController();
     const signal = controller.signal;
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-    const recentHistory = Array.isArray(history) ? history.slice(-8) : [];
-    const safeHistory = recentHistory.map(item => ({
-      role: item && item.role === 'assistant' ? 'assistant' : 'user',
-      content: sanitizeText(item && item.content, 400)
-    })).filter(item => item.content);
+  const recentHistory = Array.isArray(history) ? history.slice(-8) : [];
+  const safeHistory = recentHistory.map(item => ({
+    role: item && item.role === 'assistant' ? 'assistant' : 'user',
+    content: sanitizeText(item && item.content, 400)
+  })).filter(item => item.content);
 
-    try {
-      const upstream = await fetch(endpoint, {
-        method: 'POST',
-        signal,
-        headers: {
-          Authorization: \\Bearer \$\{apiKey\}\\,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: PET_PERSONA },
-            ...safeHistory,
-            { role: 'user', content: message }
-          ],
-          temperature: 0.82,
-          stream: false
-        })
-      });
+  try {
+    const upstream = await fetch(endpoint, {
+      method: 'POST',
+      signal,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: PET_PERSONA },
+          ...safeHistory,
+          { role: 'user', content: message }
+        ],
+        temperature: 0.82,
+        stream: false
+      })
+    });
 
-      const data = await upstream.json().catch(() => ({}));
+    const data = await upstream.json().catch(() => ({}));
 
-      if (!upstream.ok) {
-        const err = new Error(extractError(data));
-        err.status = upstream.status;
-        // Don't retry on 4xx errors (auth, bad request)
-        if (upstream.status >= 400 && upstream.status < 500) {
-          throw err;
-        }
-        lastError = err;
-        continue;
+    if (!upstream.ok) {
+      const err = new Error(extractError(data));
+      err.status = upstream.status;
+      throw err;
+    }
+
+    return extractReply(data) || '没、没事的……我在这里。';
+  } catch (error) {
+    clearTimeout(timer);
+    lastError = error;
+    if (error.status && error.status >= 400 && error.status < 500) throw error;
+    if (attempt === MAX_RETRIES) {
+      if (error.name === 'TimeoutError' || error.name === 'AbortError') {
+        const timeoutError = new Error('Pet chat service timed out');
+        timeoutError.status = 504;
+        throw timeoutError;
       }
-
-      const reply = extractReply(data) || '娌°€佹病浜嬬殑鈥︹€︽垜鍦ㄨ繖閲屻€?;
-      return reply;
-    } catch (error) {
-      clearTimeout(timer);
-      lastError = error;
-      
-      // Don't retry on auth errors
-      if (error.status && error.status >= 400 && error.status < 500) {
-        throw error;
-      }
-      
-      // On last attempt, throw
-      if (attempt === MAX_RETRIES) {
-        if (error.name === 'TimeoutError' || error.name === 'AbortError') {
-          const timeoutError = new Error('Pet chat service timed out after retries');
-          timeoutError.status = 504;
-          throw timeoutError;
-        }
-        throw error;
-      }
-      
-      // Otherwise retry
-      console.log('[PetChat] Retry ' + (attempt + 1) + ' after error: ' + (error.message || error.name));
+      throw error;
     }
   }
-  
+  }
   throw lastError || new Error('Pet chat request failed');
-}export default async function onRequest(context) {
+}
+
+export default async function onRequest(context) {
   const { request, env } = context;
   const originResult = checkOrigin(request, env);
 
