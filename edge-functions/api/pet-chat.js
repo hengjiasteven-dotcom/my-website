@@ -30,7 +30,10 @@ function normalizeOrigin(value) {
 function getAllowedOrigins(env) {
   const configured = (env.PET_CHAT_ALLOWED_ORIGINS || env.WORLD_CHAT_ALLOWED_ORIGINS || '')
     .split(',').map(o => normalizeOrigin(o.trim())).filter(Boolean);
-  return configured.length ? configured : DEFAULT_ALLOWED_ORIGINS;
+  if (configured.length) return configured;
+  // Default: allow any origin for personal blog use
+  if (!env.PET_CHAT_ALLOWED_ORIGINS && !env.WORLD_CHAT_ALLOWED_ORIGINS) return ['*'];
+  return DEFAULT_ALLOWED_ORIGINS;
 }
 
 function allowMissingOrigin(env) {
