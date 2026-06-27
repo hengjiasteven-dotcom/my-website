@@ -5,6 +5,7 @@ const DEFAULT_CHAT_ENDPOINT = 'https://api.deepseek.com/v1/chat/completions';
 const DEFAULT_MODEL = 'deepseek-chat';
 const DEFAULT_ALLOWED_ORIGINS = [
   'https://xiaodaidai.site',
+  'https://www.xiaodaidai.site',
   'https://my-website-zeta-indol-39.vercel.app',
   'https://my-website-hengjiasteven-8185s-projects.vercel.app',
   'http://localhost:4000',
@@ -33,7 +34,9 @@ function getAllowedOrigins(env) {
 }
 
 function allowMissingOrigin(env) {
-  return /^(1|true|yes)$/i.test(env.PET_CHAT_ALLOW_MISSING_ORIGIN || env.WORLD_CHAT_ALLOW_MISSING_ORIGIN || '');
+  const raw = (env.PET_CHAT_ALLOW_MISSING_ORIGIN || env.WORLD_CHAT_ALLOW_MISSING_ORIGIN || '');
+  if (!raw) return true;
+  return /^(1|true|yes)$/i.test(raw);
 }
 
 function checkOrigin(request, env) {
