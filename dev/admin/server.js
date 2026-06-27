@@ -294,6 +294,13 @@ app.post('/admin/api/posts', requireAuth, upload.single('markdown'), (req, res) 
     const postMusicName = String(req.body.postMusicName || '').trim()
       || markdownMeta.postMusicName;
     const postMusicPlacement = String(req.body.postMusicPlacement || 'after-front-matter');
+    let videoUploadResult = null;
+    if (req.files && req.files.postVideoFile && req.files.postVideoFile[0]) {
+      const vf = req.files.postVideoFile[0];
+      const videoDest = path.join(videoDir, vf.originalname);
+      fs.copyFileSync(vf.path, videoDest);
+      videoUploadResult = { url: `/assets/video/${vf.originalname}`, name: vf.originalname };
+    }
     const publishNow = req.body.publishNow === 'true';
 
     if (publishNow && activeJob) {
@@ -315,6 +322,16 @@ app.post('/admin/api/posts', requireAuth, upload.single('markdown'), (req, res) 
       name: postMusicName,
       url: postMusicPath
     }, postMusicPlacement);
+
+    const postVideoPath = normalizeMediaReferencePath(String(req.body.postVideoPath || '').trim(), 'video')
+      || (videoUploadResult && videoUploadResult.url);
+    const postVideoName = String(req.body.postVideoName || '').trim();
+    if (postVideoPath) {
+      content = insertArticleVideo(content, {
+        name: postVideoName,
+        url: postVideoPath
+      });
+    }
 
     const targetName = resolvePostTargetName(title);
     const targetPath = safeJoin(postsDir, targetName);
@@ -455,7 +472,8 @@ app.get('/admin/api/posts/:filename', requireAuth, (req, res) => {
       name: path.basename(fp), title: meta.title || filenameTitle(path.basename(fp)),
       date: meta.date, categories: meta.categories, tags: meta.tags,
       coverPath: meta.coverPath, postMusicPath: meta.postMusicPath,
-      postMusicName: meta.postMusicName, body: body, size: stat.size,
+      postMusicName: meta.postMusicName, postVideoPath: meta.postVideoPath,
+      postVideoName: meta.postVideoName, body: body, size: stat.size,
       modifiedAt: stat.mtime.toISOString()
     });
   } catch (err) { res.status(400).json({ error: err.message }); }
@@ -473,6 +491,8 @@ app.put('/admin/api/posts/:filename', requireAuth, (req, res) => {
     if (req.body.coverPath !== undefined) fields.coverPath = normalizeMediaReferencePath(String(req.body.coverPath).trim(), 'picture');
     if (req.body.postMusicPath !== undefined) fields.postMusicPath = normalizeMediaReferencePath(String(req.body.postMusicPath).trim(), 'music');
     if (req.body.postMusicName !== undefined) fields.postMusicName = String(req.body.postMusicName).trim();
+    if (req.body.postVideoPath !== undefined) fields.postVideoPath = normalizeMediaReferencePath(String(req.body.postVideoPath).trim(), 'video');
+    if (req.body.postVideoName !== undefined) fields.postVideoName = String(req.body.postVideoName).trim();
     var newContent;
     if (req.body.body !== undefined) {
       newContent = buildPostContent(String(req.body.body), fields);
@@ -484,7 +504,7 @@ app.put('/admin/api/posts/:filename', requireAuth, (req, res) => {
     var updated = extractMarkdownPostMeta(newContent);
     res.json({ ok: true, name: path.basename(fp), title: updated.title || filenameTitle(path.basename(fp)),
       date: updated.date, categories: updated.categories, tags: updated.tags,
-      coverPath: updated.coverPath, postMusicPath: updated.postMusicPath, postMusicName: updated.postMusicName });
+      coverPath: updated.coverPath, postMusicPath: updated.postMusicPath, postMusicName: updated.postMusicName, postVideoPath: updated.postVideoPath, postVideoName: updated.postVideoName });
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 
@@ -1058,6 +1078,32 @@ function insertArticleMusic(content, music, placement) {
   }
 
   return `${audioBlock}\n\n${content}`;
+}
+
+function insertArticleVideo(content, video) {
+  if (!video || !video.url) return content;
+
+  const videoBlock = `<video controls preload="metadata" src="${video.url}" style="max-width:100%;border-radius:8px;"></video>`;
+  if (content.includes(video.url)) return content;
+
+  const frontMatterMatch = content.match(/^---
+?
+[\s\S]*?
+?
+---
+?
+/);
+  if (frontMatterMatch) {
+    const index = frontMatterMatch[0].length;
+    return `${content.slice(0, index)}
+${videoBlock}
+
+${content.slice(index).replace(/^\s*/, '')}`;
+  }
+
+  return `${videoBlock}
+
+${content}`;
 }
 
 function listMediaFiles(dir, kind) {

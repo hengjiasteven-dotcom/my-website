@@ -146,6 +146,12 @@
               <p class="field-hint">可以直接上传，也可以在媒体库选择已有音乐。</p>
             </div>
 
+            <div class="field span-2">
+              <label for="postVideoFile">文章视频文件</label>
+              <input id="postVideoFile" name="postVideoFile" type="file" accept=".mp4,.webm,.mov,video/*">
+              <p class="field-hint">可以直接上传，也可以在媒体库选择已有视频。</p>
+            </div>
+
             <div class="field">
               <label for="postMusicPlacement">音乐位置</label>
               <select id="postMusicPlacement" name="postMusicPlacement">
@@ -159,11 +165,17 @@
               <div class="selection-card">
                 <p id="selectedCoverPath" class="form-message">封面：未选择</p>
                 <p id="selectedPostMusic" class="form-message">文章音乐：未选择</p>
+                <p id="selectedPostVideo" class="form-message">文章视频：未选择</p>
+                <p id="selectedPostVideo" class="form-message">文章视频：未选择</p>
               </div>
             </div>
 
             <input id="postMusicPath" name="postMusicPath" type="hidden">
             <input id="postMusicName" name="postMusicName" type="hidden">
+            <input id="postVideoPath" name="postVideoPath" type="hidden">
+            <input id="postVideoName" name="postVideoName" type="hidden">
+            <input id="postVideoPath" name="postVideoPath" type="hidden">
+            <input id="postVideoName" name="postVideoName" type="hidden">
 
             <label class="checkbox-row span-2">
               <input id="addPostMusicToPlaylist" name="addPostMusicToPlaylist" type="checkbox">
@@ -177,7 +189,7 @@
 
             <div class="form-actions span-2">
               <button id="postSubmitButton" type="submit">保存文章</button>
-              <button id="clearPostSelections" type="button" class="ghost-button ghost-button-light">清空封面和文章音乐</button>
+              <button id="clearPostSelections" type="button" class="ghost-button ghost-button-light">清空封面、音乐和视频</button>
               <p id="postMessage" class="form-message" role="status"></p>
             </div>
           </form>

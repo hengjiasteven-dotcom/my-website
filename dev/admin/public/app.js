@@ -19,6 +19,10 @@ const selectedCoverPath = document.querySelector('#selectedCoverPath');
 const postMusicFileInput = document.querySelector('#postMusicFile');
 const postMusicPathInput = document.querySelector('#postMusicPath');
 const postMusicNameInput = document.querySelector('#postMusicName');
+const postVideoFileInput = document.querySelector('#postVideoFile');
+const postVideoPathInput = document.querySelector('#postVideoPath');
+const postVideoNameInput = document.querySelector('#postVideoName');
+const selectedPostVideo = document.querySelector('#selectedPostVideo');
 const selectedPostMusic = document.querySelector('#selectedPostMusic');
 const clearPostSelectionsButton = document.querySelector('#clearPostSelections');
 const publishNowInput = document.querySelector('#publishNow');
@@ -189,6 +193,13 @@ function bindForms() {
   markdownFile.addEventListener('change', handleMarkdownSelection);
   coverPathInput.addEventListener('input', renderSelectedCover);
   postMusicFileInput.addEventListener('change', renderSelectedPostMusicFromUpload);
+postVideoFileInput.addEventListener('change', () => {
+  const file = postVideoFileInput.files[0];
+  if (file) {
+    postVideoNameInput.value = file.name;
+    renderSelectedPostVideo();
+  }
+});
   clearPostSelectionsButton.addEventListener('click', clearPostSelections);
 
   postForm.addEventListener('submit', async (event) => {
@@ -205,6 +216,8 @@ function bindForms() {
     const form = new FormData(postForm);
     const postMusicFile = postMusicFileInput.files[0];
     form.delete('postMusicFile');
+    const postVideoFile = postVideoFileInput.files[0];
+    form.delete('postVideoFile');
 
     if (!isEditing && postMusicFile) {
       setMessage(postMessage, '正在上传文章音乐...');
@@ -218,6 +231,24 @@ function bindForms() {
       form.set('postMusicName', musicResult.files[0].name);
       postMusicPathInput.value = musicResult.files[0].url;
       postMusicNameInput.value = musicResult.files[0].name;
+    }
+
+    if (!isEditing && postVideoFile) {
+      setMessage(postMessage, '正在上传文章视频...');
+      const videoForm = new FormData();
+      videoForm.set('kind', 'video');
+      videoForm.append('files', postVideoFile);
+      try {
+        const videoResult = await request('/admin/api/media', { method: 'POST', body: videoForm });
+        if (videoResult && videoResult.files && videoResult.files[0]) {
+          form.set('postVideoPath', videoResult.files[0].url);
+          form.set('postVideoName', videoResult.files[0].name);
+          postVideoPathInput.value = videoResult.files[0].url;
+          postVideoNameInput.value = videoResult.files[0].name;
+        }
+      } catch (error) {
+        console.warn('Video upload failed, continuing without video:', error);
+      }
     }
 
     form.set('publishNow', publishNowInput.checked ? 'true' : 'false');
@@ -540,6 +571,8 @@ async function editPost(filename) {
   coverPathInput.value = result.coverPath || '';
   postMusicPathInput.value = result.postMusicPath || '';
   postMusicNameInput.value = result.postMusicName || '';
+  postVideoPathInput.value = result.postVideoPath || '';
+  postVideoNameInput.value = result.postVideoName || '';
   postBody.value = result.body || '';
 
   document.getElementById('postBodyField').hidden = false;
@@ -843,6 +876,17 @@ function renderMedia() {
       setMessage(postMessage, '已选中现有音乐，可直接保存进文章。', 'success');
     });
   });
+
+  mediaList.querySelectorAll('[data-article-video]').forEach((button) => {
+    button.addEventListener('click', () => {
+      postVideoPathInput.value = button.dataset.url;
+      postVideoNameInput.value = button.dataset.name;
+      postVideoFileInput.value = '';
+      renderSelectedPostVideo();
+      activatePanel('postPanel');
+      setMessage(postMessage, '已选中现有视频，可直接保存进文章。', 'success');
+    });
+  });
 }
 
 async function refreshTasks() {
@@ -989,9 +1033,13 @@ function applyMarkdownDefaults(defaults) {
   postMusicPathInput.value = defaults.musicPath;
   postMusicNameInput.value = defaults.musicName;
   postMusicFileInput.value = '';
+  postVideoPathInput.value = defaults.videoPath || '';
+  postVideoNameInput.value = defaults.videoName || '';
+  postVideoFileInput.value = '';
   addPostMusicToPlaylistInput.checked = false;
   renderSelectedCover();
   renderSelectedPostMusic();
+  renderSelectedPostVideo();
 }
 
 function renderSelectedCover() {
@@ -1003,6 +1051,12 @@ function renderSelectedPostMusic() {
   const value = postMusicNameInput.value.trim();
   const pathValue = postMusicPathInput.value.trim();
   selectedPostMusic.textContent = value || pathValue ? `文章音乐：${value || pathValue}` : '文章音乐：未选择';
+}
+
+function renderSelectedPostVideo() {
+  const value = postVideoNameInput.value.trim();
+  const pathValue = postVideoPathInput.value.trim();
+  selectedPostVideo.textContent = value || pathValue ? `文章视频：${value || pathValue}` : '文章视频：未选择';
 }
 
 function renderSelectedPostMusicFromUpload() {
@@ -1021,10 +1075,14 @@ function clearPostSelections() {
   postMusicFileInput.value = '';
   postMusicPathInput.value = '';
   postMusicNameInput.value = '';
+  postVideoFileInput.value = '';
+  postVideoPathInput.value = '';
+  postVideoNameInput.value = '';
   addPostMusicToPlaylistInput.checked = false;
   renderSelectedCover();
   renderSelectedPostMusic();
-  setMessage(postMessage, '已清空封面和文章音乐。');
+  renderSelectedPostVideo();
+  setMessage(postMessage, '已清空封面、音乐和视频。');
 }
 
 function resetPostForm() {
@@ -1064,6 +1122,9 @@ function extractMarkdownDefaults(content, fileName = '') {
     frontMatter.audio,
     frontMatter.song
   ]) || findFirstAudioInContent(body), 'music');
+  const videoPath = normalizeAssetPath(firstNonEmpty([
+    frontMatter.video
+  ]) || findFirstVideoInContent(body), 'video');
 
   return {
     title,
@@ -1071,7 +1132,9 @@ function extractMarkdownDefaults(content, fileName = '') {
     tags,
     coverPath,
     musicPath,
-    musicName: musicPath ? fileNameFromPath(musicPath) : ''
+    musicName: musicPath ? fileNameFromPath(musicPath) : '',
+    videoPath,
+    videoName: videoPath ? fileNameFromPath(videoPath) : ''
   };
 }
 
@@ -1137,6 +1200,12 @@ function firstNonEmpty(values) {
 
 function cleanValue(value) {
   return String(value || '').replace(/^['"]|['"]$/g, '').trim();
+}
+
+function findFirstVideoInContent(content) {
+  const videoTagMatch = String(content || '').match(/<video[^>]+src=["']([^"']+)["']/i);
+  if (videoTagMatch) return videoTagMatch[1];
+  return '';
 }
 
 function findFirstAudioInContent(content) {
@@ -1218,6 +1287,10 @@ function mediaItem(file, kind, playlist) {
   const playlistButton = isTrack
     ? `<button type="button" data-playlist="${inPlaylist ? 'remove' : 'add'}" data-name="${escapeAttr(file.name)}">${inPlaylist ? '移出播放器' : '加入播放器'}</button>`
     : '';
+  const isVideo = kind === 'video';
+  const articleVideoButton = isVideo
+    ? `<button type="button" data-article-video data-url="${escapeAttr(file.url)}" data-name="${escapeAttr(file.name)}">设为文章视频</button>`
+    : '';
   const articleMusicButton = isTrack
     ? `<button type="button" data-article-music data-url="${escapeAttr(file.url)}" data-name="${escapeAttr(file.name)}">设为文章音乐</button>`
     : '';
@@ -1237,6 +1310,7 @@ function mediaItem(file, kind, playlist) {
         ${coverButton}
         ${playlistButton}
         ${articleMusicButton}
+        ${articleVideoButton}
         <button type="button" data-copy-url="${escapeAttr(file.url)}">复制链接</button>
         <button type="button" data-copy="${escapeAttr(file.markdown)}">复制引用</button>
       </div>
