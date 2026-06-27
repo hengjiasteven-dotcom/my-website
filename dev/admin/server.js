@@ -689,7 +689,7 @@ app.post('/admin/api/deploy', requireAuth, (req, res) => {
   try {
     const job = startSequenceJob([
       ['__publish_source__'],
-      ['npm', 'run', 'deploy']
+      ['__edgeone_deploy__']
     ], '部署上线');
     res.json({ ok: true, job: publicJob(job) });
   } catch (error) {
@@ -1218,6 +1218,21 @@ function startSequenceJob(commands, label) {
       return;
     }
 
+    if (commands[index][0] === '__edgeone_deploy__') {
+      appendJobOutput(job, '\n> git push origin source:main\n');
+      runCommand(['git', 'push', 'origin', 'source:main', '-f'], job,
+        () => {
+          appendJobOutput(job, '\nEdgeOne deployment triggered!\n');
+          runNext(index + 1);
+        },
+        (code) => {
+          appendJobOutput(job, `\nEdgeOne deploy push failed (exit ${code}). You can manually run: git push origin source:main -f\n`);
+          finishJob(job, code);
+        }
+      );
+      return;
+    }
+
     appendJobOutput(job, `\n> ${commands[index].join(' ')}\n`);
     runCommand(commands[index], job, () => runNext(index + 1), (code) => finishJob(job, code));
   };
@@ -1230,7 +1245,7 @@ function buildDeployCommands() {
   return [
     ['npm', 'run', 'build'],
     ['__publish_source__'],
-    ['npm', 'run', 'deploy']
+    ['__edgeone_deploy__']
   ];
 }
 
