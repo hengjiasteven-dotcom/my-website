@@ -1086,13 +1086,7 @@ function insertArticleVideo(content, video) {
   const videoBlock = `<video controls preload="metadata" src="${video.url}" style="max-width:100%;border-radius:8px;"></video>`;
   if (content.includes(video.url)) return content;
 
-  const frontMatterMatch = content.match(/^---
-?
-[\s\S]*?
-?
----
-?
-/);
+  const frontMatterMatch = content.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n/);
   if (frontMatterMatch) {
     const index = frontMatterMatch[0].length;
     return `${content.slice(0, index)}
