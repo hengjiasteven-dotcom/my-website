@@ -697,6 +697,17 @@ app.post('/admin/api/deploy', requireAuth, (req, res) => {
   }
 });
 
+app.post('/admin/api/run', requireAuth, (req, res) => {
+  try {
+    const cmd = String(req.body.command || '').trim();
+    if (!cmd) return res.status(400).json({ error: '请输入命令' });
+    const job = startSingleCommandJob(cmd, '自定义命令');
+    res.json({ ok: true, job: publicJob(job) });
+  } catch (error) {
+    res.status(409).json({ error: error.message, job: activeJob ? publicJob(activeJob) : null });
+  }
+});
+
 app.post('/admin/api/build-deploy', requireAuth, (req, res) => {
   try {
     const job = startSequenceJob(buildDeployCommands(), '构建并部署');
@@ -1196,6 +1207,20 @@ function startDeploySourceJob(label) {
   const job = createJob(label, `git add --ignore-removal ... && git commit && git push origin HEAD:${edgeoneBranch}`);
   activeJob = job;
   runDeploySource(job);
+  return job;
+}
+
+function startSingleCommandJob(cmd, label) {
+  if (activeJob) {
+    throw new Error(`当前正在${activeJob.label}，请稍后再试`);
+  }
+  const job = createJob(label, cmd);
+  activeJob = job;
+  appendJobOutput(job, `
+> ${cmd}
+`);
+  const parts = cmd.split(/\s+/);
+  runCommand(parts, job, () => finishJob(job, 0), (code) => finishJob(job, code));
   return job;
 }
 

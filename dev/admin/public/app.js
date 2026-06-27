@@ -66,6 +66,8 @@ const taskList = document.querySelector('#taskList');
 const buildButton = document.querySelector('#buildButton');
 const deployButton = document.querySelector('#deployButton');
 const buildDeployButton = document.querySelector('#buildDeployButton');
+const publishCmdInput = document.querySelector('#publishCmdInput');
+const publishCmdRun = document.querySelector('#publishCmdRun');
 const jobTitle = document.querySelector('#jobTitle');
 const jobMeta = document.querySelector('#jobMeta');
 const jobStatus = document.querySelector('#jobStatus');
@@ -392,6 +394,15 @@ postVideoFileInput.addEventListener('change', () => {
   buildButton.addEventListener('click', () => startJob('/admin/api/build'));
   deployButton.addEventListener('click', () => startJob('/admin/api/deploy'));
   buildDeployButton.addEventListener('click', () => startJob('/admin/api/build-deploy'));
+
+  publishCmdRun.addEventListener('click', () => {
+    const cmd = publishCmdInput.value.trim();
+    if (!cmd) { jobOutput.textContent = '请输入命令'; return; }
+    startJob('/admin/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ command: cmd }) });
+  });
+  publishCmdInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') publishCmdRun.click();
+  });
 
   saveRemoteMusicButton.addEventListener('click', saveRemoteMusic);
   saveRemoteVideoButton.addEventListener('click', saveRemoteVideos);
@@ -1386,9 +1397,9 @@ function formatTaskTime(task) {
   return task.startTime || task.endTime || '';
 }
 
-async function startJob(url) {
+async function startJob(url, options = {}) {
   setButtonsDisabled(true);
-  const result = await request(url, { method: 'POST' });
+  const result = await request(url, { method: 'POST', ...options });
   if (result && result.job) renderJob(result.job);
   setButtonsDisabled(false);
 }
@@ -1452,7 +1463,7 @@ function setMessage(element, message, type = '') {
 }
 
 function setButtonsDisabled(disabled) {
-  [buildButton, deployButton, buildDeployButton].forEach((button) => {
+  [buildButton, deployButton, buildDeployButton, publishCmdRun].forEach((button) => {
     button.disabled = disabled;
   });
 }

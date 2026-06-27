@@ -446,6 +446,15 @@
             <button id="deployButton" type="button">推送源码并执行部署</button>
             <button id="buildDeployButton" type="button">构建后再部署</button>
           </div>
+          <div class="publish-cmd">
+            <label for="publishCmdInput">自定义命令</label>
+            <div class="publish-cmd-row">
+              <input id="publishCmdInput" type="text" placeholder="npm run build 或 git push origin source" autocomplete="off">
+              <button id="publishCmdRun" type="button">执行</button>
+            </div>
+            <p class="field-hint">命令会在项目根目录执行，输出显示在下方日志。</p>
+          </div>
+
           <div class="job-card">
             <div class="job-head">
               <div>

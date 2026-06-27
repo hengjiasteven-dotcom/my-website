@@ -1488,3 +1488,30 @@ a:focus-visible {
   object-fit: cover;
   border: 2px solid #e5e7eb;
 }
+
+/* publish command input */
+.publish-cmd {
+  margin-bottom: 16px;
+}
+.publish-cmd label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+.publish-cmd-row {
+  display: flex;
+  gap: 8px;
+}
+.publish-cmd-row input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-family: "Consolas", "Monaco", monospace;
+  font-size: 0.85rem;
+}
+.publish-cmd-row button {
+  padding: 8px 16px;
+  white-space: nowrap;
+}
