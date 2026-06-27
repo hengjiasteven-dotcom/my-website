@@ -190,8 +190,8 @@ app.get('/admin/api/media', requireAuth, (req, res) => {
     remoteMusic: remoteMusic.map(function(name) {
       return {
         name: name,
-        url: CDN_BASE + '/music/' + encodeURIComponent(name),
-        markdown: '<audio controls src="' + CDN_BASE + '/music/' + encodeURIComponent(name) + '"></audio>',
+        url: CDN_BASE + '/assets/music/' + encodeURIComponent(name),
+        markdown: '<audio controls src="' + CDN_BASE + '/assets/music/' + encodeURIComponent(name) + '"></audio>',
         size: 0,
         modifiedAt: '',
         remote: true,
@@ -201,8 +201,8 @@ app.get('/admin/api/media', requireAuth, (req, res) => {
     remoteVideos: remoteVideos.map(function(v) {
       return {
         name: v.title || v.path.replace(/\.[^.]+$/, ''),
-        url: CDN_BASE + '/' + v.path.replace(/^\//, ''),
-        markdown: '<video controls src="' + CDN_BASE + '/' + v.path.replace(/^\//, '') + '"></video>',
+        url: CDN_BASE + '/assets/video/' + v.path.replace(/^\//, ''),
+        markdown: '<video controls src="' + CDN_BASE + '/assets/video/' + v.path.replace(/^\//, '') + '"></video>',
         size: 0,
         modifiedAt: '',
         remote: true,
