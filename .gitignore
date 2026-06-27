@@ -1,4 +1,4 @@
-﻿.env
+.env
 .env.*
 !.env.example
 node_modules/
@@ -19,7 +19,8 @@ db.json
 .tef_dist/*
 
 # Heavy local-only assets; site should load them from external static hosting.
-music/
+music/*
+!music/playlist.json
 source/world/models/
 
 # Full local oversized GLB files; EdgeOne uses complete split chunks instead.
