@@ -14,6 +14,8 @@ banner_img: "/assets/picture/菲比谈人生.jpg"
 cover: https://picsum.photos/800/450
 ---
 
+<video controls preload="metadata" src="https://static.xiaodaidai.site/assets/video/post/1926e9588deb324ecd00d3bd696fe4f7_raw.mp4" style="max-width:100%;border-radius:8px;"></video>
+
 ## 前言：一套「像答辩一样层层递进」的结构化特供美食
 
 在常规碳基美食体系之外，存在一套专为数字生命体、机器智能体定制的结构化完整餐系：**生煎豆包、美式Kimi、麻辣Qwen、油炸Mimo** 四联特供套餐。
