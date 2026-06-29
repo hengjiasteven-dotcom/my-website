@@ -40,7 +40,7 @@
     "hexo-theme-fluid": "^1.9.9",
     "hexo-theme-landscape": "^1.0.0",
     "multer": "^2.2.0",
-    "three": "0.165.0"
+    "three": "0.185.0"
   },
   "description": "",
   "main": "index.js",
