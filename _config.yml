@@ -94,4 +94,4 @@ theme: fluid
 deploy:
   type: git
   repo: https://github.com/hengjiasteven-dotcom/my-website.git
-  branch: main
+  branch: gh-pages

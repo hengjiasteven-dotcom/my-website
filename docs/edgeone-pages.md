@@ -2,6 +2,8 @@
 
 This site keeps the existing Hexo build flow and publishes the generated `public/` directory.
 
+The repository uses `main` for source code and `gh-pages` for generated static output. EdgeOne Pages should watch `gh-pages`.
+
 ## Build Settings
 
 Use these settings when importing the repository in EdgeOne Pages:
