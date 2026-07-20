@@ -1,0 +1,44 @@
+{
+  "videos": [
+    {
+      "path": "abyss/made-in-abyss-movie-01-journeys-dawn.mp4",
+      "title": "abyss/made-in-abyss-movie-01-journeys-dawn",
+      "group": "qiniu",
+      "duration": 0,
+      "cover": "",
+      "sourceType": "qiniu",
+      "bilibiliUrl": "",
+      "isAbyss": false
+    },
+    {
+      "path": "abyss/made-in-abyss-movie-02-wandering-twilight.mp4",
+      "title": "abyss/made-in-abyss-movie-02-wandering-twilight",
+      "group": "qiniu",
+      "duration": 0,
+      "cover": "",
+      "sourceType": "qiniu",
+      "bilibiliUrl": "",
+      "isAbyss": false
+    },
+    {
+      "path": "abyss/made-in-abyss-movie-03-dawn-of-the-deep-soul.mp4",
+      "title": "abyss/made-in-abyss-movie-03-dawn-of-the-deep-soul",
+      "group": "qiniu",
+      "duration": 0,
+      "cover": "",
+      "sourceType": "qiniu",
+      "bilibiliUrl": "",
+      "isAbyss": false
+    },
+    {
+      "path": "post/1926e9588deb324ecd00d3bd696fe4f7_raw.mp4",
+      "title": "post/1926e9588deb324ecd00d3bd696fe4f7_raw",
+      "group": "qiniu",
+      "duration": 0,
+      "cover": "",
+      "sourceType": "qiniu",
+      "bilibiliUrl": "",
+      "isAbyss": false
+    }
+  ]
+}

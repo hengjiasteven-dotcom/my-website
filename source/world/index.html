@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3D世界 - 青禾札记</title>
+  <meta name="description" content="个人 3D 世界入口">
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --ink: #f4fbff;
+      --muted: rgba(226, 239, 245, 0.74);
+      --line: rgba(214, 237, 244, 0.2);
+      --panel: rgba(12, 21, 31, 0.72);
+      --panel-strong: rgba(12, 21, 31, 0.9);
+      --accent: #75d2da;
+      --rose: #e998a0;
+      --shadow: 0 20px 64px rgba(0, 0, 0, 0.34);
+      --radius: 16px;
+      font-family: Inter, "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      color: var(--ink);
+      background: #0d1822;
+    }
+
+    button, input { font: inherit; }
+
+    .world-shell {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 4fr) minmax(280px, 1fr);
+      background: #0d1822;
+    }
+
+    .world-stage {
+      position: relative;
+      min-width: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 46%, rgba(117, 210, 218, 0.18), transparent 32rem),
+        linear-gradient(180deg, #173044 0%, #0d1822 70%);
+    }
+
+    #world-canvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    #world-canvas.is-character-hover { cursor: pointer; }
+    #world-canvas.is-dragging { cursor: grabbing; }
+
+    .topbar {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      right: 1rem;
+      z-index: 4;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      pointer-events: none;
+    }
+
+    .brand, .actions, .status, .loader, .chat {
+      backdrop-filter: blur(18px) saturate(1.12);
+      -webkit-backdrop-filter: blur(18px) saturate(1.12);
+    }
+
+    .brand, .actions { pointer-events: auto; }
+
+    .brand {
+      display: grid;
+      grid-template-columns: 2.6rem minmax(0, 1fr);
+      gap: 0.75rem;
+      align-items: center;
+      max-width: min(28rem, 58vw);
+      padding: 0.68rem 0.8rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 2.6rem;
+      height: 2.6rem;
+      border-radius: 13px;
+      color: #071118;
+      background: linear-gradient(135deg, var(--accent), var(--rose));
+    }
+
+    .brand-mark svg,
+    .btn svg,
+    .icon-btn svg,
+    .send svg {
+      width: 1.1rem;
+      height: 1.1rem;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 2;
+    }
+
+    .brand-copy {
+      display: grid;
+      gap: 0.16rem;
+      min-width: 0;
+    }
+
+    .brand-copy strong {
+      overflow: hidden;
+      font-size: 1rem;
+      font-weight: 850;
+      line-height: 1.15;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .brand-copy small,
+    .aside p,
+    .aside-foot,
+    .status,
+    .loader-detail,
+    .chat-title small,
+    .drop-card small {
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 0.55rem;
+    }
+
+    .btn, .icon-btn, .send {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.42rem;
+      min-height: 2.45rem;
+      padding: 0 0.88rem;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      color: var(--ink);
+      background: var(--panel);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+      text-decoration: none;
+    }
+
+    .status {
+      position: absolute;
+      left: 1rem;
+      bottom: 1rem;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      max-width: min(44rem, calc(100% - 2rem));
+      padding: 0.68rem 0.78rem;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      font-size: 0.82rem;
+      font-weight: 730;
+    }
+
+    .dot {
+      flex: 0 0 auto;
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(117, 210, 218, 0.82);
+    }
+
+    .loader {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 5;
+      display: grid;
+      gap: 0.42rem;
+      width: min(28rem, calc(100% - 2rem));
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-strong);
+      box-shadow: var(--shadow);
+      transform: translate(-50%, -50%);
+    }
+
+    .loader[hidden], .chat[hidden], .model-editor[hidden] { display: none; }
+
+    .chat {
+      position: absolute;
+      top: 5.25rem;
+      right: 1rem;
+      z-index: 6;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      width: min(20rem, calc(100% - 2rem));
+      max-height: min(26rem, calc(100% - 9rem));
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-strong);
+      box-shadow: var(--shadow);
+    }
+
+    .chat-head,
+    .chat-form,
+    .camera-panel-head,
+    .drop-card-head,
+    .model-editor-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+    }
+
+    .chat-head {
+      padding: 0.85rem 0.9rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .chat-title { display: grid; gap: 0.12rem; min-width: 0; }
+    .icon-btn {
+      display: grid;
+      place-items: center;
+      width: 2.1rem;
+      height: 2.1rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .messages {
+      display: grid;
+      align-content: start;
+      gap: 0.62rem;
+      min-height: 8rem;
+      padding: 0.9rem;
+      overflow: auto;
+    }
+
+    .msg {
+      max-width: 88%;
+      padding: 0.62rem 0.72rem;
+      border: 1px solid rgba(214, 237, 244, 0.16);
+      border-radius: 13px;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 0.88rem;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    .msg.user {
+      justify-self: end;
+      border-color: rgba(117, 210, 218, 0.32);
+      background: rgba(82, 174, 187, 0.28);
+    }
+
+    .chat-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 2.4rem;
+      gap: 0.5rem;
+      padding: 0.78rem;
+      border-top: 1px solid var(--line);
+    }
+
+    .chat-form input,
+    .model-axis input[type="number"] {
+      width: 100%;
+      min-width: 0;
+      padding: 0 0.75rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.08);
+      outline: none;
+    }
+
+    .chat-form input { height: 2.38rem; }
+
+    .send {
+      display: grid;
+      place-items: center;
+      width: 2.4rem;
+      height: 2.38rem;
+      border-radius: 12px;
+      color: #071118;
+      background: var(--accent);
+    }
+
+    .aside {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(15rem, 44vh) minmax(0, 1fr) auto;
+      overflow: hidden;
+      border-left: 1px solid rgba(214, 237, 244, 0.12);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(117, 210, 218, 0.12), transparent 18rem),
+        linear-gradient(180deg, rgba(10, 16, 24, 0.98), rgba(13, 22, 33, 0.98));
+    }
+
+    .aside-head,
+    .camera-panel,
+    .dropzone {
+      padding: 1rem;
+    }
+
+    .dropzone,
+    .settings-scroll {
+      overflow: auto;
+    }
+
+    .dropzone {
+      display: grid;
+      gap: 0.75rem;
+      margin: 1rem;
+      border: 1px dashed rgba(117, 210, 218, 0.34);
+      border-radius: var(--radius);
+      background: rgba(117, 210, 218, 0.06);
+    }
+
+    .drop-card,
+    .camera-panel {
+      display: grid;
+      gap: 0.5rem;
+      border: 1px solid rgba(214, 237, 244, 0.14);
+      border-radius: 14px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .drop-card {
+      padding: 0.86rem 0.9rem;
+      cursor: grab;
+    }
+
+    .mini-btn {
+      min-height: 1.9rem;
+      padding: 0 0.62rem;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.07);
+      cursor: pointer;
+    }
+
+    .model-editor,
+    .model-axis,
+    .camera-control,
+    .settings-scroll {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .camera-control label,
+    .model-axis label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.55rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 760;
+    }
+
+    .camera-control input[type="range"],
+    .model-axis input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .camera-control input[type="color"] {
+      width: 100%;
+      height: 2.05rem;
+      padding: 0.16rem;
+      border: 1px solid rgba(214, 237, 244, 0.18);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+    }
+
+    .aside-foot {
+      padding: 1rem;
+      border-top: 1px solid rgba(214, 237, 244, 0.12);
+      font-size: 0.8rem;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 900px) {
+      .world-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(0, 4fr) minmax(220px, 1fr);
+      }
+
+      .aside {
+        min-height: 0;
+        grid-template-rows: auto minmax(10rem, 1fr);
+        border-left: 0;
+        border-top: 1px solid rgba(214, 237, 244, 0.12);
+      }
+
+      .settings-scroll,
+      .aside-foot {
+        display: none;
+      }
+
+      .brand {
+        max-width: calc(100vw - 8rem);
+      }
+
+      .btn span {
+        display: none;
+      }
+
+      .btn {
+        width: 2.45rem;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="world-shell">
+    <section class="world-stage" data-world-stage aria-label="3D世界">
+      <canvas id="world-canvas"></canvas>
+
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3 20 7.5v9L12 21l-8-4.5v-9L12 3Z"></path>
+              <path d="m4 7.5 8 4.5 8-4.5M12 12v9"></path>
+            </svg>
+          </span>
+          <span class="brand-copy">
+            <strong>3D世界</strong>
+            <small>角色可拖动 · 点击角色进入 AI 对话</small>
+          </span>
+        </div>
+        <div class="actions">
+          <a class="btn" href="/" title="返回首页">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m12 19-7-7 7-7"></path>
+              <path d="M19 12H5"></path>
+            </svg>
+            <span>返回首页</span>
+          </a>
+          <button class="btn" type="button" data-reset-view title="重置视角">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+              <path d="M3 4v5h5"></path>
+            </svg>
+            <span>重置视角</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="chat" data-chat hidden aria-label="角色 AI 对话">
+        <div class="chat-head">
+          <span class="chat-title">
+            <strong data-chat-name>犬夜叉</strong>
+            <small data-chat-state>待命</small>
+          </span>
+          <button class="icon-btn" type="button" data-close-chat title="关闭对话">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="messages" data-messages></div>
+        <form class="chat-form" data-chat-form>
+          <input data-chat-input type="text" autocomplete="off" maxlength="240" placeholder="输入一句话">
+          <button class="send" type="submit" data-chat-submit title="发送">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m22 2-7 20-4-9-9-4Z"></path>
+              <path d="M22 2 11 13"></path>
+            </svg>
+          </button>
+        </form>
+      </section>
+
+      <div class="loader" data-loader>
+        <strong class="loader-title" data-loader-title>正在启动 3D 世界</strong>
+        <span class="loader-detail" data-loader-detail>如果浏览器的 WebGL、模块导入或脚本执行失败，这里会直接显示原因。</span>
+      </div>
+
+      <div class="status" aria-live="polite">
+        <span class="dot" aria-hidden="true"></span>
+        <span data-world-status>准备启动</span>
+      </div>
+    </section>
+
+    <aside class="aside" aria-label="模型投放区">
+      <div class="aside-head">
+        <h2>模型投放区</h2>
+        <p>这里预留 20% 空间。以后访客可以从这里把模型拖进左侧 3D 世界。</p>
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <div class="drop-card" draggable="true" data-model-key="little-prince" data-model-manifest="/world/models/little-prince.manifest.json?v=20260613-edgeone25" data-model-name="小王子">
+          <div class="drop-card-head">
+            <strong>小王子</strong>
+            <button class="mini-btn" type="button" data-clear-model>取消</button>
+          </div>
+          <small>拖到左侧会加载真实 GLB 模型</small>
+          <div class="model-editor" data-model-editor hidden>
+            <div class="model-editor-head"><span data-model-state>已投放</span></div>
+            <div class="model-axis">
+              <label>X <output data-model-x-value>0.0</output></label>
+              <input type="range" min="-46" max="46" step="0.1" value="0" data-model-x>
+              <input type="number" min="-46" max="46" step="0.1" value="0" data-model-x-number aria-label="模型 X 坐标">
+            </div>
+            <div class="model-axis">
+              <label>Y <output data-model-y-value>0.0</output></label>
+              <input type="range" min="0" max="8" step="0.1" value="0" data-model-y>
+              <input type="number" min="0" max="8" step="0.1" value="0" data-model-y-number aria-label="模型 Y 坐标">
+            </div>
+            <div class="model-axis">
+              <label>Z <output data-model-z-value>0.0</output></label>
+              <input type="range" min="-22" max="22" step="0.1" value="0" data-model-z>
+              <input type="number" min="-22" max="22" step="0.1" value="0" data-model-z-number aria-label="模型 Z 坐标">
+            </div>
+          </div>
+        </div>
+
+        <div class="drop-card" draggable="true" data-model-key="well" data-model-manifest="/world/models/well.manifest.json?v=20260613-edgeone25" data-model-name="水井">
+          <div class="drop-card-head">
+            <strong>水井</strong>
+            <button class="mini-btn" type="button" data-clear-model>取消</button>
+          </div>
+          <small>拖到左侧会加载真实水井 GLB 模型</small>
+          <div class="model-editor" data-model-editor hidden>
+            <div class="model-editor-head"><span data-model-state>已投放</span></div>
+            <div class="model-axis">
+              <label>X <output data-model-x-value>0.0</output></label>
+              <input type="range" min="-46" max="46" step="0.1" value="0" data-model-x>
+              <input type="number" min="-46" max="46" step="0.1" value="0" data-model-x-number aria-label="模型 X 坐标">
+            </div>
+            <div class="model-axis">
+              <label>Y <output data-model-y-value>0.0</output></label>
+              <input type="range" min="0" max="8" step="0.1" value="0" data-model-y>
+              <input type="number" min="0" max="8" step="0.1" value="0" data-model-y-number aria-label="模型 Y 坐标">
+            </div>
+            <div class="model-axis">
+              <label>Z <output data-model-z-value>0.0</output></label>
+              <input type="range" min="-22" max="22" step="0.1" value="0" data-model-z>
+              <input type="number" min="-22" max="22" step="0.1" value="0" data-model-z-number aria-label="模型 Z 坐标">
+            </div>
+          </div>
+        </div>
+
+        <div class="drop-card" draggable="true" data-model-key="cabin" data-model-url="/world/models/%E5%B0%8F%E6%9C%A8%E5%B1%8B.glb?v=20260613-1641" data-model-name="小木屋">
+          <div class="drop-card-head">
+            <strong>小木屋</strong>
+            <button class="mini-btn" type="button" data-clear-model>取消</button>
+          </div>
+          <small>拖到左侧会加载真实小木屋 GLB 模型</small>
+          <div class="model-editor" data-model-editor hidden>
+            <div class="model-editor-head"><span data-model-state>已投放</span></div>
+            <div class="model-axis">
+              <label>X <output data-model-x-value>0.0</output></label>
+              <input type="range" min="-46" max="46" step="0.1" value="0" data-model-x>
+              <input type="number" min="-46" max="46" step="0.1" value="0" data-model-x-number aria-label="模型 X 坐标">
+            </div>
+            <div class="model-axis">
+              <label>Y <output data-model-y-value>0.0</output></label>
+              <input type="range" min="0" max="8" step="0.1" value="0" data-model-y>
+              <input type="number" min="0" max="8" step="0.1" value="0" data-model-y-number aria-label="模型 Y 坐标">
+            </div>
+            <div class="model-axis">
+              <label>Z <output data-model-z-value>0.0</output></label>
+              <input type="range" min="-22" max="22" step="0.1" value="0" data-model-z>
+              <input type="number" min="-22" max="22" step="0.1" value="0" data-model-z-number aria-label="模型 Z 坐标">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-scroll" aria-label="场景设置区">
+        <section class="camera-panel" aria-label="摄像机调整">
+          <div class="camera-panel-head">
+            <div>
+              <h3>摄像机调整</h3>
+              <p>显示当前摄像机 X / Y / Z 坐标，左侧鼠标调整会同步到这里。</p>
+            </div>
+            <button class="mini-btn" type="button" data-camera-default>默认</button>
+          </div>
+          <div class="camera-control">
+            <label for="camera-x">X 坐标 <output data-camera-x-value>10.0</output></label>
+            <input id="camera-x" type="range" min="-48" max="48" step="0.1" value="10" data-camera-x>
+          </div>
+          <div class="camera-control">
+            <label for="camera-y">Y 高度 <output data-camera-y-value>7.0</output></label>
+            <input id="camera-y" type="range" min="0" max="36" step="0.1" value="7" data-camera-y>
+          </div>
+          <div class="camera-control">
+            <label for="camera-z">Z 坐标 <output data-camera-z-value>14.0</output></label>
+            <input id="camera-z" type="range" min="-48" max="48" step="0.1" value="14" data-camera-z>
+          </div>
+        </section>
+
+        <section class="camera-panel" aria-label="灯光背景调整">
+          <div class="camera-panel-head">
+            <div>
+              <h3>灯光/背景调整</h3>
+              <p>调整背景颜色和场景灯光强度。</p>
+            </div>
+            <button class="mini-btn" type="button" data-light-default>默认</button>
+          </div>
+          <div class="camera-control">
+            <label for="background-color">背景颜色 <output data-background-color-value>#2e2c81</output></label>
+            <input id="background-color" type="color" value="#2e2c81" data-background-color>
+          </div>
+          <div class="camera-control">
+            <label for="water-color">水面颜色 <output data-water-color-value>#54a9ab</output></label>
+            <input id="water-color" type="color" value="#54a9ab" data-water-color>
+          </div>
+          <div class="camera-control">
+            <label for="ambient-light">环境光强度 <output data-ambient-light-value>8.0</output></label>
+            <input id="ambient-light" type="range" min="0" max="8" step="0.1" value="8" data-ambient-light>
+          </div>
+          <div class="camera-control">
+            <label for="sun-light">主光强度 <output data-sun-light-value>12.0</output></label>
+            <input id="sun-light" type="range" min="0" max="12" step="0.1" value="12" data-sun-light>
+          </div>
+          <div class="camera-control">
+            <label for="sun-color">主光颜色 <output data-sun-color-value>#ff0000</output></label>
+            <input id="sun-color" type="color" value="#ff0000" data-sun-color>
+          </div>
+        </section>
+      </div>
+
+      <div class="aside-foot">当前固定加载：环境树和犬夜叉。只有角色能拖动，环境不会被拖动。</div>
+    </aside>
+  </main>
+
+  <script src="/js/dream-asset-config.js"></script>
+  <script>
+    (function() {
+      var base = (window.DREAM_WORLD_ASSET_BASE || '').trim().replace(/\/+$/, '');
+      if (!base) return;
+      document.querySelectorAll('[data-model-url]').forEach(function(node) {
+        var value = node.getAttribute('data-model-url');
+        if (value && value.charAt(0) === '/') {
+          node.setAttribute('data-model-url', base + value);
+        }
+      });
+      document.querySelectorAll('[data-model-manifest]').forEach(function(node) {
+        var value = node.getAttribute('data-model-manifest');
+        if (value && value.charAt(0) === '/') {
+          node.setAttribute('data-model-manifest', base + value);
+        }
+      });
+    })();
+
+  </script>
+  <script>
+    window.__worldBootState = { started: false, firstFrame: false, error: '' };
+    window.addEventListener('DOMContentLoaded', () => {
+      window.setTimeout(() => {
+        if (window.__worldBootState.started) return;
+        const title = document.querySelector('[data-loader-title]');
+        const detail = document.querySelector('[data-loader-detail]');
+        const status = document.querySelector('[data-world-status]');
+        if (title) title.textContent = '3D 脚本没有启动';
+        if (detail) detail.textContent = '浏览器没有执行 3D 主脚本。请强制刷新页面，或检查 /world/world-app.js 是否加载成功。';
+        if (status) status.textContent = '脚本未启动';
+      }, 2500);
+    });
+  </script>
+  <script src="/world/world-app.js?v=20260614-manifest-drag"></script>
+</body>
+</html>

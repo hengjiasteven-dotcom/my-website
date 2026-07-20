@@ -1,0 +1,984 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>星辰家园 - 原神抽卡养成</title>
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--gold:#f0c040;--gold2:#d4a030;--goldglow:rgba(240,192,64,0.3);--purple:#b878d8;--purple2:#9040c0;--purpleglow:rgba(184,120,216,0.25);--blue:#58a6ff;--text:#e6edf3;--text2:#b0b8c4;--muted:#6e7681;--border:#30363d;--danger:#f85149;--success:#3fb950;--r3:#7d8590;--r4:#b878d8;--r5:#f0c040;--radius:12px;--radiusL:16px}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow-x:hidden}
+body{font-family:"Microsoft YaHei","PingFang SC","Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;background-image:radial-gradient(ellipse at 50% -20%,#1a2040 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,#1a1530 0%,transparent 50%)}
+#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.game-app{position:relative;z-index:1;width:100%;min-height:100vh;margin:0;padding:10px 20px 40px}
+.top-bar{display:flex;align-items:center;justify-content:center;gap:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radiusL);padding:14px 24px;margin-bottom:14px;flex-wrap:wrap}
+.cur-item{display:flex;align-items:center;gap:8px;font-weight:600;font-size:0.95em}
+.cur-icon{font-size:1.3em}
+.cur-val{color:var(--gold);font-size:1.1em}
+.cur-val.sd{color:var(--purple)}
+.cur-val.hc{color:var(--blue)}
+.tab-nav{display:flex;gap:6px;margin-bottom:14px;background:var(--surface);border-radius:var(--radius);padding:5px;border:1px solid var(--border)}
+.tab-btn{flex:1;padding:11px 8px;border:none;background:transparent;color:var(--text2);border-radius:10px;cursor:pointer;font-size:0.88em;font-weight:600;transition:all .2s;font-family:inherit;letter-spacing:0.5px}
+.tab-btn.active{background:linear-gradient(135deg,rgba(240,192,64,0.2),rgba(240,192,64,0.05));color:var(--gold);box-shadow:inset 0 0 0 1px rgba(240,192,64,0.3)}
+.tab-btn:hover:not(.active){color:var(--text);background:rgba(255,255,255,0.03)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radiusL);padding:20px 24px;margin-bottom:14px}
+.card-header{font-size:1.05em;font-weight:700;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.btn{padding:10px 22px;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.9em;font-family:inherit;transition:all .2s;letter-spacing:0.3px}
+.btn-gold{background:linear-gradient(135deg,#e8b840,#c99830);color:#1a1200;box-shadow:0 2px 12px rgba(240,192,64,0.2)}
+.btn-gold:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 20px rgba(240,192,64,0.4)}
+.btn-purple{background:linear-gradient(135deg,#b878d8,#9040c0);color:#fff;box-shadow:0 2px 12px rgba(184,120,216,0.2)}
+.btn-purple:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 20px rgba(184,120,216,0.4)}
+.btn-primary{background:var(--surface2);color:var(--gold);border:1px solid rgba(240,192,64,0.3)}
+.btn-primary:hover:not(:disabled){background:#252d3d;border-color:rgba(240,192,64,0.6)}
+.btn-secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.btn-secondary:hover:not(:disabled){background:#252d3d;color:var(--text)}
+.btn-sm{padding:6px 14px;font-size:0.8em}
+.btn:disabled{opacity:0.35;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.progress{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin:6px 0}
+.progress-bar{height:100%;border-radius:4px;transition:width .5s;background:linear-gradient(90deg,var(--gold),#e8c050)}
+.progress-bar.purple{background:linear-gradient(90deg,var(--purple),#d090e0)}
+.progress-bar.blue{background:linear-gradient(90deg,var(--blue),#78b8ff)}
+.home-hero{text-align:center;padding:24px 20px}
+.home-hero-icon{font-size:5em;margin-bottom:8px}
+.home-lv{font-size:1.6em;font-weight:800;color:var(--gold);margin:4px 0}
+.home-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:0.85em}
+.stat-item{text-align:center;padding:12px 8px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border)}
+.stat-item .sv{font-size:1.4em;font-weight:700;color:var(--gold);margin-bottom:2px}
+.stat-item .sl{font-size:0.78em;color:var(--muted)}
+.home-scene-wrap{position:relative;width:100%;height:50vh;min-height:420px;border-radius:var(--radiusL);overflow:hidden;border:1px solid var(--border);margin:16px 0}
+.home-scene-bg{position:absolute;inset:0;background:linear-gradient(180deg,#87CEEB 0%,#b8d4e8 30%,#7ab648 55%,#5a8a30 100%)}
+.home-scene-bg::before{content:"";position:absolute;bottom:0;left:0;width:100%;height:45%;background:linear-gradient(0deg,#4a7a28 0%,#6aaa38 50%,#7ab648 100%);border-radius:0 0 var(--radiusL) var(--radiusL)}
+.char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.char-card{background:var(--surface2);border-radius:var(--radius);padding:12px 8px;text-align:center;border:2px solid var(--border);cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.char-card:hover{transform:translateY(-3px);border-color:var(--text2)}
+.char-card.r5{border-color:rgba(240,192,64,0.4);box-shadow:0 0 16px rgba(240,192,64,0.15)}
+.char-card.r4{border-color:rgba(184,120,216,0.35);box-shadow:0 0 10px rgba(184,120,216,0.1)}
+.char-card.r5::after{content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(240,192,64,0.06),transparent);animation:cardShine 2.5s infinite}
+@keyframes cardShine{100%{left:100%}}
+.char-card .cc-img{width:70px;height:70px;object-fit:contain;border-radius:50%;margin:0 auto;display:block}
+.char-card .cc-icon{font-size:3em}
+.char-card .cc-name{font-size:0.82em;font-weight:700;margin-top:6px}
+.char-card .cc-lv{font-size:0.72em;color:var(--muted);margin-top:2px}
+.char-card .cc-badge{position:absolute;top:6px;right:6px;font-size:0.65em;font-weight:800;background:var(--gold);color:#1a1000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radiusL);padding:24px;max-width:420px;width:92%;max-height:88vh;overflow-y:auto}
+.modal-close{float:right;background:none;border:none;color:var(--muted);font-size:1.5em;cursor:pointer}
+.modal-close:hover{color:var(--text)}
+.modal-img{text-align:center;margin:8px 0}
+.modal-img img{max-width:220px;max-height:260px;object-fit:contain;border-radius:10px}
+.shop-row{display:flex;justify-content:space-between;align-items:center;padding:14px 12px;border-bottom:1px solid var(--border)}
+.shop-row:last-child{border-bottom:none}
+.shop-info{flex:1}
+.shop-name{font-weight:600;font-size:0.92em}
+.shop-desc{font-size:0.75em;color:var(--muted);margin-top:2px}
+.history-list{max-height:160px;overflow-y:auto;font-size:0.78em}
+.history-item{padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:6px}
+.history-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.history-dot.r5{background:var(--gold)}
+.history-dot.r4{background:var(--purple)}
+.history-dot.r3{background:var(--r3)}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--surface);color:var(--gold);padding:12px 28px;border-radius:24px;z-index:400;font-weight:600;font-size:0.9em;border:1px solid rgba(240,192,64,0.3);pointer-events:none;animation:toastIn .3s ease-out;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+@keyframes toastIn{0%{opacity:0;transform:translateX(-50%) translateY(-20px)}100%{opacity:1;transform:translateX(-50%) translateY(0)}}
+.streak-badge{display:inline-block;background:var(--gold);color:#1a1000;border-radius:10px;padding:2px 10px;font-size:0.8em;font-weight:700}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.back-link{color:var(--muted);text-decoration:none;font-size:0.85em;margin-right:16px;transition:color .2s}
+.back-link:hover{color:var(--gold)}
+/* gacha animation */
+.gacha-anim-container{position:relative;text-align:center;min-height:300px;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.gacha-card{width:180px;height:240px;border-radius:12px;position:relative;margin:0 auto;transform-style:preserve-3d;transition:transform 0.8s cubic-bezier(0.4,0.0,0.2,1)}
+.gacha-card.flipping{animation:cardFlip 0.8s cubic-bezier(0.4,0.0,0.2,1) forwards}
+.gacha-card .gacha-front,.gacha-card .gacha-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--surface2);border:2px solid var(--border)}
+.gacha-card .gacha-back{transform:rotateY(180deg);flex-direction:column}
+.gacha-card .gacha-front{font-size:5em}
+.gacha-result-img{width:160px;height:160px;object-fit:contain}
+.gacha-result-name{font-weight:700;font-size:1em;margin-top:6px}
+.gacha-result-rarity{font-size:0.8em;margin-top:2px}
+.gacha-glow{position:absolute;inset:-10px;border-radius:16px;animation:pulse 2s ease-in-out infinite;pointer-events:none}
+.gacha-glow.r5{box-shadow:0 0 40px rgba(240,192,64,0.6),0 0 80px rgba(240,192,64,0.3)}
+.gacha-glow.r4{box-shadow:0 0 30px rgba(184,120,216,0.5),0 0 60px rgba(184,120,216,0.25)}
+.gacha-glow.r3{box-shadow:0 0 15px rgba(125,133,144,0.3)}
+@keyframes cardFlip{0%{transform:rotateY(0)}100%{transform:rotateY(180deg)}}
+@keyframes pulse{0%,100%{opacity:0.6}50%{opacity:1}}
+/* ten-pull results */
+.multi-results{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+.multi-item{width:64px;height:64px;border-radius:8px;overflow:hidden;border:2px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.5em}
+.multi-item img{width:100%;height:100%;object-fit:contain}
+.multi-item.r5{border-color:var(--gold);box-shadow:0 0 12px rgba(240,192,64,0.4)}
+.multi-item.r4{border-color:var(--purple);box-shadow:0 0 8px rgba(184,120,216,0.3)}
+/* scene chars */
+.scene-char{position:absolute;bottom:20px;cursor:pointer;z-index:1}
+.scene-char img{height:80px;object-fit:contain;transition:transform 0.2s}
+.scene-char.walk-left img{transform:scaleX(-1)}
+.scene-char:hover img{transform:scale(1.2)}
+.scene-char:hover{z-index:99!important}
+.scene-char:hover::after{content:attr(data-name);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:var(--gold);padding:2px 8px;border-radius:6px;font-size:0.7em;white-space:nowrap}
+.scene-char:nth-child(1){animation:sceneFloat 3s ease-in-out infinite}
+.scene-char:nth-child(2){animation:sceneFloat 3.5s ease-in-out infinite;animation-delay:0.3s}
+.scene-char:nth-child(3){animation:sceneFloat 2.8s ease-in-out infinite;animation-delay:0.6s}
+.scene-char:nth-child(4){animation:sceneFloat 3.2s ease-in-out infinite;animation-delay:0.9s}
+.scene-char:nth-child(5){animation:sceneFloat 3.6s ease-in-out infinite;animation-delay:0.2s}
+.scene-char:nth-child(6){animation:sceneFloat 2.9s ease-in-out infinite;animation-delay:0.5s}
+.scene-char:nth-child(7){animation:sceneFloat 3.3s ease-in-out infinite;animation-delay:0.8s}
+.scene-char:nth-child(8){animation:sceneFloat 3.1s ease-in-out infinite;animation-delay:0.1s}
+.scene-char:nth-child(9){animation:sceneFloat 2.7s ease-in-out infinite;animation-delay:0.4s}
+.scene-char:nth-child(10){animation:sceneFloat 3.4s ease-in-out infinite;animation-delay:0.7s}
+.scene-char:nth-child(11){animation:sceneFloat 3.0s ease-in-out infinite;animation-delay:1.0s}
+.scene-char:nth-child(12){animation:sceneFloat 2.6s ease-in-out infinite;animation-delay:0.3s}
+@keyframes sceneFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.scene-bubble{position:absolute;top:-24px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);color:#fff;padding:3px 8px;border-radius:10px;font-size:0.65em;white-space:nowrap;pointer-events:none;transition:opacity 0.3s}
+.scene-bubble.show{opacity:1!important}
+/* music tracking area */
+.music-status{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border)}
+.music-dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.music-dot.active{background:var(--success);animation:dotPulse 1s infinite}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 0 0 rgba(63,185,80,0.4)}50%{box-shadow:0 0 0 8px rgba(63,185,80,0)}}
+/* writing area */
+.writing-area{width:100%;min-height:120px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:12px;font-family:inherit;font-size:0.9em;resize:vertical}
+.writing-status{font-size:0.8em;color:var(--muted);margin-top:6px}
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<div class="game-app" id="app"><div class="card" style="text-align:center;padding:40px"><div style="font-size:3em">🌠</div><p style="color:var(--text2);margin-top:12px">加载中...</p></div></div>
+<div id="toast-container"></div>
+<script>
+(function(){
+var c=document.getElementById("stars-canvas"),ctx=c.getContext("2d"),stars=[];
+function rs(){c.width=window.innerWidth;c.height=window.innerHeight}
+function init(){rs();stars=[];for(var i=0;i<150;i++)stars.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*2+0.3,a:Math.random()*Math.PI*2,s:Math.random()*0.003+0.001})}
+function draw(){ctx.clearRect(0,0,c.width,c.height);for(var i=0;i<stars.length;i++){var s=stars[i];s.a+=s.s;var al=0.2+Math.sin(s.a)*0.25;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle="rgba(200,210,255,"+al+")";ctx.fill()}requestAnimationFrame(draw)}
+init();draw();window.addEventListener("resize",init);
+})();
+
+var CDN="/assets/picture/game/";
+function cardImg(n){return CDN+"UI_AvatarIcon_"+n+".png"}
+function splashImg(n){return CDN+"UI_Gacha_AvatarImg_"+n+".png"}
+
+var CHARS5=[
+{id:"zhongli",name:"钟离",rarity:5,icon:"⛰️",baseATK:46,baseDEF:38,baseHP:14695,hr:3.0,card:cardImg("Zhongli"),splash:splashImg("Zhongli"),desc:"往生堂客卿",title:"尘世闲游",elem:"岩"},
+{id:"raiden",name:"雷电将军",rarity:5,icon:"⚡",baseATK:48,baseDEF:36,baseHP:12907,hr:2.9,card:cardImg("RaidenShogun"),splash:splashImg("RaidenShogun"),desc:"稻妻的统治者",title:"一心净土",elem:"雷"},
+{id:"hutao",name:"胡桃",rarity:5,icon:"🔥",baseATK:50,baseDEF:30,baseHP:12102,hr:2.7,card:cardImg("Hutao"),splash:splashImg("Hutao"),desc:"往生堂堂主",title:"雪霁梅香",elem:"火"},
+{id:"ganyu",name:"甘雨",rarity:5,icon:"❄️",baseATK:44,baseDEF:34,baseHP:13006,hr:3.1,card:cardImg("Ganyu"),splash:splashImg("Ganyu"),desc:"月海亭秘书",title:"循循守月",elem:"冰"},
+{id:"kazuha",name:"枫原万叶",rarity:5,icon:"🍁",baseATK:47,baseDEF:32,baseHP:12357,hr:2.8,card:cardImg("KaedeharaKazuha"),splash:splashImg("KaedeharaKazuha"),desc:"浪迹天涯的武士",title:"红叶逐荒波",elem:"风"},
+{id:"neuvillette",name:"那维莱特",rarity:5,icon:"🌊",baseATK:45,baseDEF:40,baseHP:14695,hr:3.2,card:cardImg("Neuvillette"),splash:splashImg("Neuvillette"),desc:"最高审判官",title:"谕告的潮音",elem:"水"},
+{id:"arlecchino",name:"阿蕾奇诺",rarity:5,icon:"🖤",baseATK:51,baseDEF:28,baseHP:11980,hr:2.6,card:cardImg("Arlecchino"),splash:splashImg("Arlecchino"),desc:"愚人众执行官",title:"孤暝厄月",elem:"火"},
+{id:"furina",name:"芙宁娜",rarity:5,icon:"💧",baseATK:40,baseDEF:42,baseHP:15307,hr:3.3,card:cardImg("Furina"),splash:splashImg("Furina"),desc:"枫丹水神",title:"不休独舞",elem:"水"},
+{id:"venti",name:"温迪",rarity:5,icon:"🎵",baseATK:42,baseDEF:30,baseHP:10520,hr:2.8,card:cardImg("Venti"),splash:splashImg("Venti"),desc:"吟游诗人",title:"歌尘浪世",elem:"风"},
+{id:"ayaka",name:"神里绫华",rarity:5,icon:"❄️",baseATK:48,baseDEF:33,baseHP:12858,hr:2.9,card:cardImg("Ayaka"),splash:splashImg("Ayaka"),desc:"神里家大小姐",title:"白鹭霜华",elem:"冰"},
+{id:"yoimiya",name:"宵宫",rarity:5,icon:"🎆",baseATK:46,baseDEF:28,baseHP:11230,hr:2.6,card:cardImg("Yoimiya"),splash:splashImg("Yoimiya"),desc:"烟花店店长",title:"琉焰华舞",elem:"火"},
+{id:"nahida",name:"纳西妲",rarity:5,icon:"🌱",baseATK:40,baseDEF:38,baseHP:12360,hr:3.2,card:cardImg("Nahida"),splash:splashImg("Nahida"),desc:"小吉祥草王",title:"白草净华",elem:"草"},
+{id:"yae",name:"八重神子",rarity:5,icon:"🦊",baseATK:45,baseDEF:29,baseHP:11430,hr:2.7,card:cardImg("Yae"),splash:splashImg("Yae"),desc:"鸣神大社宫司",title:"浮世笑百姿",elem:"雷"},
+{id:"xiao",name:"魈",rarity:5,icon:"🗡️",baseATK:50,baseDEF:25,baseHP:10870,hr:2.5,card:cardImg("Xiao"),splash:splashImg("Xiao"),desc:"降魔大圣",title:"护法夜叉",elem:"风"},
+{id:"yelan",name:"夜兰",rarity:5,icon:"💧",baseATK:44,baseDEF:31,baseHP:12540,hr:2.8,card:cardImg("Yelan"),splash:splashImg("Yelan"),desc:"总务司使者",title:"兰生幽谷",elem:"水"},
+{id:"tartaglia",name:"达达利亚",rarity:5,icon:"🌊",baseATK:47,baseDEF:32,baseHP:11890,hr:2.6,card:cardImg("Tartaglia"),splash:splashImg("Tartaglia"),desc:"愚人众执行官",title:"公子",elem:"水"},
+{id:"alhaitham",name:"艾尔海森",rarity:5,icon:"📖",baseATK:46,baseDEF:34,baseHP:12120,hr:2.9,card:cardImg("Alhaitham"),splash:splashImg("Alhaitham"),desc:"教令院书记官",title:"诲韬诤言",elem:"草"},
+{id:"nilou",name:"妮露",rarity:5,icon:"💃",baseATK:41,baseDEF:35,baseHP:13380,hr:3.0,card:cardImg("Nilou"),splash:splashImg("Nilou"),desc:"剧场舞者",title:"莲光落舞筵",elem:"水"},
+{id:"wanderer",name:"流浪者",rarity:5,icon:"🍂",baseATK:49,baseDEF:27,baseHP:10450,hr:2.5,card:cardImg("Wanderer"),splash:splashImg("Wanderer"),desc:"流浪之人",title:"久世浮倾",elem:"风"},
+{id:"dehya",name:"迪希雅",rarity:5,icon:"🦁",baseATK:43,baseDEF:36,baseHP:14210,hr:3.1,card:cardImg("Dehya"),splash:splashImg("Dehya"),desc:"炽光猎手",title:"炽鬃之狮",elem:"火"},
+{id:"lyney",name:"林尼",rarity:5,icon:"🎩",baseATK:45,baseDEF:29,baseHP:11020,hr:2.7,card:cardImg("Lyney"),splash:splashImg("Lyney"),desc:"魔术师",title:"惑光幻戏",elem:"火"},
+{id:"wriothesley",name:"莱欧斯利",rarity:5,icon:"🧊",baseATK:47,baseDEF:33,baseHP:12680,hr:2.8,card:cardImg("Wriothesley"),splash:splashImg("Wriothesley"),desc:"梅堡管理者",title:"寂罪的密使",elem:"冰"},
+{id:"navia",name:"娜维娅",rarity:5,icon:"🌹",baseATK:44,baseDEF:37,baseHP:13450,hr:3.0,card:cardImg("Navia"),splash:splashImg("Navia"),desc:"刺玫会会长",title:"明花蔓舵",elem:"岩"},
+{id:"clorinde",name:"克洛琳德",rarity:5,icon:"⚡",baseATK:50,baseDEF:29,baseHP:11560,hr:2.6,card:cardImg("Clorinde"),splash:splashImg("Clorinde"),desc:"逐影猎人",title:"秉烛狝影",elem:"雷"},
+{id:"emilie",name:"艾梅莉埃",rarity:5,icon:"🌺",baseATK:42,baseDEF:35,baseHP:13100,hr:3.1,card:cardImg("Emilie"),splash:splashImg("Emilie"),desc:"香水师",title:"香氛演绎",elem:"草"},
+{id:"sigewinne",name:"希格雯",rarity:5,icon:"💧",baseATK:39,baseDEF:41,baseHP:14800,hr:3.3,card:cardImg("Sigewinne"),splash:splashImg("Sigewinne"),desc:"美露莘护士长",title:"龙女妙变",elem:"水"}
+];
+
+var CHARS4=[
+{id:"amber",name:"安柏",rarity:4,icon:"🏹",baseATK:38,baseDEF:24,baseHP:9140,hr:2.2,card:cardImg("Amber"),splash:splashImg("Amber"),desc:"侦察骑士",title:"飞行冠军",elem:"火"},
+{id:"barbara",name:"芭芭拉",rarity:4,icon:"💧",baseATK:34,baseDEF:28,baseHP:10520,hr:2.5,card:cardImg("Barbara"),splash:splashImg("Barbara"),desc:"蒙德偶像",title:"闪耀偶像",elem:"水"},
+{id:"beidou",name:"北斗",rarity:4,icon:"⚡",baseATK:42,baseDEF:30,baseHP:11240,hr:2.6,card:cardImg("Beidou"),splash:splashImg("Beidou"),desc:"南十字船长",title:"无冕的龙王",elem:"雷"},
+{id:"bennett",name:"班尼特",rarity:4,icon:"🔥",baseATK:40,baseDEF:25,baseHP:10870,hr:2.4,card:cardImg("Bennett"),splash:splashImg("Bennett"),desc:"冒险家协会",title:"命运试金石",elem:"火"},
+{id:"candace",name:"坎蒂丝",rarity:4,icon:"💧",baseATK:37,baseDEF:29,baseHP:11560,hr:2.5,card:cardImg("Candace"),splash:splashImg("Candace"),desc:"阿如村守护者",title:"浮金的誓愿",elem:"水"},
+{id:"charlotte",name:"夏洛蒂",rarity:4,icon:"📸",baseATK:36,baseDEF:26,baseHP:9800,hr:2.3,card:cardImg("Charlotte"),splash:splashImg("Charlotte"),desc:"蒸汽鸟报记者",title:"真理的探求者",elem:"冰"},
+{id:"chevreuse",name:"夏沃蕾",rarity:4,icon:"🔫",baseATK:41,baseDEF:27,baseHP:10230,hr:2.4,card:cardImg("Chevreuse"),splash:splashImg("Chevreuse"),desc:"特巡队队长",title:"执法者",elem:"火"},
+{id:"chongyun",name:"重云",rarity:4,icon:"❄️",baseATK:39,baseDEF:28,baseHP:10450,hr:2.5,card:cardImg("Chongyun"),splash:splashImg("Chongyun"),desc:"驱邪世家",title:"雪融有踪",elem:"冰"},
+{id:"collei",name:"柯莱",rarity:4,icon:"🌱",baseATK:35,baseDEF:26,baseHP:9530,hr:2.3,card:cardImg("Collei"),splash:splashImg("Collei"),desc:"见习巡林员",title:"萃念初蘖",elem:"草"},
+{id:"diona",name:"迪奥娜",rarity:4,icon:"🍸",baseATK:33,baseDEF:27,baseHP:9980,hr:2.4,card:cardImg("Diona"),splash:splashImg("Diona"),desc:"猫尾酒馆调酒师",title:"猫尾特调",elem:"冰"},
+{id:"dori",name:"多莉",rarity:4,icon:"💰",baseATK:36,baseDEF:25,baseHP:10040,hr:2.3,card:cardImg("Dori"),splash:splashImg("Dori"),desc:"旅行商人",title:"梦园藏金",elem:"雷"},
+{id:"faruzan",name:"珐露珊",rarity:4,icon:"🌪️",baseATK:38,baseDEF:29,baseHP:10670,hr:2.5,card:cardImg("Faruzan"),splash:splashImg("Faruzan"),desc:"知论派学者",title:"机逐封秘",elem:"风"},
+{id:"fischl",name:"菲谢尔",rarity:4,icon:"🦅",baseATK:40,baseDEF:24,baseHP:9630,hr:2.3,card:cardImg("Fischl"),splash:splashImg("Fischl"),desc:"冒险家协会",title:"断罪之皇女",elem:"雷"},
+{id:"freminet",name:"菲米尼",rarity:4,icon:"🤿",baseATK:41,baseDEF:28,baseHP:11020,hr:2.6,card:cardImg("Freminet"),splash:splashImg("Freminet"),desc:"潜水员",title:"潜怀遐梦",elem:"冰"},
+{id:"gaming",name:"嘉明",rarity:4,icon:"🦁",baseATK:42,baseDEF:26,baseHP:10340,hr:2.4,card:cardImg("Gaming"),splash:splashImg("Gaming"),desc:"镖师",title:"骏猊頕首",elem:"火"},
+{id:"heizou",name:"鹿野院平藏",rarity:4,icon:"👊",baseATK:39,baseDEF:27,baseHP:10120,hr:2.4,card:cardImg("Heizou"),splash:splashImg("Heizou"),desc:"天领奉行侦探",title:"心朝义安",elem:"风"},
+{id:"kaeya",name:"凯亚",rarity:4,icon:"🧊",baseATK:37,baseDEF:26,baseHP:10570,hr:2.5,card:cardImg("Kaeya"),splash:splashImg("Kaeya"),desc:"骑兵队长",title:"寒风剑士",elem:"冰"},
+{id:"kaveh",name:"卡维",rarity:4,icon:"🏛️",baseATK:38,baseDEF:30,baseHP:11240,hr:2.7,card:cardImg("Kaveh"),splash:splashImg("Kaveh"),desc:"建筑设计师",title:"天穹之镜",elem:"草"},
+{id:"kirara",name:"绮良良",rarity:4,icon:"🐱",baseATK:35,baseDEF:27,baseHP:10820,hr:2.5,card:cardImg("Kirara"),splash:splashImg("Kirara"),desc:"狛荷快递员",title:"檐宇猫游",elem:"草"},
+{id:"kuki",name:"久岐忍",rarity:4,icon:"⚡",baseATK:36,baseDEF:28,baseHP:10650,hr:2.5,card:cardImg("KukiShinobu"),splash:splashImg("KukiShinobu"),desc:"荒泷派副手",title:"烦恼刈除",elem:"雷"},
+{id:"layla",name:"莱依拉",rarity:4,icon:"🌙",baseATK:34,baseDEF:30,baseHP:11340,hr:2.6,card:cardImg("Layla"),splash:splashImg("Layla"),desc:"梨多梵谛学院",title:"绮思晚星",elem:"冰"},
+{id:"lisa",name:"丽莎",rarity:4,icon:"⚡",baseATK:37,baseDEF:25,baseHP:9570,hr:2.3,card:cardImg("Lisa"),splash:splashImg("Lisa"),desc:"西风骑士团",title:"蔷薇魔女",elem:"雷"},
+{id:"mika",name:"米卡",rarity:4,icon:"🗺️",baseATK:36,baseDEF:26,baseHP:10060,hr:2.4,card:cardImg("Mika"),splash:splashImg("Mika"),desc:"测绘员",title:"晴霜的标绘",elem:"冰"},
+{id:"ningguang",name:"凝光",rarity:4,icon:"💎",baseATK:38,baseDEF:29,baseHP:9780,hr:2.4,card:cardImg("Ningguang"),splash:splashImg("Ningguang"),desc:"璃月七星",title:"掩月天权",elem:"岩"},
+{id:"noelle",name:"诺艾尔",rarity:4,icon:"🛡️",baseATK:36,baseDEF:32,baseHP:12070,hr:2.8,card:cardImg("Noelle"),splash:splashImg("Noelle"),desc:"西风骑士团",title:"未授勋之花",elem:"岩"},
+{id:"razor",name:"雷泽",rarity:4,icon:"🐺",baseATK:41,baseDEF:27,baseHP:10140,hr:2.4,card:cardImg("Razor"),splash:splashImg("Razor"),desc:"奔狼领的少年",title:"狼少年",elem:"雷"},
+{id:"rosaria",name:"罗莎莉亚",rarity:4,icon:"🗡️",baseATK:40,baseDEF:26,baseHP:10640,hr:2.5,card:cardImg("Rosaria"),splash:splashImg("Rosaria"),desc:"西风教会修女",title:"棘冠恩典",elem:"冰"},
+{id:"sara",name:"九条裟罗",rarity:4,icon:"🪶",baseATK:39,baseDEF:28,baseHP:10380,hr:2.5,card:cardImg("Sara"),splash:splashImg("Sara"),desc:"天领奉行大将",title:"黑羽鸣镝",elem:"雷"},
+{id:"sayu",name:"早柚",rarity:4,icon:"🍃",baseATK:34,baseDEF:25,baseHP:10520,hr:2.5,card:cardImg("Sayu"),splash:splashImg("Sayu"),desc:"终末番忍者",title:"忍里之貉",elem:"风"},
+{id:"sethos",name:"赛索斯",rarity:4,icon:"⚡",baseATK:40,baseDEF:27,baseHP:10420,hr:2.4,card:cardImg("Sethos"),splash:splashImg("Sethos"),desc:"沙漠使者",title:"砂上默语",elem:"雷"},
+{id:"sucrose",name:"砂糖",rarity:4,icon:"🧪",baseATK:35,baseDEF:26,baseHP:9240,hr:2.2,card:cardImg("Sucrose"),splash:splashImg("Sucrose"),desc:"炼金术士",title:"无害甜度",elem:"风"},
+{id:"thoma",name:"托马",rarity:4,icon:"🔥",baseATK:37,baseDEF:29,baseHP:11150,hr:2.6,card:cardImg("Thoma"),splash:splashImg("Thoma"),desc:"神里家近侍",title:"赤座红炉",elem:"火"},
+{id:"xiangling",name:"香菱",rarity:4,icon:"🍳",baseATK:38,baseDEF:25,baseHP:10200,hr:2.4,card:cardImg("Xiangling"),splash:splashImg("Xiangling"),desc:"万民堂大厨",title:"万民百味",elem:"火"},
+{id:"xingqiu",name:"行秋",rarity:4,icon:"📚",baseATK:36,baseDEF:28,baseHP:10520,hr:2.5,card:cardImg("Xingqiu"),splash:splashImg("Xingqiu"),desc:"飞云商会",title:"少年春衫薄",elem:"水"},
+{id:"xinyan",name:"辛焱",rarity:4,icon:"🎸",baseATK:39,baseDEF:27,baseHP:11120,hr:2.6,card:cardImg("Xinyan"),splash:splashImg("Xinyan"),desc:"摇滚音乐人",title:"燥热旋律",elem:"火"},
+{id:"yanfei",name:"烟绯",rarity:4,icon:"⚖️",baseATK:37,baseDEF:26,baseHP:10140,hr:2.4,card:cardImg("Yanfei"),splash:splashImg("Yanfei"),desc:"璃月港法律顾问",title:"明律决刑",elem:"火"},
+{id:"yaoyao",name:"瑶瑶",rarity:4,icon:"🐰",baseATK:33,baseDEF:28,baseHP:11030,hr:2.6,card:cardImg("Yaoyao"),splash:splashImg("Yaoyao"),desc:"歌尘浪世弟子",title:"瑶蕊玲珑",elem:"草"},
+{id:"yunjin",name:"云堇",rarity:4,icon:"🎭",baseATK:36,baseDEF:29,baseHP:11560,hr:2.7,card:cardImg("YunJin"),splash:splashImg("YunJin"),desc:"云翰社当家",title:"红毹婵娟",elem:"岩"}
+];
+
+var ALLCHARS=CHARS5.concat(CHARS4);
+function getCharById(id){return ALLCHARS.find(function(c){return c.id===id})}
+
+
+// ==================== STATE ====================
+function defState(){
+  return {
+    shihui:0, xingchen:0, hc:0,
+    pity4:0, pity5:0, guarantee5:false,
+    chars:{},
+    playerLv:1, playerExp:0, playerMaxLv:50,
+    dailySignIn:null,
+    songCount:0, musicActive:false, musicStart:null,
+    wordCount:0,
+    gachaHistory:[],
+    lastAutoLvDate:null
+  };
+}
+
+function loadS(){
+  try{
+    var raw=localStorage.getItem("star_home");
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){return null}
+}
+
+function saveS(s){
+  localStorage.setItem("star_home",JSON.stringify(s));
+}
+
+var state=loadS();
+if(!state){state=defState();saveS(state)}
+
+
+// ==================== HELPERS ====================
+function todayStr(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
+
+function toast(msg){
+  var c=document.getElementById("toast-container");
+  var t=document.createElement("div");t.className="toast";t.textContent=msg;c.appendChild(t);
+  setTimeout(function(){t.remove()},2500);
+}
+
+function charExpNeeded(lv){return 10+3*(lv-1)}
+function lvCost(lv){return charExpNeeded(lv)}
+
+function lvHCost(lv){return Math.ceil(lvCost(lv)/100)}
+
+function playerExpNeeded(lv){return Math.floor(100*Math.pow(1.12,lv-1))}
+
+function buyCharExpBook(){
+  if(state.hc<1) return toast("家园币不足！");
+  state.hc-=1;
+  var sel=prompt("输入要升级的角色ID（在角色图鉴查看）:");
+  if(!sel){state.hc+=1;saveS(state);return}
+  var cd=state.chars[sel];
+  if(!cd||!cd.obtained){state.hc+=1;saveS(state);return toast("未拥有该角色！")}
+  cd.charExp=(cd.charExp||0)+100;
+  while(cd.charExp>=charExpNeeded(cd.lv||1)&&(cd.lv||1)<90){
+    cd.charExp-=charExpNeeded(cd.lv||1);
+    cd.lv=(cd.lv||1)+1;
+  }
+  saveS(state);render();
+  var ch=getCharById(sel);
+  toast("📖 使用经验书！"+(ch?ch.name:sel)+" 获得了角色经验");
+}
+function buyCharExpBook10(){
+  if(state.hc<10) return toast("家园币不足！");
+  state.hc-=10;
+  var sel=prompt("输入要升级的角色ID（在角色图鉴查看）:");
+  if(!sel){state.hc+=10;saveS(state);return}
+  var cd=state.chars[sel];
+  if(!cd||!cd.obtained){state.hc+=10;saveS(state);return toast("未拥有该角色！")}
+  cd.charExp=(cd.charExp||0)+1000;
+  while(cd.charExp>=charExpNeeded(cd.lv||1)&&(cd.lv||1)<90){
+    cd.charExp-=charExpNeeded(cd.lv||1);
+    cd.lv=(cd.lv||1)+1;
+  }
+  saveS(state);render();
+  var ch=getCharById(sel);
+  toast("📚 使用10本经验书！"+(ch?ch.name:sel)+" 获得了大量角色经验");
+}
+function hcToShihui(){
+  if(state.hc<10) return toast("家园币不足！");
+  state.hc-=10;
+  state.shihui+=1;
+  saveS(state);render();
+  toast("💎 兑换成功！10家园币 → 1星辉");
+}
+function hcToShihuiBulk(amt){
+  if(amt<10) return toast("至少需要10家园币！");
+  amt=Math.floor(amt/10)*10;
+  if(state.hc<amt) amt=Math.floor(state.hc/10)*10;
+  if(amt<10) return toast("家园币不足！");
+  var gained=amt/10;
+  state.hc-=amt;
+  state.shihui+=gained;
+  saveS(state);render();
+  toast("💎 兑换成功！"+amt+"家园币 → "+gained+"星辉");
+}
+// ==================== AUTO DAILYAILY ====================
+function autoSignIn(){
+  var td=todayStr();
+  if(state.dailySignIn===td) return false;
+  state.dailySignIn=td;
+  var streak=1;
+  var y=new Date();y.setDate(y.getDate()-1);
+  var yd=y.getFullYear()+"-"+(y.getMonth()+1)+"-"+y.getDate();
+  if(state.lastSignDate===yd) streak=(state.signStreak||0)+1;
+  state.lastSignDate=td;state.signStreak=streak;
+  var reward=10+streak*2;if(reward>60) reward=60;
+  state.shihui+=reward;
+  saveS(state);
+  toast("✅ 自动签到成功！连续"+streak+"天，获得 "+reward+" 星辉");
+  return true;
+}
+
+function autoMusicCheck(){
+  if(!state.musicActive||!state.musicStart) return;
+  var elapsed=(Date.now()-state.musicStart)/1000;
+  var mins=Math.floor(elapsed/210); // 3.5 min per song
+  if(mins>state.songCount){
+    var gained=mins-state.songCount;
+    state.songCount=mins;
+    state.shihui+=gained*3;
+    state.playerExp+=gained*15;
+    playerExpCheck();
+    saveS(state);render();
+  }
+}
+
+function startMusic(){
+  state.musicActive=true;
+  state.musicStart=Date.now();
+  saveS(state);
+  toast("🎵 开始记录听歌时间");
+}
+
+function stopMusic(){
+  if(!state.musicActive) return;
+  var elapsed=(Date.now()-state.musicStart)/1000;
+  var songs=Math.floor(elapsed/210);
+  if(songs>state.songCount){
+    state.songCount=songs;
+    state.shihui+=(songs-(state.songCount||0))*3;
+    saveS(state);
+  }
+  state.musicActive=false;state.musicStart=null;
+  saveS(state);
+}
+
+var writeTimer=null;
+function onWritingInput(){
+  clearTimeout(writeTimer);
+  writeTimer=setTimeout(submitWriting,3000);
+}
+
+function submitWriting(){
+  var ta=document.getElementById("writing-area");
+  if(!ta) return;
+  var text=ta.value||"";
+  var words=text.replace(/\s/g,"").length;
+  if(words<=state.wordCount) return;
+  var gained=words-state.wordCount;
+  state.wordCount=words;
+  state.shihui+=Math.floor(gained/50);
+  state.playerExp+=gained;
+  playerExpCheck();
+  saveS(state);render();
+  toast("📝 写作结算："+gained+"字");
+}
+
+function playerExpCheck(){
+  while(state.playerLv<state.playerMaxLv&&state.playerExp>=playerExpNeeded(state.playerLv)){
+    state.playerExp-=playerExpNeeded(state.playerLv);
+    state.playerLv++;
+    toast("🌟 家园升级到 "+state.playerLv+" 级！");
+  }
+}
+
+// ==================== AUTO CHAR LEVEL ====================
+function autoLevelChars(){
+  var td=todayStr();
+  if(state.lastAutoLvDate===td) return;
+  state.lastAutoLvDate=td;
+  var totalHomeExp=0;
+  Object.keys(state.chars).forEach(function(cid){
+    var cd=state.chars[cid];
+    if(!cd||!cd.obtained) return;
+    var c=getCharById(cid);
+    if(!c) return;
+    var lv=cd.lv||1;
+    if(c.rarity===5) totalHomeExp+=Math.floor(240+3.6*(lv-1));
+    else totalHomeExp+=Math.floor(180+2.7*(lv-1));
+    cd.charExp=(cd.charExp||0)+10;
+    while(cd.charExp>=charExpNeeded(cd.lv||1)&&(cd.lv||1)<90){
+      cd.charExp-=charExpNeeded(cd.lv||1);
+      cd.lv=(cd.lv||1)+1;
+    }
+  });
+  state.playerExp+=totalHomeExp;
+  state.hc+=Math.floor(50+40*(state.playerLv-1));
+  playerExpCheck();
+  saveS(state);
+  toast("\u{1F3E1} 家园获得 "+totalHomeExp+" 经验！+"+Math.floor(50+40*(state.playerLv-1))+" 家园币");
+}
+// ==================== GACHACHA ====================
+function get5R(){
+  var r=Math.random();
+  var pityBonus5=0;
+  if(state.pity5>=73){
+    pityBonus5=(state.pity5-72)*0.06;
+    if(state.pity5>=89) pityBonus5=1;
+  }
+  // 4星硬保底：第10抽必出4星+
+  if(state.pity4>=9) return Math.random()<(0.006+pityBonus5)?5:4;
+  // 4星软保底：第8抽起概率递增
+  var pityBonus4=0;
+  if(state.pity4>=7) pityBonus4=(state.pity4-6)*0.3;
+  if(r<0.006+pityBonus5){
+    return 5;
+  }else if(r<0.051+pityBonus4){
+    return 4;
+  }else{
+    return 3;
+  }
+}
+function doPull(pool){
+  var rarity=get5R();
+  var char=null,isNew=false;
+  if(rarity===5){
+    state.pity4=0;state.pity5=0;
+    state.xingchen+=500;
+    var guarantee=state.guarantee5;
+    var win5050=Math.random()<0.5||guarantee;
+    var pool5=pool==="cm"?CHARS5:CHARS5;
+    if(win5050||guarantee){
+      char=pool5[Math.floor(Math.random()*pool5.length)];
+      state.guarantee5=false;
+    }else{
+      var other5=CHARS5.filter(function(c){return pool5.indexOf(c)===-1||pool5.length===CHARS5.length});
+      if(other5.length===0) other5=CHARS5;
+      char=other5[Math.floor(Math.random()*other5.length)];
+      state.guarantee5=true;
+    }
+    state.hc+=2;
+  }else if(rarity===4){
+    state.pity4=0;state.pity5++;
+    state.xingchen+=100;
+    var pool4=CHARS4;
+    char=pool4[Math.floor(Math.random()*pool4.length)];
+    state.hc+=1;
+  }else{
+    state.pity4++;state.pity5++;
+    state.xingchen+=30; // refund 30 stardust
+  }
+  if(char){
+    var cc=state.chars[char.id];
+    if(!cc||!cc.obtained){
+      isNew=true;
+      if(!state.chars[char.id]) state.chars[char.id]={lv:1,obtained:true,charExp:0};
+      else state.chars[char.id].obtained=true;
+    }else{
+      cc.charExp=(cc.charExp||0)+20;
+      if(rarity===4) state.hc+=2;
+      if(rarity===5) state.shihui+=10;
+    }
+  }
+  state.playerExp+=rarity===5?30:(rarity===4?10:2);
+  playerExpCheck();
+  state.gachaHistory.push({rarity:rarity,char:char?char.name:"祈愿未果",time:Date.now(),isNew:isNew});
+  if(state.gachaHistory.length>50) state.gachaHistory=state.gachaHistory.slice(-50);
+  saveS(state);
+  return {rarity:rarity,char:char,isNew:isNew};
+}
+
+var isPulling=false;
+
+function pullSingle(){
+  if(isPulling) return;
+  if(state.shihui<160) return toast("星辉不足！需要160星辉");
+  isPulling=true;
+  state.shihui-=160;
+  var result=doPull("cm");
+  saveS(state);render();
+  playGachaAnim([result],function(){
+    isPulling=false;
+    render();
+  });
+}
+
+function pullMulti(){
+  if(isPulling) return;
+  if(state.shihui<1600) return toast("星辉不足！需要1600星辉");
+  isPulling=true;
+  state.shihui-=1600;
+  var results=[];
+  for(var i=0;i<10;i++) results.push(doPull("cm"));
+  saveS(state);render();
+  showMultiResults(results);
+  isPulling=false;
+}
+
+// ==================== GACHA ANIMATION ====================
+function playGachaAnim(results,cb){
+  var r=results[0];
+  var cont=document.getElementById("gacha-anim");
+  if(!cont){if(cb)cb();return}
+  var rarity=r.rarity;
+  var char=r.char;
+  var glowClass=rarity===5?"r5":(rarity===4?"r4":"r3");
+  var frontEmoji=rarity===5?"⭐":(rarity===4?"💜":"🌑");
+  var html='<div class="gacha-card flipping" id="gacha-card-el"><div class="gacha-front">'+frontEmoji+'</div><div class="gacha-back">';
+  if(char){
+    html+='<img src="'+char.splash+'" class="gacha-result-img" onerror="this.style.display=\'none\'">';
+    html+='<div class="gacha-result-name" style="color:var(--'+(rarity===5?'gold':(rarity===4?'purple':'r3'))+')">'+char.name+'</div>';
+    html+='<div class="gacha-result-rarity">'+'⭐'.repeat(rarity)+' '+(rarity===5?'五星':(rarity===4?'四星':'三星'))+'</div>';
+  }else{
+    html+='<div style="font-size:3em;margin-bottom:12px">💫</div>';
+    html+='<div class="gacha-result-name" style="color:var(--r3)">祈愿未果</div>';
+    html+='<div class="gacha-result-rarity">获得30星尘</div>';
+  }
+  html+='</div><div class="gacha-glow '+glowClass+'"></div></div>';
+  cont.innerHTML=html;
+  if(rarity===5) toast("🌟 五星！"+char.name+" +500星尘");
+  else if(rarity===4) toast("💜 四星！"+char.name+" +100星尘");
+  else toast("💫 祈愿未果，返还30星尘");
+  setTimeout(function(){
+    if(cb) cb();
+    isPulling=false;
+    render();
+  },2200);
+}
+
+function showMultiResults(results){
+  var cont=document.getElementById("gacha-anim");
+  if(!cont) return;
+  var html='<div style="font-size:1.2em;font-weight:700;margin-bottom:12px;color:var(--gold)">十连抽结果</div><div class="multi-results">';
+  for(var i=0;i<results.length;i++){
+    var r=results[i];
+    var rc=r.rarity===5?"r5":(r.rarity===4?"r4":"");
+    if(r.char){
+      html+='<div class="multi-item '+rc+'" title="'+r.char.name+'"><img src="'+r.char.splash+'" onerror="this.innerHTML=\'⭐\'"></div>';
+    }else{
+      html+='<div class="multi-item" title="祈愿未果">💫</div>';
+    }
+  }
+  html+='</div>';
+  cont.innerHTML=html;
+  var has5=results.some(function(r){return r.rarity===5});
+  if(has5) toast("🌟 十连出货！五星降临！");
+}
+
+// ==================== CHAR DETAIL ====================
+function openCharDetail(cid){
+  var c=getCharById(cid);
+  if(!c) return;
+  var cd=state.chars[cid];
+  if(!cd||!cd.obtained) return toast("尚未获得该角色");
+  var lv=cd.lv||1;
+  var atk=Math.floor(c.baseATK*(1+lv*0.03));
+  var def=Math.floor(c.baseDEF*(1+lv*0.025));
+  var hp=Math.floor(c.baseHP*(1+lv*0.02));
+  var html='<div class="modal-overlay" id="char-detail-modal" onclick="if(event.target===this)closeCharDetail()">';
+  html+='<div class="modal" style="max-width:440px">';
+  html+='<button class="modal-close" onclick="closeCharDetail()">&times;</button>';
+  html+='<div style="text-align:center">';
+  html+='<div style="font-size:1.4em;font-weight:700;color:var(--'+(c.rarity===5?'gold':'purple')+')">'+'⭐'.repeat(c.rarity)+' '+c.name+'</div>';
+  html+='<div style="color:var(--muted);font-size:0.85em;margin:4px 0">'+c.title+' · '+c.elem+'元素</div>';
+  html+='<div class="modal-img"><img src="'+c.splash+'" style="max-width:240px;max-height:300px" onerror="this.src=\''+c.card+'\'"></div>';
+  html+='<p style="color:var(--text2);font-size:0.85em">'+c.desc+'</p>';
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0;font-size:0.8em">';
+  html+='<div>⚔️ 攻击力<div style="color:var(--gold);font-size:1.2em">'+atk+'</div></div>';
+  html+='<div>🛡️ 防御力<div style="color:var(--purple);font-size:1.2em">'+def+'</div></div>';
+  html+='<div>❤️ 生命值<div style="color:var(--blue);font-size:1.2em">'+hp+'</div></div>';
+  html+='</div>';
+  html+='<div style="margin:12px 0;font-size:0.85em">等级: Lv.'+lv+' <span style="color:var(--muted)">| 角色经验: '+(cd.charExp||0)+'/'+charExpNeeded(lv)+'</span></div>';
+  html+='<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px">';
+  html+='<button class="btn btn-gold btn-sm" onclick="levelUpChar(\''+cid+'\',1)">+1本 (1币)</button>';
+  html+='<button class="btn btn-gold btn-sm" onclick="levelUpChar(\''+cid+'\',10)">+10本 (10币)</button>';
+  html+='<button class="btn btn-gold btn-sm" onclick="levelUpChar(\''+cid+'\',50)">+50本 (50币)</button>';
+  html+='<button class="btn btn-purple btn-sm" onclick="levelUpChar(\''+cid+'\',-1)">全部投入</button>';
+  html+='</div>';
+  html+='</div></div></div>';
+  var old=document.getElementById("char-detail-modal");
+  if(old) old.remove();
+  var div=document.createElement("div");div.innerHTML=html;
+  document.body.appendChild(div.firstElementChild);
+}
+
+function closeCharDetail(){
+  var m=document.getElementById("char-detail-modal");
+  if(m) m.remove();
+}
+
+function levelUpChar(cid,amt){
+  if(!amt) amt=1;
+  var c=getCharById(cid);
+  if(!c) return;
+  var cd=state.chars[cid];
+  if(!cd||!cd.obtained) return;
+  if(amt===-1) amt=state.hc;
+  if(state.hc<amt) amt=state.hc;
+  if(amt<1) return toast("家园币不足！");
+  state.hc-=amt;
+  cd.charExp=(cd.charExp||0)+amt*100;
+  while(cd.charExp>=charExpNeeded(cd.lv||1)&&(cd.lv||1)<90){
+    cd.charExp-=charExpNeeded(cd.lv||1);
+    cd.lv=(cd.lv||1)+1;
+  }
+  saveS(state);
+  closeCharDetail();
+  render();
+  toast("📖 "+c.name+" 投入"+amt+"家园币 → Lv."+cd.lv+"！");
+}
+// ==================== TABSTABS ====================
+var currentTab="home";
+
+function renderHome(){
+  var hc=state.hc;
+  var lv=state.playerLv;
+  var exp=state.playerExp;
+  var need=playerExpNeeded(lv);
+  var pct=Math.min(100,Math.floor(exp/need*100));
+  var chars=Object.keys(state.chars).filter(function(k){return state.chars[k]&&state.chars[k].obtained});
+  var sumLv=0;chars.forEach(function(k){sumLv+=state.chars[k].lv||1});
+  var hcGen=Math.floor(50+40*(state.playerLv-1));
+  var html='';
+  html+='<div class="home-hero">';
+  html+='<div class="home-hero-icon">🏰</div>';
+  html+='<div class="home-lv">家园等级 Lv.'+lv+' <span style="font-size:0.6em;color:var(--muted)">/ '+state.playerMaxLv+'</span></div>';
+  html+='<div class="progress" style="max-width:300px;margin:8px auto"><div class="progress-bar blue" style="width:'+pct+'%"></div></div>';
+  html+='<div style="font-size:0.75em;color:var(--muted)">经验 '+exp+'/'+need+'</div>';
+  html+='</div>';
+  html+='<div class="home-stats" style="margin-bottom:14px">';
+  html+='<div class="stat-item"><div class="sv">'+chars.length+'</div><div class="sl">已获角色</div></div>';
+  html+='<div class="stat-item"><div class="sv">'+sumLv+'</div><div class="sl">总等级</div></div>';
+  html+='<div class="stat-item"><div class="sv">+'+hcGen+'</div><div class="sl">每日家园币</div></div>';
+  html+='</div>';
+  html+='<div class="home-scene-wrap"><div class="home-scene-bg"></div>';
+  html+='<div style="position:absolute;bottom:8px;right:12px;font-size:0.7em;color:rgba(255,255,255,0.5)">家园</div>';
+  // show collected chars on scene
+  chars.slice(0,12).forEach(function(k,i){
+    var cd=state.chars[k];
+    var ch=getCharById(k);
+    if(!ch) return;
+    var left=20+(i%4)*160;
+    var bottom=25+Math.floor(i/4)*100;
+    html+='<div class="scene-char" data-name="'+ch.name+' Lv.'+(cd.lv||1)+'" data-cid="'+ch.id+'" style="left:'+left+'px;bottom:'+bottom+'px">';
+    html+='<img src="'+ch.card+'" onerror="this.style.display=\'none\'" alt="'+ch.name+'"><span class="scene-bubble"></span>';
+    html+='</div>';
+  });
+  html+='</div>';
+  return html;
+}
+
+function renderDaily(){
+  var td=todayStr();
+  var signed=state.dailySignIn===td;
+  var streak=state.signStreak||0;
+  var html='';
+  html+='<div class="card"><div class="card-header">📅 每日签到</div>';
+  html+='<p style="margin-bottom:8px">'+todayStr()+' 连续签到 <span class="streak-badge">'+streak+'天</span></p>';
+  if(signed){
+    html+='<p style="color:var(--success)">✅ 今日已自动签到</p>';
+  }else{
+    html+='<p style="color:var(--text2)">打开页面即自动签到</p>';
+  }
+  html+='</div>';
+
+    var blogPlaying=localStorage.getItem('blog_music_playing')==='1';
+  var blogElapsed=Number(localStorage.getItem('blog_music_elapsed')||0);
+  var totalMs=blogPlaying?((Date.now()-Number(localStorage.getItem('blog_music_start')||0))+blogElapsed):0;
+  var totalMin=Math.floor(totalMs/60000);
+  html+='<div class="card"><div class="card-header">🎵 听歌时长 '+ (blogPlaying?'(🔊 播放中)':'') +'</div>';
+  html+='<div class="music-status">';
+  html+='<div class="music-dot'+(blogPlaying?' active':'')+'"></div>';
+  html+='<div style="flex:1"><span style="font-weight:600">已听: '+state.songCount+' 首</span><span style="color:var(--muted);margin-left:8px">≈ '+totalMin+' 分钟</span></div>';
+  html+='</div>';
+  html+='<div style="color:var(--muted);font-size:0.75em;margin-top:8px">🔗 与博客音乐播放器自动同步 | 每首≈3.5分钟 → 3星辉</div>';
+  if(!blogPlaying){
+    html+='<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="startMusic()">▶ 手动开始记录</button>';
+  }
+  html+='</div>';
+
+  var blogWords=Number(localStorage.getItem('blog_word_count')||0);
+  if(blogWords>state.wordCount){
+    var gained=blogWords-state.wordCount;
+    state.wordCount=blogWords;
+    state.shihui+=Math.floor(gained/50);
+    state.playerExp+=gained;
+    playerExpCheck();
+    saveS(state);
+  }
+  html+='<div class="card"><div class="card-header">✍️ 博客写作</div>';
+  html+='<div style="font-size:1.3em;font-weight:700;color:var(--gold);margin-bottom:8px">'+blogWords+' 字</div>';
+  html+='<div style="color:var(--muted);font-size:0.85em">📄 自动统计博客当日文章字数 | 每50字获得1星辉</div>';
+  if(blogWords===0){
+    html+='<p style="color:var(--text2);font-size:0.85em;margin-top:8px">💡 访问博客文章页面即可自动统计字数</p>';
+  }
+  html+='</div>';
+
+    html+='<div class="card"><div class="card-header">🏡 家园商店</div>';
+  html+='<div class="shop-row"><div class="shop-info"><div class="shop-name">📖 角色经验书</div><div class="shop-desc">1家园币 → 100角色经验 (在角色详情中使用)</div></div><span style="color:var(--muted);font-size:0.8em">👤 点击角色头像进入详情升级</span></div>';
+  html+='<div class="shop-row"><div class="shop-info"><div class="shop-name">💎 兑换星辉</div><div class="shop-desc">10家园币 → 1星辉</div></div><button class="btn btn-purple btn-sm" onclick="hcToShihui()">10→1</button></div>';
+  html+='<div class="shop-row"><div class="shop-info"><div class="shop-name">💎 批量兑换</div><div class="shop-desc">100家园币 → 10星辉</div></div><button class="btn btn-purple btn-sm" onclick="hcToShihuiBulk(100)">100→10</button></div>';
+  html+='<div class="shop-row"><div class="shop-info"><div class="shop-name">💎 全部投入</div><div class="shop-desc">全部家园币 → 星辉</div></div><button class="btn btn-gold btn-sm" onclick="hcToShihuiBulk(state.hc)">全部投入</button></div>';
+  html+='</div>';return html;
+}
+
+function renderGacha(){
+  var html='';
+  html+='<div class="card" style="text-align:center">';
+  html+='<div class="card-header" style="justify-content:center">🎋 祈愿</div>';
+  html+='<p style="color:var(--text2);margin-bottom:4px">5星 0.6% (90保底) | 4星 5.1% (10保底) | 73抽起概率递增</p>';
+  html+='<p style="color:var(--muted);font-size:0.8em;margin-bottom:8px">🪙 3星返还30 | 4星返还100 | 5星返还500 星尘</p>';
+  html+='<p style="color:var(--text2);font-size:0.85em;margin-bottom:4px">5星保底计数: <b style="color:var(--gold)">'+state.pity5+'</b>/90 | 4星保底: <b style="color:var(--purple)">'+state.pity4+'</b>/10</p>';
+  html+='<p style="color:var(--text2);font-size:0.8em;margin-bottom:12px">50/50状态: '+(state.guarantee5?'<b style="color:var(--gold)">大保底！</b>':'<span style="color:var(--muted)">小保底</span>')+'</p>';
+  if(state.pity5>=85){
+    html+='<p style="color:var(--gold);animation:pulse 1s infinite;margin-bottom:8px">🔥 保底在即！</p>';
+  }
+  html+='<div style="margin:12px 0;display:flex;gap:10px;justify-content:center">';
+  html+='<button class="btn btn-gold" id="btn-single" onclick="pullSingle()">祈愿×1 (160💎)</button>';
+  html+='<button class="btn btn-purple" id="btn-multi" onclick="pullMulti()">祈愿×10 (1600💎)</button>';
+  html+='</div>';
+  html+='<div id="gacha-anim" class="gacha-anim-container"></div>';
+  html+='<div style="margin-top:16px;text-align:left"><div style="font-weight:600;margin-bottom:6px;color:var(--text2)">📜 最近祈愿</div><div class="history-list">';
+  var hist=state.gachaHistory.slice(-10).reverse();
+  for(var i=0;i<hist.length;i++){
+    var h=hist[i];
+    html+='<div class="history-item"><div class="history-dot r'+h.rarity+'"></div>'+h.char+(h.isNew?' <span style="color:var(--gold);font-size:0.7em">NEW</span>':'')+'</div>';
+  }
+  if(hist.length===0) html+='<div style="color:var(--muted)">暂无记录</div>';
+  html+='</div></div>';
+  html+='</div>';
+  return html;
+}
+
+function renderChars(){
+  var html='<div class="card"><div class="card-header">📋 角色图鉴 ('+Object.keys(state.chars).filter(function(k){return state.chars[k]&&state.chars[k].obtained}).length+'/'+ALLCHARS.length+')</div>';
+  html+='<div class="char-grid">';
+  for(var i=0;i<ALLCHARS.length;i++){
+    var c=ALLCHARS[i];
+    var cd=state.chars[c.id];
+    var obtained=cd&&cd.obtained;
+    var lv=cd?cd.lv||1:1;
+    var rcls=c.rarity===5?"r5":"r4";
+    html+='<div class="char-card '+rcls+'" '+(obtained?'onclick="openCharDetail(\''+c.id+'\')"':'')+'>';
+    if(obtained){
+      html+='<div class="cc-badge">'+c.rarity+'</div>';
+      html+='<img class="cc-img" src="'+c.card+'" onerror="this.parentElement.querySelector(\'.cc-icon\').style.display=\'block\';this.style.display=\'none\'" alt="">';
+      html+='<span class="cc-icon" style="display:none">'+c.icon+'</span>';
+      html+='<div class="cc-name">'+c.name+'</div>';
+      html+='<div class="cc-lv">Lv.'+lv+'</div>';
+    }else{
+      html+='<div style="width:70px;height:70px;margin:0 auto;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:2em;opacity:0.4">?</div>';
+      html+='<div class="cc-name" style="color:var(--muted)">???</div>';
+    }
+    html+='</div>';
+  }
+  html+='</div></div>';
+  return html;
+}
+
+function renderShop(){
+  var html='';
+  html+='<div class="card"><div class="card-header">🛒 星尘商店</div>';
+  html+='<div class="shop-row"><div class="shop-info"><div class="shop-name">💎 星辉兑换</div><div class="shop-desc">160星尘 → 50星辉</div></div><button class="btn btn-gold btn-sm" onclick="buyStardustShihui()">160星尘</button></div>';
+  html+='</div>';
+  html+='<div class="card"><div class="card-header">⭐ 五星自选</div>';
+  html+='<div class="shop-row"><div class="shop-info"><div class="shop-name">🌟 任意五星角色</div><div class="shop-desc">5000星尘 任选一个五星角色加入家园</div></div><button class="btn btn-gold btn-sm" onclick="openFiveStarShop()">5000星尘</button></div>';
+  html+='</div>';
+  html+='<div class="card"><div class="card-header">📊 账号统计</div>';
+  html+='<div style="font-size:0.85em">';
+  html+='<div style="margin:4px 0">🎯 总祈愿次数: '+state.gachaHistory.length+'</div>';
+  html+='<div style="margin:4px 0">⭐ 拥有角色: '+Object.keys(state.chars).filter(function(k){return state.chars[k]&&state.chars[k].obtained}).length+'</div>';
+  html+='<div style="margin:4px 0">💰 总星尘: '+state.xingchen+'</div>';
+  html+='</div></div>';
+  return html;
+}
+
+function buyStardustShihui(){
+  if(state.xingchen<160) return toast("星尘不足！需要160星尘");
+  state.xingchen-=160;
+  state.shihui+=50;
+  saveS(state);render();
+  toast("✅ 兑换成功！获得50星辉");
+}
+
+function openFiveStarShop(){
+  if(state.xingchen<5000) return toast("星尘不足！需要5000星尘");
+  var html='<div class="modal-overlay" id="fivestar-modal" onclick="if(event.target===this)closeFiveStarShop()">';
+  html+='<div class="modal" style="max-width:500px">';
+  html+='<button class="modal-close" onclick="closeFiveStarShop()">&times;</button>';
+  html+='<div style="font-size:1.2em;font-weight:700;color:var(--gold);margin-bottom:12px;text-align:center">⭐ 选择一名五星角色</div>';
+  html+='<div class="char-grid">';
+  for(var i=0;i<CHARS5.length;i++){
+    var c=CHARS5[i];
+    var owned=state.chars[c.id]&&state.chars[c.id].obtained;
+    html+='<div class="char-card r5" style="cursor:pointer" onclick="selectFiveStar(\''+c.id+'\')">';
+    html+='<div class="cc-badge" style="background:'+(owned?'var(--success)':'var(--gold)')+'">'+(owned?'✓':'5')+'</div>';
+    html+='<img class="cc-img" src="'+c.card+'" onerror="this.parentElement.querySelector(\'.cc-icon\').style.display=\'block\';this.style.display=\'none\'">';
+    html+='<span class="cc-icon" style="display:none">'+c.icon+'</span>';
+    html+='<div class="cc-name">'+c.name+'</div>';
+    html+='<div style="font-size:0.65em;color:var(--muted)">'+c.title+'</div>';
+    html+='</div>';
+  }
+  html+='</div></div></div>';
+  var old=document.getElementById("fivestar-modal");
+  if(old) old.remove();
+  var div=document.createElement("div");div.innerHTML=html;
+  document.body.appendChild(div.firstElementChild);
+}
+
+function closeFiveStarShop(){
+  var m=document.getElementById("fivestar-modal");
+  if(m) m.remove();
+}
+
+function selectFiveStar(cid){
+  if(state.xingchen<5000) return toast("星尘不足！");
+  state.xingchen-=5000;
+  var c=getCharById(cid);
+  if(!c) return;
+  var cc=state.chars[cid];
+  var isNew=!cc||!cc.obtained;
+  if(!state.chars[cid]) state.chars[cid]={lv:1,obtained:true,charExp:0};
+  else state.chars[cid].obtained=true;
+  state.hc+=2;
+  saveS(state);
+  closeFiveStarShop();
+  currentTab="chars";
+  render();
+  toast("🌟 "+c.name+" 加入了你的家园！"+(isNew?"":" (已拥有)"));
+}
+
+function render(){
+  if(isPulling&&!document.querySelector(".gacha-card")) isPulling=false;
+  var app=document.getElementById("app");
+  var html='';
+  html+='<div class="top-bar">';
+  html+='<a href="/" class="back-link">← 返回博客</a>';
+  html+='<div class="cur-item"><span class="cur-icon">💎</span><span>星辉</span><span class="cur-val" id="cur-shihui">'+state.shihui+'</span></div>';
+  html+='<div class="cur-item"><span class="cur-icon">✨</span><span>星尘</span><span class="cur-val sd" id="cur-xingchen">'+state.xingchen+'</span></div>';
+  html+='<div class="cur-item"><span class="cur-icon">🏡</span><span>家园币</span><span class="cur-val hc" id="cur-hc">'+state.hc+'</span></div>';
+  html+='<div class="cur-item"><span class="cur-icon">⭐</span><span>等级</span><span class="cur-val">Lv.'+state.playerLv+'</span></div>';
+  html+='</div>';
+  html+='<div class="tab-nav">';
+  html+='<button class="tab-btn'+(currentTab==="home"?" active":"")+'" onclick="switchTab(\'home\')">🏰 家园</button>';
+  html+='<button class="tab-btn'+(currentTab==="daily"?" active":"")+'" onclick="switchTab(\'daily\')">📋 日常</button>';
+  html+='<button class="tab-btn'+(currentTab==="gacha"?" active":"")+'" onclick="switchTab(\'gacha\')">🎋 祈愿</button>';
+  html+='<button class="tab-btn'+(currentTab==="chars"?" active":"")+'" onclick="switchTab(\'chars\')">👤 角色</button>';
+  html+='<button class="tab-btn'+(currentTab==="shop"?" active":"")+'" onclick="switchTab(\'shop\')">🏪 商店</button>';
+  html+='</div>';
+  if(currentTab==="home"){html+=renderHome();setTimeout(startHomeAnim,200);}
+  else if(currentTab==="daily") html+=renderDaily();
+  else if(currentTab==="gacha") html+=renderGacha();
+  else if(currentTab==="chars") html+=renderChars();
+  else if(currentTab==="shop") html+=renderShop();
+  app.innerHTML=html;
+
+  if(isPulling){
+    var bs=document.getElementById("btn-single");
+    if(bs) bs.disabled=true;
+    var bm=document.getElementById("btn-multi");
+    if(bm) bm.disabled=true;
+  }
+}
+
+function switchTab(tab){
+  currentTab=tab;
+  render();
+}
+
+var homeAnimTimer=null;
+var homeBubbles=["你好呀~","今天天气真好","一起冒险吧!","有吃的吗?","好开心!",":D","zzZ","♪","加油!","★"];
+function startHomeAnim(){
+  clearInterval(homeAnimTimer);
+  homeAnimTimer=setInterval(function(){
+    if(currentTab!=="home") return;
+    var chars=document.querySelectorAll(".scene-char");
+    if(chars.length===0) return;
+    // 随机选一个角色走动
+    var idx=Math.floor(Math.random()*chars.length);
+    var el=chars[idx];
+    var wrap=el.parentElement;
+    if(!wrap) return;
+    var maxLeft=wrap.offsetWidth-60;
+    var newLeft=Math.floor(Math.random()*maxLeft);
+    var newBottom=20+Math.floor(Math.random()*50);
+    var duration=2+Math.random()*3;
+    var prevLeft=parseFloat(el.style.left)||0;
+    if(newLeft<prevLeft) el.classList.add("walk-left"); else el.classList.remove("walk-left");
+    el.style.transition="left "+duration+"s ease-in-out, bottom "+duration+"s ease-in-out";
+    el.style.left=newLeft+"px";
+    el.style.bottom=newBottom+"px";
+    el.style.zIndex=Math.floor(newBottom);
+    // 走动时冒泡
+    showBubble(el,homeBubbles[Math.floor(Math.random()*homeBubbles.length)]);
+    // 有时两个角色靠近互动
+    if(Math.random()<0.3&&chars.length>=2){
+      var idx2=idx;
+      while(idx2===idx) idx2=Math.floor(Math.random()*chars.length);
+      var el2=chars[idx2];
+      setTimeout(function(){
+        el2.style.transition="left 2s ease-in-out, bottom 2s ease-in-out";
+        el2.style.left=(newLeft+50)+"px";
+        el2.style.bottom=newBottom+"px";
+        showBubble(el2,homeBubbles[Math.floor(Math.random()*homeBubbles.length)]);
+      },1500);
+    }
+  },5000);
+}function showBubble(el,text){
+  var bubble=el.querySelector(".scene-bubble");
+  if(!bubble) return;
+  bubble.textContent=text;
+  bubble.classList.add("show");
+  setTimeout(function(){bubble.classList.remove("show")},2500);
+}
+
+setInterval(function(){
+  autoMusicCheck();
+  var blogWords=Number(localStorage.getItem('blog_word_count')||0);
+  if(blogWords>state.wordCount){
+    var gained=blogWords-state.wordCount;
+    state.wordCount=blogWords;
+    state.shihui+=Math.floor(gained/50);
+    state.playerExp+=gained;
+    playerExpCheck();
+    saveS(state);
+    if(currentTab==="daily") render();
+  }
+  if(state.playerLv<state.playerMaxLv&&state.playerExp>=playerExpNeeded(state.playerLv)){
+    state.playerExp-=playerExpNeeded(state.playerLv);
+    state.playerLv++;
+    saveS(state);
+    if(currentTab==="home") render();
+  }
+},10000);
+
+// 一次性清空旧数据
+// 首次初始化
+if(!localStorage.getItem('star_init_v4')){
+  localStorage.clear();
+  localStorage.setItem('star_init_v4','1');
+  state=defState();
+  state.shihui=1600;
+  saveS(state);
+}
+autoSignIn();
+autoLevelChars();
+setTimeout(startHomeAnim,500);
+
+render();
+</script>
+</body>
+</html>

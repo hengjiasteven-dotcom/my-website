@@ -1,0 +1,273 @@
+﻿'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const { spawnSync } = require('child_process');
+const crypto = require('crypto');
+
+const rootDir = path.resolve(__dirname, '..');
+const publicDir = path.join(rootDir, 'public');
+
+const JS_EXT = /\.js$/i;
+const CSS_EXT = /\.css$/i;
+const HTML_EXT = /\.html$/i;
+const IMAGE_EXT = /\.(?:jpe?g|png|webp)$/i;
+const AUDIO_EXT = /\.(?:mp3|ogg|wav|m4a|flac)$/i;
+const sourceMusicDir = path.join(rootDir, 'music');
+const publicMusicDir = path.join(publicDir, 'assets', 'music');
+
+function walk(dir, files = []) {
+  if (!fs.existsSync(dir)) return files;
+
+  fs.readdirSync(dir, { withFileTypes: true }).forEach((entry) => {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      walk(fullPath, files);
+    } else if (entry.isFile()) {
+      files.push(fullPath);
+    }
+  });
+
+  return files;
+}
+
+function run(command, args) {
+  let bin = command;
+  let finalArgs = args;
+
+  if (process.platform === 'win32') {
+    bin = 'cmd.exe';
+    finalArgs = ['/d', '/s', '/c', [command].concat(args).map((arg) => {
+      const value = String(arg);
+      return /[\s&()^=;!'+,`~]/.test(value) ? `"${value.replace(/"/g, '\\"')}"` : value;
+    }).join(' ')];
+  }
+
+  const result = spawnSync(bin, finalArgs, {
+    cwd: rootDir,
+    encoding: 'utf8'
+  });
+
+  if (result.status !== 0) {
+    const detail = [result.error && result.error.message, result.stdout, result.stderr].filter(Boolean).join('\n').trim();
+    throw new Error(`${command} ${args.join(' ')} failed${detail ? `\n${detail}` : ''}`);
+  }
+
+  return result;
+}
+
+function byteLength(file) {
+  return fs.existsSync(file) ? fs.statSync(file).size : 0;
+}
+
+function fileHash(file) {
+  const hash = crypto.createHash('sha1');
+  hash.update(fs.readFileSync(file));
+  return hash.digest('hex');
+}
+
+function rel(file) {
+  return path.relative(rootDir, file).split(path.sep).join('/');
+}
+
+function stripHtmlComments(content) {
+  return content.replace(/<!--(?!\[if|<!|\s*ko)[\s\S]*?-->/g, '');
+}
+
+function minifyCss(content) {
+  return content
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*([{}:;,>+~])\s*/g, '$1')
+    .replace(/;}/g, '}')
+    .trim();
+}
+
+function minifyJs(content) {
+  return content
+    .replace(/^\s*\/\/# sourceMappingURL=.*$/gm, '')
+    .replace(/\n{2,}/g, '\n')
+    .trim();
+}
+
+function optimizeTextFiles() {
+  walk(publicDir).forEach((file) => {
+    if (CSS_EXT.test(file)) {
+      fs.writeFileSync(file, minifyCss(fs.readFileSync(file, 'utf8')));
+    } else if (JS_EXT.test(file) && !file.includes(`${path.sep}vendor${path.sep}`)) {
+      fs.writeFileSync(file, minifyJs(fs.readFileSync(file, 'utf8')));
+    } else if (HTML_EXT.test(file)) {
+      fs.writeFileSync(file, stripHtmlComments(fs.readFileSync(file, 'utf8')));
+    }
+  });
+}
+
+function optimizeModel() {
+  const model = path.join(publicDir, 'world', 'models', 'base_basic_pbr.glb');
+  if (!fs.existsSync(model)) return;
+
+  const tmp = model.replace(/\.glb$/i, '.optimized.glb');
+  run('npx', [
+    '--yes',
+    '@gltf-transform/cli',
+    'optimize',
+    rel(model),
+    rel(tmp),
+    '--compress',
+    'quantize',
+    '--texture-compress',
+    'webp',
+    '--texture-size',
+    '1024'
+  ]);
+  fs.renameSync(tmp, model);
+}
+
+function optimizeImage(input, outputDir, width, height, format, quality) {
+  fs.rmSync(outputDir, { recursive: true, force: true });
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const args = ['--yes', 'sharp-cli', '-i', input, '-o', outputDir];
+
+  if (format) {
+    args.push('-f', format);
+  }
+  if (quality) {
+    args.push('-q', String(quality));
+  }
+
+  args.push('resize', String(width));
+  if (height) {
+    args.push(String(height));
+  }
+
+  run('npx', args);
+  const ext = path.extname(input);
+  const expectedName = format && format !== ext.replace('.', '')
+    ? path.basename(input, ext) + '.' + format
+    : path.basename(input);
+  return path.join(outputDir, expectedName);
+}
+
+function replaceIfSmaller(original, optimized) {
+  if (!fs.existsSync(optimized)) return false;
+  if (byteLength(optimized) < byteLength(original)) {
+    fs.copyFileSync(optimized, original);
+    return true;
+  }
+  return false;
+}
+
+function optimizeImages() {
+  const tmpDir = path.join(publicDir, '.optimize-tmp');
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.mkdirSync(tmpDir, { recursive: true });
+
+  const iconSource = path.join(publicDir, 'img', 'site-icon.png');
+  if (fs.existsSync(iconSource)) {
+    let optimized = optimizeImage(iconSource, path.join(tmpDir, 'site-icon-512'), 512, 512, 'png');
+    replaceIfSmaller(iconSource, optimized);
+
+    optimized = optimizeImage(iconSource, path.join(tmpDir, 'site-icon-300'), 300, 300, 'png');
+    fs.copyFileSync(optimized, path.join(publicDir, 'img', 'avatar.png'));
+
+    optimized = optimizeImage(iconSource, path.join(tmpDir, 'site-icon-180'), 180, 180, 'png');
+    fs.copyFileSync(optimized, path.join(publicDir, 'img', 'apple-touch-icon.png'));
+
+    optimized = optimizeImage(iconSource, path.join(tmpDir, 'site-icon-64'), 64, 64, 'png');
+    fs.copyFileSync(optimized, path.join(publicDir, 'img', 'site-icon-64.png'));
+  }
+
+  walk(path.join(publicDir, 'assets', 'picture')).forEach((file) => {
+    if (!IMAGE_EXT.test(file)) return;
+
+    const ext = path.extname(file).toLowerCase();
+    const stem = path.basename(file, ext);
+    const outputDir = path.join(tmpDir, stem);
+    const largeArticleImage = /^(?:mom[2-5]|mom-bg|blog1|blog2)/i.test(path.basename(file));
+    const maxWidth = largeArticleImage ? 1600 : 1400;
+    const sizeKB = byteLength(file) / 1024;
+    const format = ext === '.png' ? (sizeKB > 200 ? 'webp' : 'png') : ext === '.webp' ? 'webp' : 'jpeg';
+    const quality = format === 'png' ? undefined : 82;
+
+    const output = optimizeImage(file, outputDir, maxWidth, null, format, quality);
+    replaceIfSmaller(file, output);
+  });
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+}
+
+
+function cleanupUnusedVendor() {
+  const vendorThree = path.join(publicDir, 'js', 'vendor', 'three');
+  if (fs.existsSync(vendorThree)) {
+    const files = walk(vendorThree);
+    const sizeBefore = files.reduce((sum, f) => sum + byteLength(f), 0);
+    fs.rmSync(vendorThree, { recursive: true, force: true });
+    console.log(`[postbuild-optimize] Removed unused vendor/three (${(sizeBefore / 1024).toFixed(0)} KB).`);
+  }
+
+  const entrySource = path.join(publicDir, 'world', 'world-app-entry.js');
+  if (fs.existsSync(entrySource)) {
+    const size = byteLength(entrySource);
+    fs.rmSync(entrySource, { force: true });
+    console.log(`[postbuild-optimize] Removed unused world-app-entry.js (${(size / 1024).toFixed(0)} KB).`);
+  }
+}
+function dedupePublicMusic() {
+  if (!fs.existsSync(sourceMusicDir) || !fs.existsSync(publicMusicDir)) {
+    return { linked: 0, bytesSaved: 0 };
+  }
+
+  let linked = 0;
+  let bytesSaved = 0;
+  const sourceFiles = new Map();
+
+  walk(sourceMusicDir).forEach((file) => {
+    if (!AUDIO_EXT.test(file)) return;
+    sourceFiles.set(path.basename(file), file);
+  });
+
+  walk(publicMusicDir).forEach((file) => {
+    if (!AUDIO_EXT.test(file)) return;
+
+    const source = sourceFiles.get(path.basename(file));
+    if (!source || !fs.existsSync(source)) return;
+
+    const sourceStat = fs.statSync(source);
+    const targetStat = fs.statSync(file);
+    if (sourceStat.size !== targetStat.size) return;
+    if (sourceStat.ino && targetStat.ino && sourceStat.ino === targetStat.ino) return;
+    if (fileHash(source) !== fileHash(file)) return;
+
+    fs.rmSync(file, { force: true });
+    fs.linkSync(source, file);
+    linked += 1;
+    bytesSaved += targetStat.size;
+  });
+
+  return { linked, bytesSaved };
+}
+
+function main() {
+  if (!fs.existsSync(publicDir)) {
+    throw new Error(`Public directory not found: ${publicDir}`);
+  }
+
+  const before = walk(publicDir).reduce((sum, file) => sum + byteLength(file), 0);
+  optimizeTextFiles();
+  optimizeModel();
+  optimizeImages();
+  cleanupUnusedVendor();
+  const dedupe = dedupePublicMusic();
+  const after = walk(publicDir).reduce((sum, file) => sum + byteLength(file), 0);
+  const saved = before - after;
+  console.log(`[postbuild-optimize] Saved ${(saved / 1024 / 1024).toFixed(2)} MB (${(before / 1024 / 1024).toFixed(2)} MB -> ${(after / 1024 / 1024).toFixed(2)} MB).`);
+  if (dedupe.linked > 0) {
+    console.log(`[postbuild-optimize] Hard-linked ${dedupe.linked} duplicated music asset(s), reclaiming about ${(dedupe.bytesSaved / 1024 / 1024).toFixed(2)} MB of local disk usage.`);
+  }
+}
+
+if (require.main === module) {
+  main();
+}

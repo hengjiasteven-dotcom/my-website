@@ -1,0 +1,31 @@
+.env
+.env.*
+!.env.example
+node_modules/
+public/
+!dev/admin/public/
+.deploy_git/
+db.json
+*.log
+.codex-*
+.admin-uploads/
+.friend-links-temp/
+
+.vercel
+
+# Tencent Cloud EdgeOne
+.env
+.edgeone/*
+.tef_dist/*
+
+# Heavy local-only assets; site should load them from external static hosting.
+music/*
+!music/playlist.json
+picture/abyss/
+source/world/models/
+
+# Full local oversized GLB files; EdgeOne uses complete split chunks instead.
+source/world/models/environment-trees.glb
+source/world/models/little-prince.glb
+source/world/models/well.glb
+

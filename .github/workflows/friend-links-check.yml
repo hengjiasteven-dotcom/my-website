@@ -1,0 +1,25 @@
+name: Friend Links Check
+
+on:
+  pull_request:
+    branches:
+      - friend-links
+    paths:
+      - 'source/_data/friends/*.json'
+      - 'scripts/check-friend-links.js'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate friend links
+        run: node scripts/check-friend-links.js

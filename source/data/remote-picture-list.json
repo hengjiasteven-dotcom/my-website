@@ -1,0 +1,124 @@
+{
+  "pictures": [
+    {
+      "path": "abyss/01.png",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/02.png",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/03.png",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/04.png",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/05.png",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/06.png",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/07.png",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/08.jpg",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/09.jpg",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/10.jpeg",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/11.jpg",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/12.png",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/13.png",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/14.png",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/15.png",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/16.jpg",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/17.jpg",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/18.jpg",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/19.jpg",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/20.jpg",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/21.jpg",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/22.jpg",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/23.png",
+      "group": "abyss",
+      "isAbyss": true
+    },
+    {
+      "path": "abyss/24.jpg",
+      "group": "abyss",
+      "isAbyss": true
+    }
+  ]
+}

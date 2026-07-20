@@ -1,0 +1,50 @@
+{
+  "name": "hexo-site",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "npm@10.8.2",
+  "scripts": {
+    "build": "npm run vendor:sync && npm run world:build && hexo generate",
+    "vendor:sync": "node scripts/sync-vendor-assets.js",
+    "world:build": "node scripts/build-world-app.js",
+    "validate:scripts": "node scripts/validate-scripts.js",
+    "validate": "npm run validate:scripts",
+    "optimize:public": "node scripts/postbuild-optimize.js",
+    "dedupe:music": "node scripts/dedupe-music-assets.js",
+    "clean": "hexo clean",
+    "deploy": "hexo deploy",
+    "server": "hexo server"
+  },
+  "hexo": {
+    "version": "7.3.0"
+  },
+  "dependencies": {
+    "@ffmpeg/ffmpeg": "0.12.10",
+    "@waline/client": "3.15.2",
+    "@waline/emojis": "1.4.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "hexo": "^7.0.0",
+    "hexo-deployer-git": "^4.0.0",
+    "hexo-generator-archive": "^2.0.0",
+    "hexo-generator-category": "^2.0.0",
+    "hexo-generator-index": "^3.0.0",
+    "hexo-generator-sitemap": "^3.0.1",
+    "hexo-generator-tag": "^2.0.0",
+    "hexo-renderer-ejs": "^2.0.0",
+    "hexo-renderer-marked": "^6.0.0",
+    "hexo-renderer-stylus": "^3.0.0",
+    "hexo-server": "^3.0.0",
+    "hexo-theme-fluid": "^1.9.9",
+    "hexo-theme-landscape": "^1.0.0",
+    "multer": "^2.2.0",
+    "three": "0.165.0"
+  },
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

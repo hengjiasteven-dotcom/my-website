@@ -1,0 +1,394 @@
+[
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\薄荷与猫.mp3",
+    "remote": "assets/music/薄荷与猫.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\贝加尔湖畔.m4a",
+    "remote": "assets/music/贝加尔湖畔.m4a"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\尘埃与流萤.mp3",
+    "remote": "assets/music/尘埃与流萤.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\城南花已开.mp3",
+    "remote": "assets/music/城南花已开.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\初夏的告白.mp3",
+    "remote": "assets/music/初夏的告白.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\川月-飞絮雪.mp3",
+    "remote": "assets/music/川月-飞絮雪.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\钢琴-secretbase未闻花名ed.mp3",
+    "remote": "assets/music/钢琴-secretbase未闻花名ed.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\光-遇.mp3",
+    "remote": "assets/music/光-遇.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\海上钢琴师Magic Waltz.mp3",
+    "remote": "assets/music/海上钢琴师Magic Waltz.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\和煦的糖果风.mp3",
+    "remote": "assets/music/和煦的糖果风.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\痕.mp3",
+    "remote": "assets/music/痕.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\花间游.mp3",
+    "remote": "assets/music/花间游.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\花之舞.mp3",
+    "remote": "assets/music/花之舞.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\寄夏予你-off-vocal.mp3",
+    "remote": "assets/music/寄夏予你-off-vocal.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\渐行渐远的风不再歌唱-bright-mix-inst.mp3",
+    "remote": "assets/music/渐行渐远的风不再歌唱-bright-mix-inst.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\今晚月色真美-风也温柔.mp3",
+    "remote": "assets/music/今晚月色真美-风也温柔.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\篱落.mp3",
+    "remote": "assets/music/篱落.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\恋与情长.mp3",
+    "remote": "assets/music/恋与情长.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\林深见鹿-海蓝见鲸-梦醒见你.mp3",
+    "remote": "assets/music/林深见鹿-海蓝见鲸-梦醒见你.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\梦江南-钢琴版.mp3",
+    "remote": "assets/music/梦江南-钢琴版.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\那一片树叶.mp3",
+    "remote": "assets/music/那一片树叶.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\你是落日弥漫的橘-天边透亮的星.mp3",
+    "remote": "assets/music/你是落日弥漫的橘-天边透亮的星.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\青石巷.mp3",
+    "remote": "assets/music/青石巷.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\晴れか-来る.mp3",
+    "remote": "assets/music/晴れか-来る.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\日落下的余晖.mp3",
+    "remote": "assets/music/日落下的余晖.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\时代を越える想い~Piano Concerto~(Moscow Recording Ver.).mp3",
+    "remote": "assets/music/时代を越える想い~Piano Concerto~(Moscow Recording Ver.).mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\歳月-云流れ.mp3",
+    "remote": "assets/music/歳月-云流れ.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\所爱隔山海.mp3",
+    "remote": "assets/music/所爱隔山海.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\所念皆星河.mp3",
+    "remote": "assets/music/所念皆星河.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\她眉宇之间的温柔.mp3",
+    "remote": "assets/music/她眉宇之间的温柔.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\晚夏の秋.mp3",
+    "remote": "assets/music/晚夏の秋.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\温柔的好天气总是和你一样-止不住的让人心动.mp3",
+    "remote": "assets/music/温柔的好天气总是和你一样-止不住的让人心动.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\我用什么把你留住.mp3",
+    "remote": "assets/music/我用什么把你留住.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\无声告白.mp3",
+    "remote": "assets/music/无声告白.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\勿念.mp3",
+    "remote": "assets/music/勿念.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\下个路口见-纯音乐版.mp3",
+    "remote": "assets/music/下个路口见-纯音乐版.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\夏恋.mp3",
+    "remote": "assets/music/夏恋.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\心绪-continuous-thought.mp3",
+    "remote": "assets/music/心绪-continuous-thought.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\星夜.mp3",
+    "remote": "assets/music/星夜.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\星夜朦胧.mp3",
+    "remote": "assets/music/星夜朦胧.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\烟花落.mp3",
+    "remote": "assets/music/烟花落.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\一起看海的人比海更温柔-piano-version.mp3",
+    "remote": "assets/music/一起看海的人比海更温柔-piano-version.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\银河赴约.mp3",
+    "remote": "assets/music/银河赴约.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\萤火之森.mp3",
+    "remote": "assets/music/萤火之森.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\雨爱.mp3",
+    "remote": "assets/music/雨爱.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\遇晴.mp3",
+    "remote": "assets/music/遇晴.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\远すき-た空.mp3",
+    "remote": "assets/music/远すき-た空.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\Alicia (Orchestral).mp3",
+    "remote": "assets/music/Alicia (Orchestral).mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\breathe-like-the-wind.mp3",
+    "remote": "assets/music/breathe-like-the-wind.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\farewell-piano-solo.mp3",
+    "remote": "assets/music/farewell-piano-solo.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\for you (Explicit).mp3",
+    "remote": "assets/music/for you (Explicit).mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\fwio.mp3",
+    "remote": "assets/music/fwio.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\gypsophila.mp3",
+    "remote": "assets/music/gypsophila.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\Lumière.mp3",
+    "remote": "assets/music/Lumière.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\luv-letter.mp3",
+    "remote": "assets/music/luv-letter.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\luv-poem-piano-ver.mp3",
+    "remote": "assets/music/luv-poem-piano-ver.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\main-theme-pianover.mp3",
+    "remote": "assets/music/main-theme-pianover.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\merry-go-round-of-life.mp3",
+    "remote": "assets/music/merry-go-round-of-life.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\moon-and-you.mp3",
+    "remote": "assets/music/moon-and-you.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\mooooon.mp3",
+    "remote": "assets/music/mooooon.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\Oh oh oh-oh.mp3",
+    "remote": "assets/music/Oh oh oh-oh.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\Our Drafts Unite.mp3",
+    "remote": "assets/music/Our Drafts Unite.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\our painted family (from Clair Obscur  Expedition 33).mp3",
+    "remote": "assets/music/our painted family (from Clair Obscur  Expedition 33).mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\phonecall.mp3",
+    "remote": "assets/music/phonecall.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\pick-a-star-for-you.mp3",
+    "remote": "assets/music/pick-a-star-for-you.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\playlist.json",
+    "remote": "assets/music/playlist.json"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\Post Malone.mp3",
+    "remote": "assets/music/Post Malone.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\pure-imagination.mp3",
+    "remote": "assets/music/pure-imagination.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\rainy-blue-蓝色阴雨.mp3",
+    "remote": "assets/music/rainy-blue-蓝色阴雨.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\regrets.mp3",
+    "remote": "assets/music/regrets.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\secret-forest.mp3",
+    "remote": "assets/music/secret-forest.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\shelter-piano-version.mp3",
+    "remote": "assets/music/shelter-piano-version.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\Tassel.mp3",
+    "remote": "assets/music/Tassel.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\World Map - In Lumière's Name.mp3",
+    "remote": "assets/music/World Map - In Lumière's Name.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\World Map - Taking Down the Paintress.mp3",
+    "remote": "assets/music/World Map - Taking Down the Paintress.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\World Map - Until You're Gone.mp3",
+    "remote": "assets/music/World Map - Until You're Gone.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\Wow. (Explicit).mp3",
+    "remote": "assets/music/Wow. (Explicit).mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\you.mp3",
+    "remote": "assets/music/you.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\music\\はなこ-よみ-さくら.mp3",
+    "remote": "assets/music/はなこ-よみ-さくら.mp3"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\犬夜叉.glb",
+    "remote": "world/models/犬夜叉.glb"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\小木屋.glb",
+    "remote": "world/models/小木屋.glb"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\environment-trees.manifest.json",
+    "remote": "world/models/environment-trees.manifest.json"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\environment-trees.part001.bin",
+    "remote": "world/models/environment-trees.part001.bin"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\environment-trees.part002.bin",
+    "remote": "world/models/environment-trees.part002.bin"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\environment-trees.part003.bin",
+    "remote": "world/models/environment-trees.part003.bin"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\environment-trees.part004.bin",
+    "remote": "world/models/environment-trees.part004.bin"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\environment-trees.part005.bin",
+    "remote": "world/models/environment-trees.part005.bin"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\environment-trees.part006.bin",
+    "remote": "world/models/environment-trees.part006.bin"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\environment-trees.part007.bin",
+    "remote": "world/models/environment-trees.part007.bin"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\environment-trees.part008.bin",
+    "remote": "world/models/environment-trees.part008.bin"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\environment-trees.part009.bin",
+    "remote": "world/models/environment-trees.part009.bin"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\environment-trees.part010.bin",
+    "remote": "world/models/environment-trees.part010.bin"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\little-prince.manifest.json",
+    "remote": "world/models/little-prince.manifest.json"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\little-prince.part001.bin",
+    "remote": "world/models/little-prince.part001.bin"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\little-prince.part002.bin",
+    "remote": "world/models/little-prince.part002.bin"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\well.manifest.json",
+    "remote": "world/models/well.manifest.json"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\well.part001.bin",
+    "remote": "world/models/well.part001.bin"
+  },
+  {
+    "local": "C:\\codex-work\\我的博客\\source\\world\\models\\well.part002.bin",
+    "remote": "world/models/well.part002.bin"
+  }
+]

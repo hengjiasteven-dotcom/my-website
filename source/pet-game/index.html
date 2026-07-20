@@ -1,0 +1,615 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宠物养成 - 来自深渊的小家伙</title>
+<style>
+:root {
+  --bg: #1a1a2e;
+  --panel: #16213e;
+  --accent: #e2a76f;
+  --text: #d4c5b9;
+  --muted: #8b7d6b;
+  --danger: #c0392b;
+  --success: #27ae60;
+  --border: #2a2a4a;
+  --gold: #f0c040;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a1a 100%);
+}
+.game-container {
+  width: 100%;
+  max-width: 480px;
+  padding: 20px;
+}
+/* Header */
+.game-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+.game-header h1 {
+  font-size: 1.5em;
+  color: var(--accent);
+  letter-spacing: 2px;
+}
+.game-header .subtitle {
+  font-size: 0.8em;
+  color: var(--muted);
+  margin-top: 4px;
+}
+/* Pet display */
+.pet-stage {
+  background: var(--panel);
+  border-radius: 20px;
+  padding: 30px 20px;
+  text-align: center;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.pet-stage::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(226,167,111,0.05) 0%, transparent 70%);
+  animation: glow 4s ease-in-out infinite;
+}
+@keyframes glow {
+  0%,100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.pet-emoji {
+  font-size: 5em;
+  display: block;
+  animation: bounce 2s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+}
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.pet-name-display {
+  font-size: 1.2em;
+  color: var(--accent);
+  margin-top: 8px;
+  font-weight: bold;
+  position: relative;
+  z-index: 1;
+}
+.pet-stage-label {
+  font-size: 0.75em;
+  color: var(--muted);
+  margin-top: 4px;
+  position: relative;
+  z-index: 1;
+}
+/* Stats */
+.stats-panel {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.stat-label {
+  font-size: 0.8em;
+  color: var(--muted);
+}
+.stat-value {
+  font-size: 0.85em;
+  font-weight: bold;
+  color: var(--accent);
+}
+.stat-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.stat-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+.stat-fill.hunger { background: var(--gold); }
+.stat-fill.mood { background: #e67e22; }
+.stat-fill.energy { background: #3498db; }
+.stat-fill.bond { background: #e74c3c; }
+/* Coins */
+.coin-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 1em;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+/* Actions */
+.actions-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.action-btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 10px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.9em;
+  font-family: inherit;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.action-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: #1e2a4a;
+  transform: translateY(-2px);
+}
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.action-btn .btn-emoji {
+  font-size: 1.5em;
+}
+.action-btn .btn-cooldown {
+  font-size: 0.7em;
+  color: var(--muted);
+}
+/* Event log */
+.event-log {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  max-height: 120px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+.event-log .log-entry {
+  font-size: 0.8em;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+}
+.event-log .log-entry:last-child {
+  border-bottom: none;
+}
+.event-log .log-entry.good { color: var(--success); }
+.event-log .log-entry.bad { color: var(--danger); }
+.event-log .log-entry.info { color: var(--accent); }
+/* Footer */
+.game-footer {
+  text-align: center;
+  font-size: 0.7em;
+  color: var(--muted);
+}
+.game-footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+/* Name input modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 100;
+  justify-content: center;
+  align-items: center;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+}
+.modal-box h3 {
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.modal-box input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1em;
+  font-family: inherit;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.modal-box input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.modal-box button {
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 30px;
+  color: var(--bg);
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1em;
+  font-family: inherit;
+}
+.modal-box button:hover {
+  opacity: 0.9;
+}
+/* Responsive */
+@media (max-width: 400px) {
+  .game-container { padding: 12px; }
+  .pet-emoji { font-size: 3.5em; }
+  .stats-panel { gap: 6px; padding: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="game-container">
+  <div class="game-header">
+    <h1>🐾 深渊小宠</h1>
+    <div class="subtitle">一只来自深渊的小家伙，等着你照顾</div>
+  </div>
+
+  <div class="pet-stage" id="petStage">
+    <span class="pet-emoji" id="petEmoji">🥚</span>
+    <div class="pet-name-display" id="petName">未命名</div>
+    <div class="pet-stage-label" id="petStageLabel">???</div>
+  </div>
+
+  <div class="coin-display">🪙 <span id="coinCount">0</span> 金币</div>
+
+  <div class="stats-panel" id="statsPanel">
+  </div>
+
+  <div class="actions-panel" id="actionsPanel">
+  </div>
+
+  <div class="event-log" id="eventLog">
+    <div class="log-entry info">✨ 等待你的第一次互动…</div>
+  </div>
+
+  <div class="game-footer">
+    宠物养成 · <a href="#" id="resetLink">重新开始</a> · <a href="https://xiaodaidai.site">← 返回博客</a>
+  </div>
+</div>
+
+<div class="modal-overlay active" id="nameModal">
+  <div class="modal-box">
+    <h3>给你的宠物起个名字吧</h3>
+    <input type="text" id="nameInput" placeholder="输入名字…" maxlength="8">
+    <button id="nameConfirm">确定</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+// ----- 常量 -----
+const STORAGE_KEY = "abyss_pet_game_v1";
+const STATS = [
+  { id: "hunger", label: "饱腹", emoji: "🍖", decayPerHour: 1.0 },
+  { id: "mood",   label: "心情", emoji: "💖", decayPerHour: 0.6 },
+  { id: "energy", label: "体力", emoji: "⚡", decayPerHour: 0.4 },
+  { id: "bond",   label: "亲密度", emoji: "💝", decayPerHour: 0.15 },
+];
+
+const ACTIONS = [
+  { id: "feed",   label: "喂食", emoji: "🍖", cooldownMin: 30, costGold: 2,
+    effects: { hunger: 18, mood: 3, energy: 0, bond: 2 } },
+  { id: "play",   label: "玩耍", emoji: "🎾", cooldownMin: 40, costGold: 0,
+    effects: { hunger: -3, mood: 15, energy: -10, bond: 5 } },
+  { id: "rest",   label: "休息", emoji: "😴", cooldownMin: 60, costGold: 0,
+    effects: { hunger: -2, mood: 2, energy: 22, bond: 1 } },
+  { id: "pet",    label: "抚摸", emoji: "🤚", cooldownMin: 10, costGold: 0,
+    effects: { hunger: 0, mood: 6, energy: 0, bond: 8 } },
+];
+
+const STAGES = [
+  { minBond: 0,  emoji: "🥚", label: "深渊之卵", desc: "一颗神秘的蛋，微微散发着光芒…" },
+  { minBond: 15, emoji: "🐣", label: "幼生期",   desc: "小家伙破壳而出了！它好奇地打量着世界。" },
+  { minBond: 40, emoji: "🐱", label: "成长期",   desc: "它长大了不少，开始变得活泼好动。" },
+  { minBond: 70, emoji: "🐉", label: "成熟期",   desc: "它已经完全信任你了，成为了你忠实的伙伴。" },
+];
+
+const RANDOM_EVENTS = [
+  { weight: 10, text: "🎁 小宠在角落里找到了一枚金币！", gold: 3, mood: 2, type: "good" },
+  { weight: 8,  text: "🌸 窗外飘来一阵花香，小宠心情变好了。", gold: 0, mood: 5, type: "good" },
+  { weight: 6,  text: "💤 小宠打了个盹，体力恢复了一些。", gold: 0, energy: 5, type: "good" },
+  { weight: 5,  text: "🌟 小宠似乎领悟了什么，亲密度微微上升。", gold: 0, bond: 3, type: "good" },
+  { weight: 4,  text: "🥀 小宠有点孤独，心情下降了…", gold: 0, mood: -4, type: "bad" },
+  { weight: 3,  text: "😿 小宠不小心摔了一跤，体力减少。", gold: 0, energy: -5, type: "bad" },
+  { weight: 2,  text: "🍂 天气变冷了，小宠有点不舒服。", gold: 0, mood: -3, energy: -2, type: "bad" },
+];
+
+// ----- 状态管理 -----
+function createDefaultState(name) {
+  return {
+    name: name || "未命名",
+    coins: 10,
+    stats: { hunger: 70, mood: 70, energy: 80, bond: 5 },
+    lastUpdate: Date.now(),
+    cooldowns: {},   // { actionId: timestamp }
+    events: [],      // [{ text, type, time }]
+    totalInteractions: 0,
+  };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* ignore */ }
+  return null;
+}
+
+function saveState(state) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) { /* ignore */ }
+}
+
+// ----- 时间衰减计算 -----
+function applyTimeDecay(state) {
+  const now = Date.now();
+  const hoursPassed = (now - state.lastUpdate) / (1000 * 60 * 60);
+  if (hoursPassed < 0.01) return state;
+
+  const decayed = { ...state, stats: { ...state.stats }, lastUpdate: now };
+  for (const stat of STATS) {
+    const decay = stat.decayPerHour * hoursPassed;
+    decayed.stats[stat.id] = Math.max(0, Math.round((decayed.stats[stat.id] - decay) * 10) / 10);
+  }
+  // 被动金币
+  const passiveGold = Math.floor(hoursPassed * 1);
+  decayed.coins += passiveGold;
+  if (passiveGold > 0) {
+    decayed.events.unshift({
+      text: `⏰ 你离开了 ${Math.round(hoursPassed * 60)} 分钟，小宠获得了 ${passiveGold} 金币`,
+      type: "info", time: now
+    });
+  }
+  return decayed;
+}
+
+// ----- 成长阶段 -----
+function getStage(bond) {
+  let stage = STAGES[0];
+  for (const s of STAGES) {
+    if (bond >= s.minBond) stage = s;
+  }
+  return stage;
+}
+
+// ----- 随机事件 -----
+function checkRandomEvent(state) {
+  if (Math.random() > 0.08) return state; // 8% chance per interaction
+  const totalWeight = RANDOM_EVENTS.reduce((s, e) => s + e.weight, 0);
+  let roll = Math.random() * totalWeight;
+  for (const event of RANDOM_EVENTS) {
+    roll -= event.weight;
+    if (roll <= 0) {
+      state = { ...state, stats: { ...state.stats }, coins: state.coins };
+      state.coins += event.gold || 0;
+      if (event.mood) state.stats.mood = clamp(state.stats.mood + event.mood);
+      if (event.energy) state.stats.energy = clamp(state.stats.energy + event.energy);
+      if (event.bond) state.stats.bond = clamp(state.stats.bond + event.bond);
+      state.events.unshift({ text: event.text, type: event.type, time: Date.now() });
+      break;
+    }
+  }
+  return state;
+}
+
+// ----- 行为执行 -----
+function canDoAction(state, action) {
+  const cooldownEnd = state.cooldowns[action.id] || 0;
+  if (Date.now() < cooldownEnd) return false;
+  if (state.coins < action.costGold) return false;
+  return true;
+}
+
+function getCooldownRemaining(state, action) {
+  const cooldownEnd = state.cooldowns[action.id] || 0;
+  const remaining = cooldownEnd - Date.now();
+  return Math.max(0, remaining);
+}
+
+function doAction(state, action) {
+  state = { ...state, stats: { ...state.stats }, cooldowns: { ...state.cooldowns } };
+  // 扣除金币
+  state.coins -= action.costGold;
+  // 应用效果
+  for (const key of Object.keys(action.effects)) {
+    state.stats[key] = clamp((state.stats[key] || 0) + action.effects[key]);
+  }
+  // 设置冷却
+  state.cooldowns[action.id] = Date.now() + action.cooldownMin * 60 * 1000;
+  state.totalInteractions = (state.totalInteractions || 0) + 1;
+  // 添加事件
+  const effectText = Object.entries(action.effects)
+    .filter(([,v]) => v !== 0)
+    .map(([k, v]) => {
+      const s = STATS.find(x => x.id === k);
+      return `${s?.label || k} ${v > 0 ? "+" : ""}${v}`;
+    }).join(" · ");
+  const costText = action.costGold > 0 ? `（消耗 ${action.costGold} 金币）` : "";
+  state.events.unshift({
+    text: `${action.emoji} ${action.label}！${effectText} ${costText}`,
+    type: "info", time: Date.now()
+  });
+  // 随机事件
+  state = checkRandomEvent(state);
+  return state;
+}
+
+function clamp(v, min=0, max=100) {
+  return Math.max(min, Math.min(max, Math.round(v * 10) / 10));
+}
+
+// ----- 渲染 -----
+let gameState = null;
+
+function render() {
+  gameState = applyTimeDecay(gameState);
+  const stage = getStage(gameState.stats.bond);
+
+  // Pet display
+  document.getElementById("petEmoji").textContent = stage.emoji;
+  document.getElementById("petName").textContent = gameState.name;
+  document.getElementById("petStageLabel").textContent = stage.label + " · " + stage.desc;
+
+  // Coins
+  document.getElementById("coinCount").textContent = gameState.coins;
+
+  // Stats
+  const statsPanel = document.getElementById("statsPanel");
+  statsPanel.innerHTML = STATS.map(s => {
+    const v = gameState.stats[s.id];
+    const colorClass = s.id;
+    let toneColor = v > 70 ? "var(--success)" : v > 35 ? "var(--accent)" : "var(--danger)";
+    return `
+      <div class="stat-item">
+        <div class="stat-head">
+          <span class="stat-label">${s.emoji} ${s.label}</span>
+          <span class="stat-value" style="color:${toneColor}">${v}</span>
+        </div>
+        <div class="stat-bar"><div class="stat-fill ${colorClass}" style="width:${v}%"></div></div>
+      </div>`;
+  }).join("");
+
+  // Actions
+  const actionsPanel = document.getElementById("actionsPanel");
+  actionsPanel.innerHTML = ACTIONS.map(a => {
+    const cd = getCooldownRemaining(gameState, a);
+    const blocked = !canDoAction(gameState, a);
+    const cdText = cd > 0 ? `${Math.ceil(cd / 60000)}分钟后可用` : "";
+    const goldText = a.costGold > 0 ? `消耗${a.costGold}金币` : "免费";
+    return `
+      <button class="action-btn" data-action="${a.id}" ${blocked ? "disabled" : ""}>
+        <span class="btn-emoji">${a.emoji}</span>
+        <span>${a.label}</span>
+        <span class="btn-cooldown">${cd > 0 ? cdText : goldText}</span>
+      </button>`;
+  }).join("");
+
+  // Event log
+  const eventLog = document.getElementById("eventLog");
+  eventLog.innerHTML = gameState.events.slice(0, 15).map(e =>
+    `<div class="log-entry ${e.type}">${e.text}</div>`
+  ).join("") || '<div class="log-entry info">✨ 等待你的互动…</div>';
+
+  // Update every 10 seconds for cooldown timers
+  saveState(gameState);
+}
+
+function handleAction(actionId) {
+  const action = ACTIONS.find(a => a.id === actionId);
+  if (!action || !canDoAction(gameState, action)) return;
+  gameState = doAction(gameState, action);
+  render();
+}
+
+// ----- 初始化 -----
+function init() {
+  gameState = loadState();
+  const nameModal = document.getElementById("nameModal");
+  const nameInput = document.getElementById("nameInput");
+
+  if (!gameState) {
+    // New game - show name modal
+    nameModal.classList.add("active");
+    nameInput.focus();
+  } else {
+    nameModal.classList.remove("active");
+    render();
+  }
+
+  // Name confirm
+  document.getElementById("nameConfirm").addEventListener("click", () => {
+    const name = nameInput.value.trim() || "小不点";
+    gameState = createDefaultState(name);
+    gameState.events.unshift({
+      text: `🎉 欢迎 ${name}！一只来自深渊的小家伙来到了你身边。`,
+      type: "good", time: Date.now()
+    });
+    nameModal.classList.remove("active");
+    render();
+  });
+
+  nameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") document.getElementById("nameConfirm").click();
+  });
+
+  // Action buttons (delegate)
+  document.getElementById("actionsPanel").addEventListener("click", (e) => {
+    const btn = e.target.closest(".action-btn");
+    if (btn && btn.dataset.action) handleAction(btn.dataset.action);
+  });
+
+  // Reset
+  document.getElementById("resetLink").addEventListener("click", (e) => {
+    e.preventDefault();
+    if (confirm("确定要重新开始吗？当前进度会丢失。")) {
+      localStorage.removeItem(STORAGE_KEY);
+      gameState = null;
+      nameModal.classList.add("active");
+      nameInput.value = "";
+      nameInput.focus();
+    }
+  });
+
+  // Periodic refresh for cooldown timers
+  setInterval(() => {
+    if (gameState && !document.getElementById("nameModal").classList.contains("active")) {
+      gameState = applyTimeDecay(gameState);
+      render();
+    }
+  }, 10000);
+}
+
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

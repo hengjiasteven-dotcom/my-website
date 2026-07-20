@@ -1,0 +1,72 @@
+﻿{
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "outputDirectory": "public",
+  "framework": "hexo",
+  "nodeVersion": "20.18.0",
+  "headers": [
+    {
+      "source": "/css/dream-fluid.css",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/js/dream-theme-manifest.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/js/dream-fluid.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/assets/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, s-maxage=2592000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/img/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, s-maxage=2592000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/world/models/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, s-maxage=2592000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/js/vendor/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, s-maxage=2592000"
+        }
+      ]
+    }
+  ]
+}

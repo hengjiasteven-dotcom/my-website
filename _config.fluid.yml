@@ -1,0 +1,284 @@
+# Dream Fluid theme customization
+
+favicon: /img/site-icon-64.png
+apple_touch_icon: /img/apple-touch-icon.png
+
+dark_mode:
+  enable: true
+  default: auto
+
+font:
+  font_size: 16px
+  font_family: Inter, "LXGW WenKai Screen", "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif
+  letter_spacing: 0
+  code_font_size: 85%
+
+custom_css:
+  - /css/dream-fluid.css?v=20260627-home-refresh-5
+  - /css/dream-comments.css?v=20260704-comments-mvp-2
+
+custom_js:
+  - /js/dream-theme-manifest.js?v=20260613-music-refresh
+  - /js/dream-daily-signs.js?v=20260618-daily-sign
+  - /js/dream-fluid.js?v=20260627-home-refresh-6
+  - /js/dream-comments.js?v=20260704-comments-mvp-2
+
+static_prefix:
+  waline: /js/vendor/waline/
+
+fun_features:
+  typing:
+    enable: false
+    typeSpeed: 70
+    cursorChar: "_"
+    loop: false
+    scope:
+      - home
+  anchorjs:
+    enable: true
+    element: h1,h2,h3,h4,h5,h6
+    placement: left
+    visible: hover
+    icon: ""
+  progressbar:
+    enable: true
+    height_px: 3
+    color: "#4f9ca7"
+    options: { showSpinner: false, trickleSpeed: 100 }
+
+color:
+  body_bg_color: "#f7fbfb"
+  body_bg_color_dark: "#101720"
+  navbar_bg_color: "rgba(255, 255, 255, 0.22)"
+  navbar_bg_color_dark: "rgba(16, 24, 34, 0.40)"
+  navbar_text_color: "#ffffff"
+  navbar_text_color_dark: "#edf7fa"
+  subtitle_color: "#ffffff"
+  subtitle_color_dark: "#ffffff"
+  text_color: "#243447"
+  text_color_dark: "#e9f1f6"
+  sec_text_color: "#617082"
+  sec_text_color_dark: "#adbdc9"
+  board_color: "rgba(255, 255, 255, 0.78)"
+  board_color_dark: "rgba(18, 27, 38, 0.72)"
+  post_text_color: "#263847"
+  post_text_color_dark: "#e2edf3"
+  post_heading_color: "#182b3d"
+  post_heading_color_dark: "#ffffff"
+  post_link_color: "#267e8e"
+  post_link_color_dark: "#a7e4e9"
+  link_hover_color: "#267e8e"
+  link_hover_color_dark: "#a7e4e9"
+  link_hover_bg_color: "rgba(79, 156, 167, 0.10)"
+  link_hover_bg_color_dark: "rgba(128, 201, 208, 0.13)"
+  line_color: "rgba(70, 91, 112, 0.14)"
+  line_color_dark: "rgba(226, 239, 245, 0.14)"
+  scrollbar_color: "#b9c8cf"
+  scrollbar_color_dark: "#536674"
+  scrollbar_hover_color: "#8eb7bf"
+  scrollbar_hover_color_dark: "#83a8b2"
+  button_bg_color: "transparent"
+  button_bg_color_dark: "transparent"
+  button_hover_bg_color: "rgba(79, 156, 167, 0.12)"
+  button_hover_bg_color_dark: "rgba(128, 201, 208, 0.14)"
+
+navbar:
+  blog_title: "xiaodaidai"
+  menu:
+    - { key: "首页", link: "/", icon: "iconfont icon-home-fill" }
+    - { key: "3D", link: "/world/", icon: "iconfont icon-map" }
+    - { key: "归档", link: "/archives/", icon: "iconfont icon-archive-fill" }
+    - { key: "分类", link: "/categories/", icon: "iconfont icon-category-fill" }
+    - { key: "功能", link: "/tools/", icon: "iconfont icon-chart" }
+    - { key: "关于", link: "/about/", icon: "iconfont icon-user-fill" }
+
+search:
+  enable: true
+  path: /local-search.xml
+  generate_path: /local-search.xml
+  field: all
+  content: true
+
+banner:
+  random_img: false
+  parallax: true
+  width_height_ratio: 1.0
+
+scroll_down_arrow:
+  enable: true
+  banner_height_limit: 60
+  scroll_after_turning_page: true
+
+scroll_top_arrow:
+  enable: true
+
+index:
+  banner_img: /assets/picture/illust_70192717_20181002_223845.jpg
+  banner_img_height: 82
+  banner_mask_alpha: 0
+  slogan:
+    enable: true
+    text: "分享技术 · 记录成长 · 思考生活"
+  auto_excerpt:
+    enable: true
+    length: 180
+  post_url_target: _self
+  post_meta:
+    date: true
+    category: true
+    tag: true
+
+post:
+  banner_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
+  banner_img_height: 58
+  banner_mask_alpha: 0
+  default_index_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
+  meta:
+    author:
+      enable: true
+    post_date:
+      enable: true
+      format: "YYYY-MM-DD"
+    update_date:
+      enable: false
+      format: "YYYY-MM-DD"
+    wordcount:
+      enable: false
+    min2read:
+      enable: false
+    views:
+      enable: false
+  toc:
+    enable: true
+    placement: right
+    headingSelector: "h1,h2,h3,h4"
+    collapseDepth: 2
+    expand_all: false
+  prev_next:
+    enable: true
+  image_caption:
+    enable: true
+  image_zoom:
+    enable: true
+    img_url_replace: ["", ""]
+  copyright:
+    enable: false
+  comments:
+    enable: false
+    type: waline
+  custom:
+    enable: false
+
+archive:
+  banner_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
+  banner_img_height: 48
+  banner_mask_alpha: 0
+
+category:
+  banner_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
+  banner_img_height: 48
+  banner_mask_alpha: 0
+
+tag:
+  banner_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
+  banner_img_height: 48
+  banner_mask_alpha: 0
+
+about:
+  name: "小呆呆"
+  intro: "如果神明肯听一听我的愿望，那么我想祝你晚安，愿你的梦里总有星星。"
+  banner_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
+  banner_img_height: 48
+  banner_mask_alpha: 0
+  avatar: /img/about-avatar.webp
+  icons:
+    - { class: "iconfont icon-link-fill", link: "https://space.bilibili.com/1067868117", tip: "B站主页" }
+    - { class: "iconfont icon-github-fill", link: "https://github.com/hengjiasteven-dotcom", tip: "GitHub" }
+
+links:
+  enable: true
+  title: 友情链接
+  subtitle: 这里是我的朋友们，欢迎互相访问交流。
+  banner_img: /assets/picture/%E5%B0%8F%E7%8E%8B%E5%AD%901.jpg
+  banner_img_height: 48
+  banner_mask_alpha: 0
+  onerror_avatar: /img/avatar.png
+  custom:
+    enable: true
+    content: >
+      <section class="friends-apply">
+        <h2>申请友链</h2>
+        <p>很高兴能和更多朋友交换友链。本站友链支持 GitHub Pull Request 流程，提交后会自动校验格式、链接可访问性和回链信息；合并后页面会自动读取最新友链数据。</p>
+        <div class="friends-info-grid">
+          <div>
+            <h3>本站信息</h3>
+            <ul>
+              <li>网站名称：xiaodaidai</li>
+              <li>网站地址：https://xiaodaidai.site/</li>
+              <li>网站描述：分享技术，记录生活，顺手做点小工具。</li>
+              <li>网站头像：https://xiaodaidai.site/img/avatar.png</li>
+            </ul>
+          </div>
+          <div>
+            <h3>申请方式</h3>
+            <ol>
+              <li>先在你的友链页面添加本站信息，并准备好回链页面地址。</li>
+              <li>Fork 本仓库，在 <code>friend-links</code> 目标分支的 <code>source/_data/friends/</code> 下新增一个 JSON 文件。</li>
+              <li>文件里填写 <code>name</code>、<code>url</code>、<code>avatar</code>、<code>description</code>、<code>backlink</code>。</li>
+              <li>提交 Pull Request 时，请把目标分支设为 <code>friend-links</code>，GitHub Actions 会自动校验，通过后我会合并。</li>
+            </ol>
+          </div>
+        </div>
+        <a class="friends-apply-button" href="https://github.com/hengjiasteven-dotcom/my-website/tree/friend-links/source/_data/friends" target="_blank" rel="noopener">查看友链数据目录</a>
+      </section>
+  comments:
+    enable: false
+    type: giscus
+
+giscus:
+  repo: hengjiasteven-dotcom/my-website
+  repo-id: R_kgDOSzXB9w
+  category: Announcements
+  category-id: DIC_kwDOSzXB984C-wjG
+  theme-light: light
+  theme-dark: dark
+  mapping: pathname
+  strict: 0
+  reactions-enabled: 1
+  emit-metadata: 0
+  input-position: top
+  lang: zh-CN
+
+waline:
+  serverURL: https://my-blog-eta-one-13.vercel.app
+  path: window.location.pathname
+  meta: ['nick', 'mail', 'link']
+  requiredMeta: ['nick']
+  lang: zh-CN
+  emoji: ['/js/vendor/waline-emojis/weibo']
+  dark: 'html[data-user-color-scheme="dark"]'
+  wordLimit: 0
+  pageSize: 10
+  pageview: false
+
+footer:
+  content: '
+    <p><a href="https://github.com/hengjiasteven-dotcom">GitHub</a> &nbsp;|&nbsp; Powered by <a href="https://hexo.io">Hexo</a></p>
+    <p>&copy; 2026 xiaodaidai</p>
+  '
+  statistics:
+    enable: false
+  beian:
+    enable: true
+    icp_text: 蜀ICP备2026036415号-1
+    police_text:
+    police_code:
+    police_icon:
+
+lazyload:
+  enable: true
+  onlypost: false
+  loading_img: /img/loading.gif
+
+comments:
+  enable: false

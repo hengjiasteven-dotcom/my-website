@@ -1,0 +1,4 @@
+﻿# Prevent CRLF conversion for files with multi-byte UTF-8 sequences
+backend/public/*.html -text
+backend/public/*.js -text
+backend/src/*.js -text
