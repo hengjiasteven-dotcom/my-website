@@ -61,21 +61,6 @@ function copyDir(from, to, filter = () => true) {
   });
 }
 
-function syncWaline() {
-  const walineSrc = path.join(rootDir, 'node_modules', '@waline', 'client', 'dist');
-  const walineDest = path.join(sourceDir, 'js', 'vendor', 'waline');
-
-  copyFile(path.join(walineSrc, 'waline.js'), path.join(walineDest, 'waline.js'));
-  copyFile(path.join(walineSrc, 'waline.css'), path.join(walineDest, 'waline.css'));
-  copyFile(path.join(walineSrc, 'pageview.js'), path.join(walineDest, 'pageview.js'));
-
-  copyDir(
-    path.join(rootDir, 'node_modules', '@waline', 'emojis', 'weibo'),
-    path.join(sourceDir, 'js', 'vendor', 'waline-emojis', 'weibo'),
-    (file) => /\.(?:json|png|webp|gif|jpe?g|svg)$/i.test(file)
-  );
-}
-
 function syncThree() {
   const threeRoot = path.join(rootDir, 'node_modules', 'three');
   const threeDest = path.join(sourceDir, 'js', 'vendor', 'three');
@@ -118,7 +103,6 @@ function syncFfmpeg() {
 }
 
 function main() {
-  syncWaline();
   syncThree();
   syncFfmpeg();
   console.log('[vendor:sync] Local vendor assets synced.');

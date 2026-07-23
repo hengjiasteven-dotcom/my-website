@@ -2,7 +2,6 @@
 title: 关于我
 layout: about
 comments: true
-comment: waline
 ---
 
 <div class="about-hub">
@@ -75,19 +74,19 @@ comment: waline
         </div>
         <div class="about-stat-row">
           <dt><i class="iconfont icon-eye" aria-hidden="true"></i><span>总访问量</span></dt>
-          <dd><span class="waline-pageview-count" data-dream-visit-total>--</span></dd>
+          <dd><span class="dream-pageview-count" data-dream-visit-total>--</span></dd>
         </div>
         <div class="about-stat-row">
           <dt><i class="iconfont icon-user-fill" aria-hidden="true"></i><span>总访客数</span></dt>
-          <dd><span class="waline-pageview-count" data-dream-visitor-total>--</span></dd>
+          <dd><span class="dream-pageview-count" data-dream-visitor-total>--</span></dd>
         </div>
         <div class="about-stat-row">
           <dt><i class="iconfont icon-date-fill" aria-hidden="true"></i><span>今日访问</span></dt>
-          <dd><span class="waline-pageview-count" data-dream-visit-today>--</span></dd>
+          <dd><span class="dream-pageview-count" data-dream-visit-today>--</span></dd>
         </div>
         <div class="about-stat-row">
           <dt><i class="iconfont icon-user-fill" aria-hidden="true"></i><span>今日访客</span></dt>
-          <dd><span class="waline-pageview-count" data-dream-visitor-today>--</span></dd>
+          <dd><span class="dream-pageview-count" data-dream-visitor-today>--</span></dd>
         </div>
         <div class="about-stat-row">
           <dt><i class="iconfont icon-chart" aria-hidden="true"></i><span>总字数</span></dt>

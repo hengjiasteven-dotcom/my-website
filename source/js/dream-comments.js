@@ -63,13 +63,6 @@
     var existing = document.getElementById('dream-comments-root');
     if (existing) return existing;
 
-    var waline = document.getElementById('waline');
-    if (waline) {
-      waline.id = 'dream-comments-root';
-      waline.innerHTML = '';
-      return waline;
-    }
-
     var article = document.querySelector('article.post-content, article.page-content');
     if (!article) return null;
 

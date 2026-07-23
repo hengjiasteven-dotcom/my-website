@@ -4,7 +4,6 @@ subtitle: 写下想说的话
 description: 访客留言、建议与交流入口，使用站点自建留言系统。
 layout: page
 comments: true
-comment: waline
 banner_img: /assets/picture/小王子6.jpg
 banner_img_height: 48
 banner_mask_alpha: 0

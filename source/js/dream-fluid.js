@@ -30,10 +30,6 @@
     if (localHosts.indexOf(window.location.hostname) >= 0) return '';
     return 'https://api.xiaodaidai.site';
   })();
-  var walineServerURL = '';
-  var walineStatusDelayTimer = 0;
-  var walineStatusTimeoutTimer = 0;
-  var walineStatusAbortController = null;
   var videoSpotlightState = {
     home: null,
     tool: null
@@ -482,41 +478,6 @@
       .replace(/'/g, '&#39;');
   }
 
-  function chinaDateKey() {
-    var now = new Date();
-    var utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
-    var china = new Date(utcTime + 8 * 60 * 60000);
-    return [
-      china.getFullYear(),
-      String(china.getMonth() + 1).padStart(2, '0'),
-      String(china.getDate()).padStart(2, '0')
-    ].join('-');
-  }
-
-  function ensureWalineCounter(selector, attrName, path) {
-    var nodes = Array.prototype.slice.call(document.querySelectorAll(selector));
-
-    if (!nodes.length) {
-      var holder = document.querySelector('[data-dream-hidden-counters]');
-      if (!holder) {
-        holder = document.createElement('div');
-        holder.setAttribute('data-dream-hidden-counters', '');
-        holder.hidden = true;
-        document.body.appendChild(holder);
-      }
-
-      var node = document.createElement('span');
-      node.className = 'waline-pageview-count';
-      node.setAttribute(attrName, '');
-      holder.appendChild(node);
-      nodes = [node];
-    }
-
-    nodes.forEach(function(node) {
-      node.setAttribute('data-path', path);
-    });
-  }
-
   function appendPostPageview(path) {
     if (!isPostPath() || document.querySelector('.dream-pageview-meta')) return false;
 
@@ -528,7 +489,7 @@
     item.innerHTML = [
       '<i class="iconfont icon-eye" aria-hidden="true"></i>',
       ' 阅读 ',
-      '<span class="waline-pageview-count" data-dream-article-view data-path="' + escapeAttribute(path) + '">--</span>'
+      '<span class="dream-pageview-count" data-dream-article-view data-path="' + escapeAttribute(path) + '">--</span>'
     ].join('');
     metaRow.appendChild(item);
     return true;
@@ -747,10 +708,6 @@
     }
   }
 
-  function shouldInitWalineCounters() {
-    return Boolean(document.body);
-  }
-
   function setCounterText(selector, text) {
     Array.prototype.slice.call(document.querySelectorAll(selector)).forEach(function(node) {
       node.textContent = text;
@@ -773,53 +730,8 @@
     });
   }
 
-  function initWalineCountersLegacy() {
-    if (!walineServerURL) return;
-
-    var oldHolder = document.querySelector('[data-dream-hidden-counters]');
-    if (oldHolder && oldHolder.parentNode) {
-      oldHolder.parentNode.removeChild(oldHolder);
-    }
-
-    var currentPath = normalizedCurrentPath();
-    var totalPath = '/__site_total__';
-    var todayPath = '/__site_daily__/' + chinaDateKey();
-    var counters = [
-      { path: totalPath, selector: '[data-dream-visit-total]' },
-      { path: todayPath, selector: '[data-dream-visit-today]' }
-    ];
-
-    ensureWalineCounter('[data-dream-visit-total]', 'data-dream-visit-total', totalPath);
-    ensureWalineCounter('[data-dream-visit-today]', 'data-dream-visit-today', todayPath);
-    setCounterText('[data-dream-visit-total], [data-dream-visit-today]', '加载中');
-
-    if (appendPostPageview(currentPath)) {
-      counters.push({ path: currentPath, selector: '[data-dream-article-view]' });
-    }
-
-    runWhenIdle(function() {
-      import(siteAssetUrl('js/vendor/waline/pageview.js'))
-      .then(function(module) {
-        if (!module || !module.pageviewCount) return;
-        counters.forEach(function(counter) {
-          module.pageviewCount({
-            serverURL: walineServerURL,
-            path: counter.path,
-            selector: counter.selector,
-            update: true,
-            lang: 'zh-CN'
-          });
-        });
-      })
-      .catch(function(error) {
-        setCounterText('[data-dream-visit-total], [data-dream-visit-today]', '暂不可用');
-        console.warn('Waline pageview failed:', error);
-      });
-    }, 1800);
-  }
-
-  function initWalineCounters() {
-    if (!shouldInitWalineCounters()) return;
+  function initVisitCounters() {
+    if (!document.body) return;
 
     var currentPath = normalizedCurrentPath();
     var counterLoadingSelector = [
@@ -852,114 +764,6 @@
         console.warn('Dream visit stats failed:', error);
       });
     }, 1800);
-  }
-
-  function walineApiUrl(endpoint, params) {
-    if (!walineServerURL) return '';
-
-    var base = String(walineServerURL).replace(/\/+$/, '');
-    var path = String(endpoint || '').replace(/^\/+/, '');
-    var search = '';
-
-    if (params && typeof URLSearchParams !== 'undefined') {
-      var query = new URLSearchParams();
-      Object.keys(params).forEach(function(key) {
-        var value = params[key];
-        if (value === undefined || value === null || value === '') return;
-        query.set(key, String(value));
-      });
-      search = query.toString() ? ('?' + query.toString()) : '';
-    }
-
-    return base + '/api/' + path + search;
-  }
-
-  function clearWalineStatusTimers() {
-    if (walineStatusDelayTimer) {
-      window.clearTimeout(walineStatusDelayTimer);
-      walineStatusDelayTimer = 0;
-    }
-    if (walineStatusTimeoutTimer) {
-      window.clearTimeout(walineStatusTimeoutTimer);
-      walineStatusTimeoutTimer = 0;
-    }
-    if (walineStatusAbortController) {
-      walineStatusAbortController.abort();
-      walineStatusAbortController = null;
-    }
-  }
-
-  function removeWalineStatusNotice() {
-    var container = document.getElementById('waline');
-    if (!container) return;
-
-    var notice = container.querySelector('[data-dream-waline-status]');
-    if (notice && notice.parentNode) {
-      notice.parentNode.removeChild(notice);
-    }
-  }
-
-  function renderWalineStatusNotice(message, tone) {
-    var container = document.getElementById('waline');
-    if (!container) return;
-
-    var notice = container.querySelector('[data-dream-waline-status]');
-    if (!notice) {
-      notice = document.createElement('div');
-      notice.setAttribute('data-dream-waline-status', 'true');
-      container.insertBefore(notice, container.firstChild || null);
-    }
-
-    notice.className = 'dream-waline-status dream-waline-status-' + (tone || 'info');
-    notice.textContent = message;
-  }
-
-  function initWalineStatusNotice() {
-    var container = document.getElementById('waline');
-    if (!container || !walineServerURL || !window.fetch) return;
-
-    clearWalineStatusTimers();
-    removeWalineStatusNotice();
-
-    walineStatusDelayTimer = window.setTimeout(function() {
-      renderWalineStatusNotice('评论服务连接中，若长时间未出现可稍后刷新重试。', 'info');
-    }, 2400);
-
-    if (typeof AbortController !== 'undefined') {
-      walineStatusAbortController = new AbortController();
-      walineStatusTimeoutTimer = window.setTimeout(function() {
-        if (walineStatusAbortController) {
-          walineStatusAbortController.abort();
-        }
-      }, 6500);
-    }
-
-    fetch(walineApiUrl('article', {
-      path: normalizedCurrentPath(),
-      type: 'time',
-      lang: 'zh-CN'
-    }), {
-      method: 'GET',
-      credentials: 'omit',
-      signal: walineStatusAbortController ? walineStatusAbortController.signal : undefined
-    })
-    .then(function(response) {
-      if (!response.ok) {
-        throw new Error('Waline status check failed: ' + response.status);
-      }
-      return response.json().catch(function() {
-        return {};
-      });
-    })
-    .then(function() {
-      clearWalineStatusTimers();
-      removeWalineStatusNotice();
-    })
-    .catch(function(error) {
-      clearWalineStatusTimers();
-      renderWalineStatusNotice('评论服务暂时不可用，你可以稍后再试，或先通过其他页面继续浏览。', 'warning');
-      console.warn('Waline status check failed:', error);
-    });
   }
 
   function createHomeProfile() {
@@ -1060,7 +864,7 @@
       runWhenIdle(function() {
         createPlayer();
         createNetworkPet();
-        initWalineCounters();
+        initVisitCounters();
       }, 2400);
     };
 
@@ -5074,7 +4878,6 @@
     initClassificationTags();
     initDreamTools();
     initLinksPage();
-    initWalineStatusNotice();
     createHomeTimeModule();
     createHomeTasksCard();
     createHomeDailySignCard();

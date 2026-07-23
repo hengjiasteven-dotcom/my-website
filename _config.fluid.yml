@@ -23,9 +23,6 @@ custom_js:
   - /js/dream-fluid.js?v=20260627-home-refresh-6
   - /js/dream-comments.js?v=20260704-comments-mvp-2
 
-static_prefix:
-  waline: /js/vendor/waline/
-
 fun_features:
   typing:
     enable: false
@@ -91,6 +88,7 @@ navbar:
     - { key: "分类", link: "/categories/", icon: "iconfont icon-category-fill" }
     - { key: "功能", link: "/tools/", icon: "iconfont icon-chart" }
     - { key: "关于", link: "/about/", icon: "iconfont icon-user-fill" }
+    - { key: "友链", link: "/links/", icon: "iconfont icon-link-fill" }
 
 search:
   enable: true
@@ -165,7 +163,6 @@ post:
     enable: false
   comments:
     enable: false
-    type: waline
   custom:
     enable: false
 
@@ -248,18 +245,6 @@ giscus:
   emit-metadata: 0
   input-position: top
   lang: zh-CN
-
-waline:
-  serverURL: https://my-blog-eta-one-13.vercel.app
-  path: window.location.pathname
-  meta: ['nick', 'mail', 'link']
-  requiredMeta: ['nick']
-  lang: zh-CN
-  emoji: ['/js/vendor/waline-emojis/weibo']
-  dark: 'html[data-user-color-scheme="dark"]'
-  wordLimit: 0
-  pageSize: 10
-  pageview: false
 
 footer:
   content: '
