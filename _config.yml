@@ -30,8 +30,6 @@ code_dir: downloads/code
 i18n_dir: :lang
 skip_render:
   - world/**
-  - pet-game/**
-  - gacha-home/**
 
 # Writing
 new_post_name: :title.md

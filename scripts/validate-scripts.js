@@ -171,6 +171,10 @@ function validateSeoOutput() {
   assert.ok(html.includes('<link rel="canonical" href="https://xiaodaidai.site/about/">'), 'SEO output should add a canonical link.');
   assert.ok(html.includes('<meta property="og:url" content="https://xiaodaidai.site/about/">'), 'SEO output should normalize og:url.');
 
+  const headedHtml = mod.withSeoHeading('<html><head><title>归档 - xiaodaidai</title></head><body><main></main></body></html>', 'archives/index.html');
+  assert.ok(headedHtml.includes('<h1 class="dream-seo-heading">归档</h1>'), 'SEO output should add one semantic H1 when a page has none.');
+  assert.strictEqual((headedHtml.match(/<h1\b/g) || []).length, 1, 'SEO output should add exactly one H1.');
+
   const sitemap = mod.cleanSitemap([
     '<urlset>',
     '<url><loc>https://xiaodaidai.site/</loc></url>',

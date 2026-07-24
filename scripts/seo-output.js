@@ -5,7 +5,7 @@ const path = require('node:path');
 
 const NON_PAGE_PATH = /(?:^|\/)(?:assets|css|fonts|img|js|music|picture|video)(?:\/|$)/i;
 const NON_PAGE_EXTENSION = /\.(?:css|gif|ico|jpe?g|js|json|m4a|mp3|mp4|ogg|png|svg|txt|wav|webm|webp|woff2?)$/i;
-const REQUIRED_PAGE_ROUTES = ['', 'about', 'gacha-home', 'links', 'message', 'pet-game', 'tools', 'world'];
+const REQUIRED_PAGE_ROUTES = ['', 'about', 'links', 'message', 'tools', 'world'];
 
 function escapeAttribute(value) {
   return String(value || '')
@@ -48,6 +48,24 @@ function withCanonical(html, routePath, siteUrl) {
     /<meta\b[^>]*\bproperty=(?:"|')og:url(?:"|')[^>]*>/i,
     `<meta property="og:url" content="${escapeAttribute(canonical)}">`
   );
+}
+
+function withSeoHeading(html, routePath) {
+  let output = String(html || '');
+  if (/^404(?:\.html)?$/i.test(String(routePath || '')) || /<h1\b/i.test(output)) return output;
+
+  const titleMatch = output.match(/<title>([\s\S]*?)<\/title>/i);
+  if (!titleMatch) return output;
+
+  const title = titleMatch[1]
+    .replace(/<[^>]+>/g, '')
+    .replace(/\s+(?:-|\||·)\s+xiaodaidai\s*$/i, '')
+    .trim();
+  if (!title) return output;
+
+  return output.replace(/<body\b([^>]*)>/i, (bodyTag) => {
+    return `${bodyTag}\n  <h1 class="dream-seo-heading">${title}</h1>`;
+  });
 }
 
 function isIndexableLocation(location) {
@@ -136,7 +154,7 @@ function cleanGeneratedSitemap(rootDir, siteUrl = 'https://xiaodaidai.site') {
 function register(hexo) {
   hexo.extend.filter.register('after_render:html', (html, data) => {
     if (!data || !data.path) return html;
-    return withCanonical(html, data.path, hexo.config.url);
+    return withCanonical(withSeoHeading(html, data.path), data.path, hexo.config.url);
   });
 
 }
@@ -149,7 +167,8 @@ module.exports = {
   isIndexableLocation,
   normalizeSitemapLocations,
   register,
-  withCanonical
+  withCanonical,
+  withSeoHeading
 };
 
 if (require.main === module) {
