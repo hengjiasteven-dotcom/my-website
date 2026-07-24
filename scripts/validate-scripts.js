@@ -154,6 +154,38 @@ function validateFriendLinksChecker() {
   }, 'Friend link checker should accept valid friend records.');
 }
 
+function validateSeoOutput() {
+  const mod = freshRequire(path.join(rootDir, 'scripts', 'seo-output.js'));
+
+  assert.strictEqual(
+    mod.canonicalUrl('https://xiaodaidai.site', 'about/index.html'),
+    'https://xiaodaidai.site/about/',
+    'SEO output should normalize index.html routes.'
+  );
+
+  const html = mod.withCanonical(
+    '<head><meta property="og:url" content="https://xiaodaidai.site/about/index.html"></head>',
+    'about/index.html',
+    'https://xiaodaidai.site'
+  );
+  assert.ok(html.includes('<link rel="canonical" href="https://xiaodaidai.site/about/">'), 'SEO output should add a canonical link.');
+  assert.ok(html.includes('<meta property="og:url" content="https://xiaodaidai.site/about/">'), 'SEO output should normalize og:url.');
+
+  const sitemap = mod.cleanSitemap([
+    '<urlset>',
+    '<url><loc>https://xiaodaidai.site/</loc></url>',
+    '<url><loc>https://xiaodaidai.site/js/vendor/data.json</loc></url>',
+    '<url><loc>https://xiaodaidai.site/2026/07/post/</loc></url>',
+    '</urlset>'
+  ].join('\n'));
+  assert.strictEqual(sitemap.removed, 1, 'SEO output should remove non-page sitemap entries.');
+  assert.ok(sitemap.output.includes('https://xiaodaidai.site/2026/07/post/'), 'SEO output should keep article URLs.');
+  assert.ok(
+    mod.normalizeSitemapLocations('<loc>https://xiaodaidai.site/about/index.html</loc>').includes('https://xiaodaidai.site/about/'),
+    'SEO output should normalize sitemap index.html URLs.'
+  );
+}
+
 function validatePackageManager() {
   assert.ok(fs.existsSync(path.join(rootDir, 'package-lock.json')), 'package-lock.json should exist.');
   assert.ok(!fs.existsSync(path.join(rootDir, 'yarn.lock')), 'yarn.lock should be removed; npm is the single package manager.');
@@ -164,7 +196,8 @@ function main() {
     'scripts/dream-theme-assets.js',
     'scripts/dream-site-data.js',
     'scripts/build-world-app.js',
-    'scripts/check-friend-links.js'
+    'scripts/check-friend-links.js',
+    'scripts/seo-output.js'
   ].forEach(syntaxCheck);
 
   validatePackageManager();
@@ -172,6 +205,7 @@ function main() {
   validateDreamSiteData();
   validateBuildWorldApp();
   validateFriendLinksChecker();
+  validateSeoOutput();
 
   console.log('[validate-scripts] All script checks passed.');
 }
